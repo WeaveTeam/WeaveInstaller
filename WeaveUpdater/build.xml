@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project name="WeaveUpdater" default="dist">
+	
+	<property environment="env" />
+
+	<target name="dist">
+
+		<echo message="Building Updater..." />
+			
+		<mkdir dir="build" />
+		<delete file="build/Updater.jar" failonerror="false" />
+
+        <jar basedir="bin" destfile="build/Updater_new.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+            	<attribute name="Manifest-Version" value="1.0" />
+            	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
+                <attribute name="Main-Class" value="weave.Updater"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="../WeaveConfig/bin/" />
+        </jar>
+
+		<waitfor><available file="build/Updater_new.jar" /></waitfor>
+        <copy file="build/Updater_new.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Updater_new.jar" /></waitfor>
+		
+        <delete dir="build" />
+	</target>
+</project>

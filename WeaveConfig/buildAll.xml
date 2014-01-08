@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project name="WeaveConfig" basedir="../" default="dist">
+
+	<property environment="env" />
+
+	<path id="WeaveConfigLibs">
+		<fileset dir="WeaveConfig/libs/" includes="*.jar" />
+	</path>
+	<path id="WeaveConfigIncludes">
+		<pathelement path="WeaveConfig/bin/" />
+	</path>
+
+	
+	<target name="dist">
+		<antcall target="clean" />
+		<antcall target="Config" />
+		<antcall target="Launcher" />
+		<antcall target="Updater" />
+		<antcall target="Installer" />
+	</target>
+	
+	
+	<target name="clean">
+		<delete dir="WeaveConfig/bin/" failonerror="false" />
+		<delete dir="WeaveLauncher/bin/" failonerror="false" />
+		<delete dir="WeaveUpdater/bin/" failonerror="false" />
+		<delete dir="WeaveInstaller/bin/" failonerror="false" />
+
+		<delete dir="WeaveLauncher/build/" failonerror="false" />
+		<delete dir="WeaveUpdater/build/" failonerror="false" />
+		<delete dir="WeaveInstaller/build/" failonerror="false" />
+
+		<mkdir dir="WeaveConfig/bin/" />
+		<mkdir dir="WeaveConfig/bin/resources/" />
+
+		<mkdir dir="WeaveLauncher/bin/" />
+		<mkdir dir="WeaveLauncher/bin/resources/" />
+		<mkdir dir="WeaveLauncher/build/" />
+		
+		<mkdir dir="WeaveUpdater/bin/" />
+		<mkdir dir="WeaveUpdater/bin/resources/" />
+		<mkdir dir="WeaveUpdater/build/" />
+
+		<mkdir dir="WeaveInstaller/bin/" />
+		<mkdir dir="WeaveInstaller/bin/resources/" />
+		<mkdir dir="WeaveInstaller/build/" />
+	</target>
+	
+	
+	
+	
+	
+	<target name="Config">
+		<javac srcdir="WeaveConfig/src/" destdir="WeaveConfig/bin/" debug="true">
+			<classpath refid="WeaveConfigLibs" />
+		</javac>
+		
+		<copy todir="WeaveConfig/bin/resources/">
+			<fileset dir="WeaveConfig/src/resources/" />
+		</copy>
+	</target>
+
+
+	
+	
+	
+	
+	<target name="Launcher">
+		<echo message="Building Launcher..." />
+
+		<javac 	srcdir="WeaveLauncher/src/" 
+				destdir="WeaveLauncher/bin/" 
+				classpathref="WeaveConfigIncludes"
+				debug="true"></javac>
+		
+		<copy todir="WeaveLauncher/bin/resources/" failonerror="false">
+			<fileset dir="WeaveLauncher/src/resources/" />
+		</copy>
+		
+        <jar basedir="WeaveLauncher/bin/" destfile="WeaveLauncher/build/Launcher.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+            	<attribute name="Manifest-Version" value="1.0" />
+            	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
+                <attribute name="Main-Class" value="weave.Launcher"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="WeaveConfig/bin/" />
+        </jar>
+        
+		<waitfor><available file="WeaveLauncher/build/Launcher.jar" /></waitfor>
+        <copy file="WeaveLauncher/build/Launcher.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Launcher.jar" /></waitfor>
+	</target>
+	
+	
+	
+
+	<target name="Updater">
+		<echo message="Building Updater..." />
+
+		<javac 	srcdir="WeaveUpdater/src/" 
+				destdir="WeaveUpdater/bin/" 
+				classpathref="WeaveConfigIncludes"
+				debug="true"></javac>
+		
+		<copy todir="WeaveUpdater/bin/resources/" failonerror="false">
+			<fileset dir="WeaveUpdater/src/resources/" />
+		</copy>
+		
+        <jar basedir="WeaveUpdater/bin/" destfile="WeaveUpdater/build/Updater_new.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+            	<attribute name="Manifest-Version" value="1.0" />
+            	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
+                <attribute name="Main-Class" value="weave.Updater"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="WeaveConfig/bin/" />
+        </jar>
+
+		<waitfor><available file="WeaveUpdater/build/Updater_new.jar" /></waitfor>
+        <copy file="WeaveUpdater/build/Updater_new.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Updater_new.jar" /></waitfor>
+	</target>
+	
+	
+	
+
+	<target name="Installer">
+		<echo message="Building Installer..." />
+
+		<javac 	srcdir="WeaveInstaller/src/" 
+				destdir="WeaveInstaller/bin/" 
+				classpathref="WeaveConfigIncludes" 
+				failonerror="false"
+				debug="true"></javac>
+		
+		<copy todir="WeaveInstaller/bin/resources/" failonerror="false">
+			<fileset dir="WeaveInstaller/src/resources/" />
+		</copy>
+
+		<jar basedir="WeaveInstaller/bin/" destfile="WeaveInstaller/build/Installer.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+            	<attribute name="Manifest-Version" value="1.0" />
+            	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
+                <attribute name="Main-Class" value="weave.Installer" />
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="WeaveConfig/bin/" />
+			<exclude />
+        </jar>
+
+		<waitfor><available file="WeaveInstaller/build/Installer.jar" /></waitfor>
+        <copy file="WeaveInstaller/build/Installer.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Installer.jar" /></waitfor>
+	</target>
+	
+</project>
