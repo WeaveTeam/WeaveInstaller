@@ -19,6 +19,7 @@ import javax.swing.JProgressBar;
 import weave.Revisions;
 import weave.Settings;
 import weave.WeaveUpdater;
+import weave.utils.Strings;
 
 public class ProgressUpdate
 		extends JPanel
@@ -167,7 +168,7 @@ public class ProgressUpdate
 			int pos = urlFileName.indexOf("filename=");
 			final String updateFileName = Settings.instance().ZIP_DIRECTORY.getPath() + "/"
 					+ urlFileName.substring(pos + 9);
-			File updateFile = new File(updateFileName);
+			final File updateFile = new File(updateFileName);
 			System.out.println(updateFileName);
 			if (!Settings.instance().SETTINGS_DIRECTORY.exists())
 			{
@@ -182,8 +183,8 @@ public class ProgressUpdate
 			Thread t = new Thread(new Runnable()
 			{
 				int size;
-				FileOutputStream out;
-				byte[] b;
+				FileOutputStream out = new FileOutputStream(updateFile);
+				byte[] b = new byte[1024];
 				int count;
 				int total;
 				int kbps;
@@ -206,19 +207,19 @@ public class ProgressUpdate
 						{
 							if (this.size / 1024 > 1024)
 							{
-								strSize = String.format(
+								strSize = Strings.format(
 										"%.2f MB",
 										new Object[] { Double.valueOf(((this.size + 0.0D) / 1024.0D + 0.0D) / 1024.0D) });
 							}
 							else
 							{
-								strSize = String.format(
+								strSize = Strings.format(
 										"%.0f KB", new Object[] { Double.valueOf((this.size + 0.0D) / 1024.0D) });
 							}
 						}
 						else
 						{
-							strSize = String.format(
+							strSize = Strings.format(
 									"%.0f B", new Object[] { Double.valueOf((this.size + 0.0D) / 1.0D) });
 						}
 						ProgressUpdate.this.setZipTotalSize(strSize);
@@ -245,39 +246,46 @@ public class ProgressUpdate
 								{
 									if (this.total / 1024 > 1024)
 									{
-										ProgressUpdate.this.setZipSizeDownloaded(String.format(
+										ProgressUpdate.this.setZipSizeDownloaded(Strings.format(
 												"%.2f MB",
 												new Object[] { Double.valueOf((this.total + 0.0D) / 1024.0D / 1024.0D) }));
 									}
 									else
 									{
-										ProgressUpdate.this.setZipSizeDownloaded(String.format(
+										ProgressUpdate.this.setZipSizeDownloaded(Strings.format(
 												"%.0f KB",
 												new Object[] { Double.valueOf((this.total + 0.0D) / 1024.0D) }));
 									}
 								}
 								else
 								{
-									ProgressUpdate.this.setZipSizeDownloaded(String.format(
-											"%.0f B", new Object[] { Integer.valueOf(this.total) }));
+									ProgressUpdate.this.setZipSizeDownloaded(Strings.format("%s B", this.total));
 								}
 							}
-							this.timeleft = ((this.size - this.total) / this.aveDownSpeed / 1024);
-							ProgressUpdate.this.progBar.setValue(Integer.parseInt(String.format(
+							try
+							{
+								this.timeleft = ((this.size - this.total) / this.aveDownSpeed / 1024);
+							}
+							catch (ArithmeticException e)
+							{
+								e.printStackTrace();
+								this.timeleft = Integer.MAX_VALUE;
+							}
+							ProgressUpdate.this.progBar.setValue(Strings.parseInt(Strings.format(
 									"%.0f", new Object[] { Double.valueOf(ProgressUpdate.this.zipInfo.percent) })));
-							ProgressUpdate.this.progBar.setString(ProgressUpdate.this.setZipPercent(String.format(
+							ProgressUpdate.this.progBar.setString(ProgressUpdate.this.setZipPercent(Strings.format(
 									"%.0f", new Object[] { Double.valueOf(ProgressUpdate.this.zipInfo.percent) }))
 									+ "%");
 							if (ProgressUpdate.this.zipInfo.speed > 1024)
 							{
-								ProgressUpdate.this.setZipSpeed(String.format(
+								ProgressUpdate.this.setZipSpeed(Strings.format(
 										"%.1f",
 										new Object[] { Double.valueOf(ProgressUpdate.this.zipInfo.speed / 1024.0D) })
 										+ " MB/s");
 							}
 							else
 							{
-								ProgressUpdate.this.setZipSpeed(String.format(
+								ProgressUpdate.this.setZipSpeed(Strings.format(
 										"%d", new Object[] { Integer.valueOf(ProgressUpdate.this.zipInfo.speed) })
 										+ " KB/s");
 							}
@@ -286,18 +294,18 @@ public class ProgressUpdate
 								int t = this.timeleft / 60;
 								if (t == 1)
 								{
-									ProgressUpdate.this.setZipTimeleft(String.format(
+									ProgressUpdate.this.setZipTimeleft(Strings.format(
 											"%d minute remaining", new Object[] { Integer.valueOf(t) }));
 								}
 								else
 								{
-									ProgressUpdate.this.setZipTimeleft(String.format(
+									ProgressUpdate.this.setZipTimeleft(Strings.format(
 											"%d minutes remaining", new Object[] { Integer.valueOf(t) }));
 								}
 							}
 							else
 							{
-								ProgressUpdate.this.setZipTimeleft(String.format(
+								ProgressUpdate.this.setZipTimeleft(Strings.format(
 										"%d second(s) remaining", new Object[] { Integer.valueOf(this.timeleft) }));
 							}
 						}
@@ -444,8 +452,8 @@ public class ProgressUpdate
 			Thread t = new Thread(new Runnable()
 			{
 				int size;
-				FileOutputStream out;
-				byte[] b;
+				FileOutputStream out = new FileOutputStream(updateFile);
+				byte[] b = new byte[1024];
 				int count;
 				int total;
 				int kbps;
@@ -472,19 +480,19 @@ public class ProgressUpdate
 						{
 							if (this.size / 1024 > 1024)
 							{
-								strSize = String.format(
+								strSize = Strings.format(
 										"%.2f MB",
 										new Object[] { Double.valueOf(((this.size + 0.0D) / 1024.0D + 0.0D) / 1024.0D) });
 							}
 							else
 							{
-								strSize = String.format(
+								strSize = Strings.format(
 										"%.0f KB", new Object[] { Double.valueOf((this.size + 0.0D) / 1024.0D) });
 							}
 						}
 						else
 						{
-							strSize = String.format("%.0f B", new Object[] { Integer.valueOf(this.size) });
+							strSize = Strings.format("%.0f B", new Object[] { Integer.valueOf(this.size) });
 						}
 						ProgressUpdate.this.setMSITotalSize(strSize);
 						while ((this.count = in.read(this.b)) > 0)
@@ -510,39 +518,47 @@ public class ProgressUpdate
 								{
 									if (this.total / 1024 > 1024)
 									{
-										ProgressUpdate.this.setMSISizeDownloaded(String.format(
+										ProgressUpdate.this.setMSISizeDownloaded(Strings.format(
 												"%.2f MB",
 												new Object[] { Double.valueOf((this.total + 0.0D) / 1024.0D / 1024.0D) }));
 									}
 									else
 									{
-										ProgressUpdate.this.setMSISizeDownloaded(String.format(
+										ProgressUpdate.this.setMSISizeDownloaded(Strings.format(
 												"%.0f KB",
 												new Object[] { Double.valueOf((this.total + 0.0D) / 1024.0D) }));
 									}
 								}
 								else
 								{
-									ProgressUpdate.this.setMSISizeDownloaded(String.format(
+									ProgressUpdate.this.setMSISizeDownloaded(Strings.format(
 											"%.0f B", new Object[] { Integer.valueOf(this.total) }));
 								}
 							}
-							this.timeleft = ((this.size - this.total) / this.aveDownSpeed / 1024);
-							ProgressUpdate.this.progBar.setValue(Integer.parseInt(String.format(
+							try
+							{
+								this.timeleft = ((this.size - this.total) / this.aveDownSpeed / 1024);
+							}
+							catch (ArithmeticException e)
+							{
+								e.printStackTrace();
+								this.timeleft = Integer.MAX_VALUE;
+							}
+							ProgressUpdate.this.progBar.setValue(Strings.parseInt(Strings.format(
 									"%.0f", new Object[] { Double.valueOf(ProgressUpdate.this.msiInfo.percent) })));
-							ProgressUpdate.this.progBar.setString(ProgressUpdate.this.setMSIPercent(String.format(
+							ProgressUpdate.this.progBar.setString(ProgressUpdate.this.setMSIPercent(Strings.format(
 									"%.0f", new Object[] { Double.valueOf(ProgressUpdate.this.msiInfo.percent) }))
 									+ "%");
 							if (ProgressUpdate.this.msiInfo.speed > 1024)
 							{
-								ProgressUpdate.this.setMSISpeed(String.format(
+								ProgressUpdate.this.setMSISpeed(Strings.format(
 										"%.1f",
 										new Object[] { Double.valueOf(ProgressUpdate.this.msiInfo.speed / 1024.0D) })
 										+ " MB/s");
 							}
 							else
 							{
-								ProgressUpdate.this.setMSISpeed(String.format(
+								ProgressUpdate.this.setMSISpeed(Strings.format(
 										"%d", new Object[] { Integer.valueOf(ProgressUpdate.this.msiInfo.speed) })
 										+ " KB/s");
 							}
@@ -551,18 +567,18 @@ public class ProgressUpdate
 								int t = this.timeleft / 60;
 								if (t == 1)
 								{
-									ProgressUpdate.this.setMSITimeleft(String.format(
+									ProgressUpdate.this.setMSITimeleft(Strings.format(
 											"%d minute", new Object[] { Integer.valueOf(t) }));
 								}
 								else
 								{
-									ProgressUpdate.this.setMSITimeleft(String.format(
+									ProgressUpdate.this.setMSITimeleft(Strings.format(
 											"%d minutes", new Object[] { Integer.valueOf(t) }));
 								}
 							}
 							else
 							{
-								ProgressUpdate.this.setMSITimeleft(String.format(
+								ProgressUpdate.this.setMSITimeleft(Strings.format(
 										"%d second(s)", new Object[] { Integer.valueOf(this.timeleft) }));
 							}
 						}

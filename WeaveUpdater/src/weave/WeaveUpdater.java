@@ -826,7 +826,8 @@ public class WeaveUpdater
 					return;
 				}
 				File f = (File) Revisions.getRevisionData().get(n);
-				if (Settings.instance().CURRENT_INSTALL_VER.equals(Revisions.getRevisionName(f.getPath())))
+				if (Settings.instance().CURRENT_INSTALL_VER != null
+					&& Settings.instance().CURRENT_INSTALL_VER.equals(Revisions.getRevisionName(f.getPath())))
 				{
 					JOptionPane.showMessageDialog(null, "Cannot delete current installation.", "Error", 0);
 					return;
