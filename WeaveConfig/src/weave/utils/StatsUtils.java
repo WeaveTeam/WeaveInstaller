@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -54,12 +54,9 @@ public class StatsUtils
 			conn.setRequestProperty("charset", "utf-8");
 			conn.connect();
 			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			
 			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			while( (line = reader.readLine()) != null ) ;
-//				System.out.printf("%s\n", line);
-			
 			reader.close();
 			
 		} catch (IOException e) {
@@ -101,12 +98,9 @@ public class StatsUtils
 			conn.setRequestProperty("charset", "utf-8");
 			conn.connect();
 			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			
 			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			while( (line = reader.readLine()) != null ) ;
-//				System.out.printf("%s\n", line);
-			
 			reader.close();
 			
 		} catch (IOException e) {

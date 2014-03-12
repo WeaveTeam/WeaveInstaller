@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -71,6 +71,7 @@ public class TraceUtils implements IUtils
 	synchronized public static boolean trace( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -95,6 +96,7 @@ public class TraceUtils implements IUtils
 	synchronized public static boolean traceln( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -119,6 +121,7 @@ public class TraceUtils implements IUtils
 	synchronized public static boolean put( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -35,9 +35,9 @@ import weave.includes.IUtilsInfo;
 
 public class DownloadUtils implements IUtils
 {
-	public static final int FAILED		= 0;
-	public static final int COMPLETE	= 1;
-	public static final int CANCELLED 	= 2;
+	public static final int FAILED		= ( 1 << 0 );
+	public static final int COMPLETE	= ( 1 << 1 );
+	public static final int CANCELLED 	= ( 1 << 2 );
 	
 	private IUtilsInfo _func = null;
 	
@@ -60,20 +60,35 @@ public class DownloadUtils implements IUtils
 		return "DownloadUtils";
 	}
 	
+	
+	/*
+	 * DownloadUtils.speedify( speed )
+	 * 
+	 * Convert a scalar value into a downloaded speed measure.
+	 */
 	public static String speedify( int speed )
 	{
-		int i = 0;
+		return speedify( (double)speed );
+	}
+	public static String speedify( double speed )
+	{
+		int i = 0; 
 		List<String> s = Arrays.asList("B/s", "KB/s", "MB/s", "GB/s", "TB/s");
-		double d = speed;
 		
-		while( (speed/1024) > 1 )
-		{
-			d = d / 1024;
+		while( (speed/1024) > 1 ) {
+			speed = speed / 1024;
 			i++;
 		}
-		return String.format("%." + i + "f %s", d, s.get(i));
+		return String.format("%0." + i + "f %s", s.get(i));
 	}
 	
+	
+	/*
+	 * DownloadUtils.download( url, destination )
+	 * 
+	 * This will open an input stream to the URL and download the contents to the destination.
+	 * No stats will be supplied with this download.
+	 */
 	public static int download( String url, String destination ) throws IOException, InterruptedException
 	{
 		return instance().downloadWithInfo(url, destination);
@@ -82,6 +97,14 @@ public class DownloadUtils implements IUtils
 	{
 		return instance().downloadWithInfo(url, destination);
 	}
+	
+	
+	/*
+	 * DownloadUtils.downloadWithInfo( url, destination )
+	 * 
+	 * This will open an input stream to the URL and download the contents to the destination.
+	 * Stats can be tracked through the `info` object.
+	 */
 	public int downloadWithInfo( String url, File destination ) throws IOException, InterruptedException
 	{
 		return downloadWithInfo(new URL(url), destination);

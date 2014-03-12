@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -55,6 +55,11 @@ import weave.utils.TraceUtils;
 
 public class Settings 
 {
+
+	public static final String PROJECT_NAME				= "Weave";
+	
+	
+	
 	/*
 	 * Remote API URLs for POST methods
 	 */
@@ -68,7 +73,6 @@ public class Settings
 	public static final String API_STATS_LIVE			= OICWEAVE_URL + "api/noop.php";
 	public static final String API_BUG_REPORT			= OICWEAVE_URL + "api/bug_report.php";
 
-	public static final String PROJECT_NAME				= "Weave";
 	
 	/*
 	 * Weave Installer
@@ -100,6 +104,7 @@ public class Settings
 	public static final String USER_HOME				= System.getProperty("user.home");
 	public static final String N_L						= System.getProperty("line.separator");
 	public static final String F_S						= System.getProperty("file.separator");
+	public static final String EXACT_OS					= System.getProperty("os.name");
 	
 	/*
 	 * File directory structure
@@ -129,7 +134,6 @@ public class Settings
 	 */
 	public enum OS_TYPE 								{ WINDOWS, LINUX, MAC, UNKNOWN };
 	public static OS_TYPE OS 							= OS_TYPE.UNKNOWN;
-	public static String EXACT_OS						= System.getProperty("os.name");
 	
 	/*
 	 * Settings File
@@ -478,6 +482,9 @@ public class Settings
 				
 				if( isActivePID(lockPID) )
 					return false;
+				
+				releaseLock();
+				return getLock();
 				
 			} catch (FileNotFoundException e) {
 				TraceUtils.trace(TraceUtils.STDERR, e);

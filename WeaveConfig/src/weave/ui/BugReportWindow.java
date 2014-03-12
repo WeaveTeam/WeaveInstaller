@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -158,11 +158,11 @@ public class BugReportWindow extends JFrame
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				if( commentPanel.getText().trim().length() == 0 )
-					commentPanel.setText("Additional Comments...");
+					commentPanel.setText(defaultComment);
 			}
 			@Override
 			public void focusGained(FocusEvent arg0) {
-				if( commentPanel.getText().trim().equals("Additional Comments...") )
+				if( commentPanel.getText().trim().equals(defaultComment) )
 					commentPanel.setText("");
 			}
 		});

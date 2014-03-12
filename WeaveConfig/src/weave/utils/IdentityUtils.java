@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -25,10 +25,8 @@ public class IdentityUtils
 {
 	public static String createID()
 	{
-		String ip = (( Settings.isOfflineMode() ) ? Settings.LOCAL_IP : RemoteUtils.getIP() );
-		if( ip == null )
-			return null;
-		
+		String ip = (( Settings.isOfflineMode() ) ? Settings.LOCAL_IP : Settings.REMOTE_IP );
+
 		String str = ip + " " + System.currentTimeMillis();
 		return MD5Utils.hash(str);
 	}

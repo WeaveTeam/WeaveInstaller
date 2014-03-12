@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -198,7 +198,7 @@ public class Installer extends JFrame
 		oicLabel.setBounds(10, 10, 125, 57);
 		leftPanel.add(oicLabel);
 
-		final JLabel iweaveLink = new JLabel("oicweave.org");
+		final JLabel iweaveLink = new JLabel(Settings.OICWEAVE_HOST);
 		iweaveLink.setBounds(30, 300, 125, 20);
 		iweaveLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		iweaveLink.setFont(new Font(Settings.FONT, Font.PLAIN, 15));

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -20,6 +20,9 @@
 package weave.utils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -28,6 +31,28 @@ import weave.Settings;
 
 public class UpdateUtils 
 {
+
+	public static List<String> entriesToCheck	= new ArrayList<String>( Arrays.asList( RemoteUtils.WEAVE_UPDATER_VERSION,
+																						RemoteUtils.WEAVE_INSTALLER_VERSION,
+																						RemoteUtils.SHORTCUT_VER));
+	public static List<String> lookupEntries	= new ArrayList<String>( Arrays.asList( Settings.UPDATER_VER,
+																						Settings.INSTALLER_VER,
+																						Settings.SHORTCUT_VER));
+	/**
+	 * Assign new values to lookupEntries
+	 * 
+	 * Fixed SHORTCUT_VER bug
+	 */
+	public static void refreshLookupValues()
+	{
+		entriesToCheck = new ArrayList<String>( Arrays.asList( 	RemoteUtils.WEAVE_UPDATER_VERSION,
+																RemoteUtils.WEAVE_INSTALLER_VERSION,
+																RemoteUtils.SHORTCUT_VER));
+		lookupEntries = new ArrayList<String>( Arrays.asList( 	Settings.UPDATER_VER,
+																Settings.INSTALLER_VER,
+																Settings.SHORTCUT_VER ));
+	}
+	
 	/**
 	 * Check to see if an update is available for download.
 	 * 
@@ -41,14 +66,14 @@ public class UpdateUtils
 			boolean missingFile = false;
 			boolean outOfDateFile = false;
 			
-			RemoteUtils.refreshLookupValues();
+			refreshLookupValues();
 			
-			for( int i = 0; i < RemoteUtils.entriesToCheck.size(); i++ )
+			for( int i = 0; i < entriesToCheck.size(); i++ )
 			{
-				String value = RemoteUtils.getConfigEntry( RemoteUtils.entriesToCheck.get(i) );
+				String value = RemoteUtils.getConfigEntry( entriesToCheck.get(i) );
 				if( value == null ) return false;
 				
-				outOfDateFile |= !(value).equals(RemoteUtils.lookupEntries.get(i));
+				outOfDateFile |= !(value).equals( lookupEntries.get(i) );
 			}
 			
 			String[] files = RemoteUtils.getRemoteFiles();
