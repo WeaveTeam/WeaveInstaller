@@ -132,12 +132,14 @@ public class ProgressUpdate
 		{
 			this.progBar.setStringPainted(true);
 			Settings.instance().getClass();
-			URL url = new URL("https://github.com/IVPR/Weave-Binaries/zipball/master");
+			URL url = new URL(Settings.instance().UPDATE_URL);
 			URLConnection conn = url.openConnection();
 			final InputStream in = conn.getInputStream();
 			this.zipInfo = new DownloadInfo();
 			int updateAvailable = Revisions.checkForUpdates(false);
 			String urlFileName = conn.getHeaderField("Content-Disposition");
+			final int urlFileSize = Strings.parseInt(conn.getHeaderField("Content-Length"));
+			
 			if (updateAvailable == -2)
 			{
 				this.progBar.setValue(0);
@@ -182,7 +184,7 @@ public class ProgressUpdate
 
 			Thread t = new Thread(new Runnable()
 			{
-				int size;
+				int size = urlFileSize;
 				FileOutputStream out = new FileOutputStream(updateFile);
 				byte[] b = new byte[1024];
 				int count;

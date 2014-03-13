@@ -28,11 +28,11 @@ import javax.swing.JOptionPane;
 
 public class Settings
 {
-	public final String UPDATE_URL = "https://github.com/IVPR/Weave-Binaries/zipball/master";
+	public final String UPDATE_URL = "https://codeload.github.com/IVPR/Weave-Binaries/legacy.zip/master";
 	public final String UPDATE_CONFIG = "http://oicweave.org/WeaveUpdater/config.txt";
 	public final String INSTALLER_URL = "http://info.oicweave.org/projects/weave/wiki/Installer";
-	public final String UPDATER_VER = "1.2";
-	public final String TITLE = "Weave Installer v".concat("1.2");
+	public final String UPDATER_VER = "1.2R2";
+	public final String TITLE = "Weave Installer v".concat(UPDATER_VER);
 	public File SETTINGS_DIRECTORY = null;
 	public File EXE_DIRECTORY = null;
 	public File ZIP_DIRECTORY = null;
@@ -117,7 +117,7 @@ public class Settings
 	public void checkForUpdate()
 	{
 		String latestVersion = getLatestWeaveUpdaterVersion();
-		if (!latestVersion.equals("1.2"))
+		if (!latestVersion.equals(UPDATER_VER))
 		{
 			int n = JOptionPane.showConfirmDialog(
 					null,
@@ -428,12 +428,13 @@ public class Settings
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	public String[] getConfigFile()
 	{
 		String content = "";
 		try
 		{
-			URL url = new URL("http://oicweave.org/WeaveUpdater/config.txt");
+			URL url = new URL(UPDATE_CONFIG);
 			String line = "";
 			InputStream is = url.openStream();
 			DataInputStream dis = new DataInputStream(new BufferedInputStream(is));

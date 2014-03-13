@@ -31,7 +31,7 @@ public class Revisions
 		try
 		{
 			Settings.instance().getClass();
-			URL url = new URL("https://github.com/IVPR/Weave-Binaries/zipball/master");
+			URL url = new URL(Settings.instance().UPDATE_URL);
 
 			URLConnection conn = url.openConnection();
 
@@ -202,8 +202,7 @@ public class Revisions
 		{
 			public void run()
 			{
-				// TODO
-				// Revisions.this.doClick();
+				WeaveUpdater.updater.postSP.checkButton.doClick();
 			}
 		});
 	}
@@ -277,7 +276,7 @@ public class Revisions
 	public static ArrayList<File> getRevisionData()
 	{
 		File[] files = Settings.instance().ZIP_DIRECTORY.listFiles();
-		ArrayList<File> sortedFiles = new ArrayList();
+		ArrayList<File> sortedFiles = new ArrayList<File>();
 		for (int i = 0; i < files.length; i++)
 		{
 			sortedFiles.add(files[i]);

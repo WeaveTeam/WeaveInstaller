@@ -42,6 +42,7 @@ public class RevisionTable
 		add(this.scrollPane);
 	}
 
+	@SuppressWarnings("deprecation")
 	public void updateTableData()
 	{
 		int numberOfRevisions = Revisions.getNumberOfRevisions();
