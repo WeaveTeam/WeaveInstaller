@@ -181,7 +181,7 @@ public class DownloadUtils implements IUtils
 	}
 	
 	
-	public void addEventListener( IUtils parent, IUtilsInfo func ) throws IOException
+	public void addStatusListener( IUtils parent, IUtilsInfo func ) throws IOException
 	{
 		_func = func;
 		_func.info.parent = parent;
@@ -193,7 +193,7 @@ public class DownloadUtils implements IUtils
 		_func.info.progress = 0;
 	}
 	
-	public void removeEventListener()
+	public void removeStatusListener()
 	{
 		_func = null;
 	}

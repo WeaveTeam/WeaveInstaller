@@ -54,6 +54,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.inc.ISetupPanel;
 import weave.inc.SetupPanel;
+import weave.managers.IconManager;
+import weave.managers.TrayManager;
 import weave.plugins.MySQL;
 import weave.plugins.PluginManager;
 import weave.plugins.Tomcat;
@@ -64,7 +66,6 @@ import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
-import weave.utils.TrayManager;
 import weave.utils.UpdateUtils;
 
 @SuppressWarnings("serial")
@@ -193,7 +194,7 @@ public class Installer extends JFrame
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
-		BufferedImage oicLogo = ImageIO.read(WeaveInstaller.class.getResource("/resources/oic4.png"));
+		BufferedImage oicLogo = ImageIO.read(IconManager.ICON_OIC_LOGO);
 		JLabel oicLabel = new JLabel("", new ImageIcon(oicLogo), JLabel.CENTER);
 		oicLabel.setBounds(10, 10, 125, 57);
 		leftPanel.add(oicLabel);

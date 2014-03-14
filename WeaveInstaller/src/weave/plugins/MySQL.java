@@ -28,7 +28,7 @@ import javax.swing.JOptionPane;
 import weave.Settings;
 import weave.utils.RemoteUtils;
 
-public class MySQL implements IPluginManager 
+public class MySQL implements IPlugin 
 {
 	public String 	PLUGIN_NAME			= "MySQL";
 	public String 	MYSQL_URL 			= null;

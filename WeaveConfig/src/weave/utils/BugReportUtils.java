@@ -123,16 +123,18 @@ public class BugReportUtils implements IUtils
 			while( (line = br.readLine()) != null )
 				sb.append(line + Settings.N_L);
 			
-			System.out.println("");
-			System.out.println(sb.toString());
-			System.out.println("");
+//			System.out.println("");
+//			System.out.println(sb.toString());
+//			System.out.println("");
 			
 		} catch (ClientProtocolException e1) {	
 			TraceUtils.trace(TraceUtils.STDERR, e1);
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 		} catch (IOException e1) {
 			TraceUtils.trace(TraceUtils.STDERR, e1);
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 		}
 		
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		TraceUtils.put(TraceUtils.STDOUT, "SENT");
 	}
 }

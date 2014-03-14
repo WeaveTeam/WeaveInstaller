@@ -31,7 +31,7 @@ import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TraceUtils;
 
-public class Jetty implements IPluginManager 
+public class Jetty implements IPlugin 
 {
 	
 	public static String PLUGIN_NAME	= "Jetty";

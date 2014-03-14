@@ -26,8 +26,8 @@ public class PluginManager
 {
 	public static PluginManager _instance = null;
 	
-	private IPluginManager container = null;
-	private IPluginManager database = null;
+	private IPlugin container = null;
+	private IPlugin database = null;
 	
 	
 	public static PluginManager instance()
@@ -49,15 +49,15 @@ public class PluginManager
 		TraceUtils.put(TraceUtils.STDOUT, "DONE");
 	}
 
-	public IPluginManager getContainer() 
+	public IPlugin getContainer() 
 	{
 		return this.container;
 	}
-	public IPluginManager getDatabase()
+	public IPlugin getDatabase()
 	{
 		return this.database;
 	}
-	public boolean setContainer(IPluginManager c) 
+	public boolean setContainer(IPlugin c) 
 	{
 		if( c == null )
 		{
@@ -76,7 +76,7 @@ public class PluginManager
 		
 		return false;
 	}
-	public boolean setDatabase(IPluginManager d)
+	public boolean setDatabase(IPlugin d)
 	{
 		if( d == null )
 		{

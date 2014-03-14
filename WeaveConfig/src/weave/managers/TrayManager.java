@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.utils;
+package weave.managers;
 
 import java.awt.AWTException;
 import java.awt.Desktop;
@@ -41,6 +41,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.utils.LaunchUtils;
+import weave.utils.TraceUtils;
 
 public class TrayManager 
 {
@@ -69,13 +71,9 @@ public class TrayManager
 	{
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Initializing System Tray.......");
 		
-//		trayIconOnline = ImageIO.read(TrayManager.class.getResource("/resources/logo_green.png"));
-//		trayIconOffline = ImageIO.read(TrayManager.class.getResource("/resources/logo_orange.png"));
-//		trayIconError = ImageIO.read(TrayManager.class.getResource("/resources/logo_red.png"));
-		
-		trayIconOnline = ImageIO.read(TrayManager.class.getResource("/resources/logo2.png"));
-		trayIconOffline = ImageIO.read(TrayManager.class.getResource("/resources/logo2.png"));
-		trayIconError = ImageIO.read(TrayManager.class.getResource("/resources/logo2.png"));
+		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
+		trayIconOffline = ImageIO.read(IconManager.ICON_TRAY_OFFLINE);
+		trayIconError = ImageIO.read(IconManager.ICON_TRAY_ERROR);
 
 		if( !SystemTray.isSupported() ) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");

@@ -43,6 +43,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.dll.DLLInterface;
 import weave.includes.IUtilsInfo;
+import weave.managers.TrayManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -51,7 +52,6 @@ import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
 import weave.utils.TraceUtils;
-import weave.utils.TrayManager;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
 
@@ -318,7 +318,7 @@ public class Updater extends JFrame
 			Settings.downloadCanceled = false;
 			
 			DownloadUtils d = new DownloadUtils();
-			d.addEventListener(null, downloadInfo);
+			d.addStatusListener(null, downloadInfo);
 			status = d.downloadWithInfo(link, destination);
 			
 			Settings.downloadCanceled = false;
@@ -342,7 +342,7 @@ public class Updater extends JFrame
 					break;
 			}
 			
-			d.removeEventListener();
+			d.removeStatusListener();
 			System.gc();
 			Thread.sleep(2000);
 		} catch (IOException e) {
@@ -397,7 +397,7 @@ public class Updater extends JFrame
 			Thread.sleep(800);
 			
 			ZipUtils zu = new ZipUtils();
-			zu.addEventListener(null, zipInfo, zipFile);
+			zu.addStatusListener(null, zipInfo, zipFile);
 			zu.extractZipWithInfo(zipFile, unzippedFile);
 			
 			statusProgress.setValue( 50 );
@@ -405,7 +405,7 @@ public class Updater extends JFrame
 			Thread.sleep(800);
 			
 			FileUtils fu = new FileUtils();
-			fu.addEventListener(null, fileInfo, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
+			fu.addStatusListener(null, fileInfo, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
 			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
 			
 			statusProgress.setValue( 100 );
@@ -418,8 +418,8 @@ public class Updater extends JFrame
 			
 			Settings.canQuit = true;
 			
-			zu.removeEventListener();
-			fu.removeEventListener();
+			zu.removeStatusListener();
+			fu.removeStatusListener();
 			
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {

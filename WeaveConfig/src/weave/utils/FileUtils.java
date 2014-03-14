@@ -331,11 +331,11 @@ public class FileUtils implements IUtils
 	}
 	
 	
-	public void addEventListener(IUtils parent, IUtilsInfo func, String source, int flags)
+	public void addStatusListener(IUtils parent, IUtilsInfo func, String source, int flags)
 	{
-		addEventListener(parent, func, new File(source), flags);
+		addStatusListener(parent, func, new File(source), flags);
 	}
-	public void addEventListener(IUtils parent, IUtilsInfo func, File source, int flags)
+	public void addStatusListener(IUtils parent, IUtilsInfo func, File source, int flags)
 	{
 		_func = func;
 		_func.info.parent = parent;
@@ -345,7 +345,7 @@ public class FileUtils implements IUtils
 		else if( (flags & OPTION_SINGLE_FILE) != 0 )	_func.info.max = (int) source.length();	// only up to 2GB
 		_func.info.progress = 0;
 	}
-	public void removeEventListener()
+	public void removeStatusListener()
 	{
 		_func = null;
 	}

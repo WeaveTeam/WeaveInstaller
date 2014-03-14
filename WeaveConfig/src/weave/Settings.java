@@ -45,7 +45,7 @@ import javax.swing.JOptionPane;
 
 import net.jimmc.jshortcut.JShellLink;
 
-import weave.plugins.IPluginManager;
+import weave.plugins.IPlugin;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ProcessUtils;
@@ -126,8 +126,8 @@ public class Settings
 	public static File ICON_FILE						= null;
 	public static File DESKTOP_DIRECTORY				= null;
 	
-	public static IPluginManager ACTIVE_CONTAINER_PLUGIN= null;
-	public static IPluginManager ACTIVE_DATABASE_PLUGIN	= null;
+	public static IPlugin ACTIVE_CONTAINER_PLUGIN= null;
+	public static IPlugin ACTIVE_DATABASE_PLUGIN	= null;
 	
 	/*
 	 * Operating System

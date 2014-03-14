@@ -28,7 +28,7 @@ import javax.swing.JOptionPane;
 import weave.Settings;
 import weave.utils.RemoteUtils;
 
-public class Tomcat implements IPluginManager 
+public class Tomcat implements IPlugin 
 {
 	public String 	PLUGIN_NAME			= "Tomcat";
 	public String 	TOMCAT_URL 			= null;
@@ -126,6 +126,12 @@ public class Tomcat implements IPluginManager
 		if( Settings.getLatency(url) >= 0 )
 			return url;
 		
+		return null;
+	}
+
+	@Override
+	public String getPluginName() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -47,8 +47,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import weave.Settings;
+import weave.managers.TrayManager;
 import weave.utils.TraceUtils;
-import weave.utils.TrayManager;
 
 @SuppressWarnings("serial")
 public class BugReportWindow extends JFrame 

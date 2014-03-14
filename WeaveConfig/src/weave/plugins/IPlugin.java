@@ -21,7 +21,7 @@ package weave.plugins;
 
 import java.io.File;
 
-public interface IPluginManager 
+public interface IPlugin 
 {
 	public void initPlugin();
 	public void loadPlugin();

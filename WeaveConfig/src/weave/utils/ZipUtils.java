@@ -149,11 +149,11 @@ public class ZipUtils implements IUtils
 		return 0;
 	}
 	
-	public void addEventListener(IUtils parent, IUtilsInfo func, String zip)
+	public void addStatusListener(IUtils parent, IUtilsInfo func, String zip)
 	{
-		addEventListener(parent, func, new File(zip));
+		addStatusListener(parent, func, new File(zip));
 	}
-	public void addEventListener(IUtils parent, IUtilsInfo func, File zip)
+	public void addStatusListener(IUtils parent, IUtilsInfo func, File zip)
 	{
 		_func = func;
 		_func.info.parent = parent;
@@ -162,7 +162,7 @@ public class ZipUtils implements IUtils
 		_func.info.max = getNumberOfEntriesInZip(zip);
 		_func.info.progress = 0;
 	}
-	public void removeEventListener()
+	public void removeStatusListener()
 	{
 		_func = null;
 	}
