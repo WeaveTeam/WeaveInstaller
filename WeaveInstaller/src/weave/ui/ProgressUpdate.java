@@ -320,10 +320,10 @@ public class ProgressUpdate extends JPanel
 				WeaveInstaller.installer.cancelButton.setEnabled(true);
 				if( downloadMSI == MSI_TYPE.TOMCAT_MSI ){
 					WeaveInstaller.installer.curSP.installTomcat.setVisible( true ) ;
-					if( Tomcat.instance().TOMCAT_INSTALL_FILE.exists() )
+					if( Tomcat.getConfig().TOMCAT_INSTALL_FILE.exists() )
 						WeaveInstaller.installer.curSP.installTomcat.setEnabled( true ) ;
 				} else if( downloadMSI == MSI_TYPE.MySQL_MSI ){
-					if( MySQL.instance().MYSQL_INSTALL_FILE.exists() )
+					if( MySQL.getConfig().MYSQL_INSTALL_FILE.exists() )
 						WeaveInstaller.installer.curSP.installMySQL.setEnabled( true ) ;
 					WeaveInstaller.installer.curSP.installMySQL.setVisible( true ) ;
 				}
@@ -335,11 +335,11 @@ public class ProgressUpdate extends JPanel
 			//Determine download URL, checks the same condition like 4 times; probably could
 			//merge them all into one and optimize but :/
 			if( downloadMSI == Settings.MSI_TYPE.TOMCAT_MSI ) {
-				while( Tomcat.instance().TOMCAT_URL == null ) ;
-				url = new URL(Tomcat.instance().TOMCAT_URL);
+				while( Tomcat.getConfig().TOMCAT_URL == null ) ;
+				url = new URL(Tomcat.getConfig().TOMCAT_URL);
 			} else if( downloadMSI == Settings.MSI_TYPE.MySQL_MSI ) {
-				while( MySQL.instance().MYSQL_URL == null ) ;
-				url = new URL(MySQL.instance().MYSQL_URL);
+				while( MySQL.getConfig().MYSQL_URL == null ) ;
+				url = new URL(MySQL.getConfig().MYSQL_URL);
 			} else {
 				return -1 ;
 			}
@@ -351,9 +351,9 @@ public class ProgressUpdate extends JPanel
 
 			/* Check for TOMCAT vs. MySQL download */
 			if( downloadMSI == Settings.MSI_TYPE.TOMCAT_MSI ) {
-				updateFileName = Tomcat.instance().TOMCAT_INSTALL_FILE.getPath();
+				updateFileName = Tomcat.getConfig().TOMCAT_INSTALL_FILE.getPath();
 			} else if( downloadMSI == Settings.MSI_TYPE.MySQL_MSI ) {
-				updateFileName = MySQL.instance().MYSQL_INSTALL_FILE.getPath();
+				updateFileName = MySQL.getConfig().MYSQL_INSTALL_FILE.getPath();
 			} else {
 				return -1 ;
 			}
@@ -363,7 +363,6 @@ public class ProgressUpdate extends JPanel
 			
 			/* Create directories if they do not exist */
 			if( !Settings.WEAVE_ROOT_DIRECTORY.exists() )	Settings.WEAVE_ROOT_DIRECTORY.mkdirs();
-			if( !Settings.EXE_DIRECTORY.exists() ) 		Settings.EXE_DIRECTORY.mkdirs();
 			
 			cancelInstall.addActionListener(new ActionListener() {
 				@Override public void actionPerformed(ActionEvent arg0) 

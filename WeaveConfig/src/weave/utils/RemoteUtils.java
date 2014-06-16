@@ -27,6 +27,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.JOptionPane;
+
 import weave.Settings;
 
 public class RemoteUtils
@@ -40,20 +42,21 @@ public class RemoteUtils
 	public static final String JETTY_URL 				= "JettyURL";
 	public static final String JETTY_VERSION 			= "JettyVersion";
 	
+	public static final String SQLite_URL				= "SQLiteURL";
+	public static final String SQLite_VERSION			= "SQLiteVersion";
+	
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	
+	public static final String WIKI_HELP_PAGE			= "WikiHelpPage";
 	
-	private static long MAX_CONFIG_AGE		= 5; // MINUTES
-	private static long	CONFIG_AGE			= 0;
-	private static String[] lastKnownConfig = null;
 	
 	private static String[] getConfigFile()
 	{
 		String content = "";
 		
-		if( lastKnownConfig != null && ( (System.currentTimeMillis() - CONFIG_AGE) / 1000 ) < MAX_CONFIG_AGE )
-			return lastKnownConfig;
-		
+		if( Settings.isOfflineMode() )
+			return null;
+			
 		try {
 			URL url = new URL(Settings.UPDATE_CONFIG);
 			String line = "";
@@ -67,14 +70,23 @@ public class RemoteUtils
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
-		lastKnownConfig = content.split(";");
-		CONFIG_AGE = System.currentTimeMillis();
-		
-		return lastKnownConfig;
+		return content.split(";");
 	}
 	
 	public static String getConfigEntry(String key)
 	{
+		if( Settings.isOfflineMode() )
+			return null;
+
+		if( !Settings.isConnectedToInternet ) {
+			JOptionPane.showConfirmDialog(null, 
+				"A connection to the internet could not be established.\n\n" +
+				"Please connect to the internet and try again.", 
+				"No Connection", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		
 		for( String s : getConfigFile() )
 			if( s.contains(key) )
 				return s.substring(s.indexOf(":")+1).trim();
@@ -86,6 +98,18 @@ public class RemoteUtils
 	public static String[] getRemoteFiles()
 	{
 		String content = "";
+		
+		if( Settings.isOfflineMode() )
+			return null;
+		
+		if( !Settings.isConnectedToInternet() ) {
+			JOptionPane.showConfirmDialog(null, 
+				"A connection to the internet could not be established.\n\n" +
+				"Please connect to the internet and try again.", 
+				"No Connection", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
 
 		try {
 			URL url = new URL(Settings.UPDATE_FILES);
@@ -104,6 +128,9 @@ public class RemoteUtils
 	
 	public static String getIP()
 	{
+		if( Settings.isOfflineMode() )
+			return null;
+		
 		try {
 			URL url = new URL(Settings.API_GET_IP);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();

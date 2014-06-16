@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,7 +44,6 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -52,16 +52,14 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
-import weave.inc.ISetupPanel;
+import weave.Settings.UPDATE_TYPE;
 import weave.inc.SetupPanel;
+import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.managers.TrayManager;
-import weave.plugins.MySQL;
-import weave.plugins.PluginManager;
-import weave.plugins.Tomcat;
-import weave.ui.CurSetupPanel;
-import weave.ui.PostSetupPanel;
-import weave.ui.PreSetupPanel;
+import weave.ui.ConfigSetupPanel;
+import weave.ui.HomeSetupPanel;
+import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
@@ -73,8 +71,8 @@ public class Installer extends JFrame
 {
 	public static Installer 			installer 		= null;
 	public static final String 			PRE_SETUP		= "PRE_SETUP";
-	public static final String			CUR_SETUP		= "CUR_SETUP";
-	public static final String			POST_SETUP		= "POST_SETUP";
+	public static final String			CFG_SETUP		= "CFG_SETUP";
+	public static final String			HOME_SETUP		= "HOME_SETUP";
 	private Dimension 					screen 			= Toolkit.getDefaultToolkit().getScreenSize();
 	
 	// === Left Panel === //
@@ -82,9 +80,9 @@ public class Installer extends JFrame
 	
 	// === Right Panel === //
 	public SetupPanel 					rightPanel		= null;
-	public PreSetupPanel 				preSP 			= null;
-	public CurSetupPanel 				curSP			= null;
-	public PostSetupPanel 				postSP 			= null;
+	public WelcomeSetupPanel 			SP_welcome 		= null;
+	public ConfigSetupPanel 			SP_config		= null;
+	public HomeSetupPanel 				SP_home 		= null;
 	public HashMap<String, SetupPanel>	setupPanels		= new HashMap<String, SetupPanel>();
 
 	// === Bottom Panel === //
@@ -107,7 +105,8 @@ public class Installer extends JFrame
 			if( !Settings.getLock() )
 			{
 				JOptionPane.showMessageDialog(null, 
-						"Another instance is already running.\n\nPlease stop that one before starting another.", 
+						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+						"Please stop that one before starting another.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
@@ -174,7 +173,7 @@ public class Installer extends JFrame
 	public Installer() throws Exception
 	{
 		TrayManager.initializeTray(this);
-		PluginManager.instance().initializePlugins();
+		ConfigManager.getConfigManager().initializeConfigs();
 
 		// ======== STRUCTURING ========= //
 		setSize(500, 400);
@@ -194,7 +193,7 @@ public class Installer extends JFrame
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
-		BufferedImage oicLogo = ImageIO.read(IconManager.ICON_OIC_LOGO);
+		BufferedImage oicLogo = ImageIO.read(IconManager.IMAGE_OIC_LOGO);
 		JLabel oicLabel = new JLabel("", new ImageIcon(oicLogo), JLabel.CENTER);
 		oicLabel.setBounds(10, 10, 125, 57);
 		leftPanel.add(oicLabel);
@@ -231,7 +230,21 @@ public class Installer extends JFrame
 		bottomPanel.setBounds(0, 325, 500, 50);
 		bottomPanel.setBackground(new Color(0x507AAA));
 		bottomPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.black));
-
+		//////////////////////////////////////////////////////////////////////////////////
+		configureButton = new JButton("Configure");
+		configureButton.setBounds(100, 13, 100, 25);
+		configureButton.setBackground(new Color(0x507AAA));
+		configureButton.setToolTipText("Edit configuration settings");
+		configureButton.setVisible(false);
+		//////////////////////////////////////////////////////////////////////////////////
+		backButton = new JButton("< Back") ;
+		backButton.setBounds(200, 13, 80, 25);
+		backButton.setBackground(new Color(0x507AAA));
+		//////////////////////////////////////////////////////////////////////////////////
+		nextButton = new JButton("Next >") ;
+		nextButton.setBounds(280, 13, 80, 25);
+		nextButton.setBackground(new Color(0x507AAA));
+		//////////////////////////////////////////////////////////////////////////////////
 		helpButton = new JButton("Help");
 		helpButton.setBounds(10, 13, 80, 25);
 		helpButton.setBackground(new Color(0x507AAA));
@@ -250,31 +263,7 @@ public class Installer extends JFrame
 			}
 		});
 		helpButton.setVisible(true);
-		
-		configureButton = new JButton("Configure");
-		configureButton.setBounds(100, 13, 100, 25);
-		configureButton.setBackground(new Color(0x507AAA));
-		configureButton.setToolTipText("Edit configuration settings");
-		configureButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-//					switchToCurSetupPanel();
-				} catch (Exception e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				}
-			}
-		});
-		configureButton.setVisible(false);
-		
-		backButton = new JButton("< Back") ;
-		backButton.setBounds(200, 13, 80, 25);
-		backButton.setBackground(new Color(0x507AAA));
-		
-		nextButton = new JButton("Next >") ;
-		nextButton.setBounds(280, 13, 80, 25);
-		nextButton.setBackground(new Color(0x507AAA));
-		
+		//////////////////////////////////////////////////////////////////////////////////
 		cancelButton = new JButton("Cancel");
 		cancelButton.setBounds(400, 13, 80, 25);
 		cancelButton.setBackground(new Color(0x507AAA));
@@ -285,18 +274,11 @@ public class Installer extends JFrame
 				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "Confirm", JOptionPane.YES_NO_OPTION ) ;
 				if( response == JOptionPane.YES_OPTION ){
 					System.gc();
-					try {
-						Thread.sleep(200);
-					} catch (Exception e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-					}
 					Settings.shutdown();
 				}
 			}
 		});
-		
-		backButton.setEnabled(false);
-
+		//////////////////////////////////////////////////////////////////////////////////
 		bottomPanel.add(helpButton);
 		bottomPanel.add(configureButton);
 		bottomPanel.add(backButton);
@@ -311,9 +293,12 @@ public class Installer extends JFrame
 		rightPanel.setLayout(null);
 		rightPanel.setBounds(150, 0, 500 - 150, 325);
 		rightPanel.setBackground(new Color(0xFFFFFF));
-		rightPanel.setVisible( false ) ;
+		rightPanel.setVisible(false);
 		add(rightPanel);
 
+		
+		
+		// ======== FINISHING TOUCHES ======== //
 		rightPanel.setVisible( true );
 		bottomPanel.setVisible( true );
 		leftPanel.setVisible( true );
@@ -325,6 +310,9 @@ public class Installer extends JFrame
 			setTitle(getTitle() + " [OFFLINE MODE]");
 		}
 		
+		// Listen for network socket requests
+		Settings.startListenerServer();
+		
 		// Delay renaming in case updater is still open.
 		new Timer().schedule(new TimerTask() {
 			@Override
@@ -332,338 +320,267 @@ public class Installer extends JFrame
 				if( updateToNewUpdater() )
 					TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating WeaveUpdater..........DONE");
 			}
-		}, 2000);
+		}, 3000);
 		
-		//switchToPreSetupPanel(rightPanel);
+		switchToWelcomeSetupPanels(rightPanel);
 	}
 
-	/**
-	 * Creates the preSetupPanel ( if it has not already been created ) and adds it to the Hash Map.
-	 * If it has already been created, the function simply calls the overloaded version with no arguments.
-	 * Also adds listeners for all buttons associated with the pre-setup panel.
-	 * 
-	 * @param parent
-	 * @throws Exception
-	 */
-	public void switchToPreSetupPanel(final JPanel parent) throws Exception
+	
+	
+	
+	
+	
+	
+
+	//============================================================================================================
+	//											WELCOME PANEL													//
+	//============================================================================================================
+	public void switchToWelcomeSetupPanels(final JPanel parent)
 	{
 		if( setupPanels.containsKey(PRE_SETUP) ) {
-			switchToPreSetupPanel();
+			switchToWelcomeSetupPanels();
 			return;
 		}
 		
-		preSP = new PreSetupPanel();
-		preSP.hidePanels();
-		setupPanels.put(PRE_SETUP, preSP);
-		parent.add(preSP);
-		switchToPreSetupPanel();
+		SP_welcome = new WelcomeSetupPanel();
+		SP_welcome.hidePanels();
+		setupPanels.put(PRE_SETUP, SP_welcome);
+		parent.add(SP_welcome);
+		switchToWelcomeSetupPanels();
 	}
-	
-	/**
-	 * Switch to the pre-setup panel after it has already been created.
-	 * Used, for example, to switch from currentSetupPanel back to preSetupPanel
-	 * 
-	 * @throws Exception
-	 */
-	public void switchToPreSetupPanel() throws Exception
+	//============================================================================================================
+	public void switchToWelcomeSetupPanels()
 	{
 		if( setupPanels.containsKey(PRE_SETUP) )
 		{
 			hideAllPanels();
 			setupPanels.get(PRE_SETUP).setVisible(true);
-			((ISetupPanel) setupPanels.get(PRE_SETUP)).showPanels();
+			setupPanels.get(PRE_SETUP).showPanel();
 			
 			backButton.setEnabled(false);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
-			configureButton.setEnabled(true); configureButton.setVisible(false);
-
-			removeButtonActions();
-			preSP.addActionToButton(nextButton, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-						if( Settings.settingsFileExists() )
-//							switchToPostSetupPanel();
-//						else
-							switchToCurSetupPanel();
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
-				}
-			});
-			backButton.setEnabled(false);
-			nextButton.setEnabled(true);
-		} else
-			switchToPreSetupPanel(rightPanel);
-	}
-
-	public void switchToCurSetupPanel() throws Exception
-	{
-		if( setupPanels.containsKey(CUR_SETUP) )
-		{
-			hideAllPanels();
-			setupPanels.get(CUR_SETUP).setVisible(true);
-			((ISetupPanel) setupPanels.get(CUR_SETUP)).showPanels();
-			
-			removeButtonActions();
-			curSP.addActionToButton(backButton, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					if( curSP.getCurrentPanelIndex() == 0 ) {
-						try {
-							switchToPreSetupPanel();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-//						preSP.nextPanel();
-//						nextButton.setEnabled(false);
-//						backButton.setEnabled(true);
-					} else if( curSP.getCurrentPanelIndex() > 0 ) {
-						curSP.previousPanel();
-						if( curSP.getCurrentPanelIndex() == (curSP.getNumberOfPanels() - 2) )
-							if( !curSP.tomcatCheck.isSelected() && !curSP.mysqlCheck.isSelected() )
-								backButton.doClick();
-						
-						nextButton.setEnabled(true);
-						backButton.setEnabled(true);
-						nextButton.setText("Next >");
-						nextButton.setBounds(nextButton.getX(), nextButton.getY(), 80, nextButton.getHeight());
-					}
-				}
-			});
-			curSP.addActionToButton(nextButton, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if( curSP.getCurrentPanelIndex() == ( curSP.getNumberOfPanels() - 1) )
-					{
-						if (MySQL.instance().MYSQL_PORT == 0 || Tomcat.instance().TOMCAT_PORT == 0 || Tomcat.instance().TOMCAT_HOME.equals(""))
-							JOptionPane.showMessageDialog(null,	"Error validating settings information.", "Error", JOptionPane.ERROR_MESSAGE);
-						else if (Settings.save()) {
-							JOptionPane.showMessageDialog(null, "Settings saved successfully", "Settings", JOptionPane.INFORMATION_MESSAGE);
-							nextButton.setBounds(nextButton.getX(), nextButton.getY(), 80, nextButton.getHeight());
-							try {
-//								switchToPostSetupPanel( rightPanel );
-							} catch (Exception e1) {
-								e1.printStackTrace();
-							}
-						} else
-							JOptionPane.showMessageDialog(null, "Error trying to save settings.", "Error", JOptionPane.ERROR_MESSAGE);
-					}
-					else if( curSP.getCurrentPanelIndex() < ( curSP.getNumberOfPanels() ) ) 
-					{
-						curSP.nextPanel();
-						if( curSP.getCurrentPanelIndex() == 1 )
-							if( !curSP.tomcatCheck.isSelected() && !curSP.mysqlCheck.isSelected() )
-								nextButton.doClick();
-						
-						backButton.setEnabled(true);
-						backButton.setVisible(true);
-						if( curSP.getCurrentPanelIndex() == ( curSP.getNumberOfPanels() - 1 ) ) {
-							nextButton.setText("Save & Finish") ;
-							nextButton.setEnabled(true);
-							nextButton.setBounds(nextButton.getX(), nextButton.getY(), 100, nextButton.getHeight());
-						}
-					}
-				}
-			});
-			
-			backButton.setEnabled(true);	backButton.setVisible(true);
-			nextButton.setEnabled(true);	nextButton.setVisible(true);
 			backButton.setText("< Back");	nextButton.setText("Next >");
-			configureButton.setEnabled(true); configureButton.setVisible(false);
+			configureButton.setEnabled(false); configureButton.setVisible(false);
+
+			removeButtonActions();
+			nextButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if( SP_welcome.isLastPanel() )
+					{
+						if( !Settings.settingsFileExists() )
+							switchToConfigSetupPanel();
+						else
+							switchToHomeSetupPanel();
+					}
+					else
+					{
+						SP_welcome.nextPanel();
+					}
+				}
+			});
+			backButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// Will be disabled
+				}
+			});
+			
 		} else
-			switchToCurSetupPanel(rightPanel);
+			switchToWelcomeSetupPanels(rightPanel);
 	}
 	
-	public void switchToCurSetupPanel(JPanel parent) throws Exception
+	
+	
+	
+	
+	
+	
+	
+	//============================================================================================================
+	//												CONFIG PANEL												//
+	//============================================================================================================
+	public void switchToConfigSetupPanel(JPanel parent)
 	{
-		if( setupPanels.containsKey(CUR_SETUP) ) {
-			switchToCurSetupPanel();
+		if( setupPanels.containsKey(CFG_SETUP) ) {
+			switchToConfigSetupPanel();
 			return;
 		}
 		
-		curSP = new CurSetupPanel();
-		curSP.hidePanels();
-		curSP.addActionToButton(curSP.tomcatDownloadButton, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				curSP.tomcatDownloadButton.setEnabled( false ) ;
-				nextButton.setEnabled( false ) ;
-				backButton.setEnabled( false ) ;
-				cancelButton.setEnabled( false ) ;
-				try {
-					if( Tomcat.instance().TOMCAT_INSTALL_FILE.exists() ){
-						int response = JOptionPane.showConfirmDialog(null, "Weave Installer has detected that an executable" +
-								" installer already exists.\nWould you like to re-download and overwrite?",
-								"Confirm", JOptionPane.YES_NO_OPTION ) ;
-						if( response == JOptionPane.YES_OPTION ){
-							try {
-								curSP.installTomcat.setVisible( false ) ;
-								curSP.installTomcat.setEnabled(false);
-//								curSP.progTomcat.downloadMSI(curSP.tomcatPanel, curSP.tomcatDownloadButton, Settings.MSI_TYPE.TOMCAT_MSI ) ;
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}else{
-							curSP.tomcatDownloadButton.setEnabled( true ) ;
-							nextButton.setEnabled( true ) ;
-							backButton.setEnabled( true ) ;
-							cancelButton.setEnabled( true ) ;
-						}
-					}else{
-						curSP.installTomcat.setVisible( false ) ;
-						curSP.installTomcat.setEnabled(false);
-//						curSP.progTomcat.downloadMSI(curSP.tomcatPanel, curSP.tomcatDownloadButton, Settings.MSI_TYPE.TOMCAT_MSI ) ;
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		curSP.addActionToButton(curSP.mySQLDownloadButton, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				curSP.mySQLDownloadButton.setEnabled( false ) ;
-				nextButton.setEnabled( false ) ;
-				backButton.setEnabled( false ) ;
-				cancelButton.setEnabled( false ) ;
-				try {
-					if( MySQL.instance().MYSQL_INSTALL_FILE.exists() ){
-						int response = JOptionPane.showConfirmDialog(null, "Weave Installer has detected that an executable" +
-								" installer already exists.\nWould you like to re-download and overwrite?",
-								"Confirm", JOptionPane.YES_NO_OPTION ) ;
-						if( response == JOptionPane.YES_OPTION ){
-							try {
-								curSP.installMySQL.setVisible( false ) ;
-//								curSP.progMySQL.downloadMSI(curSP.mysqlPanel, curSP.mySQLDownloadButton, Settings.MSI_TYPE.MySQL_MSI ) ;
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}else{
-							curSP.mySQLDownloadButton.setEnabled( true ) ;
-							nextButton.setEnabled( true ) ;
-							backButton.setEnabled( true ) ;
-							cancelButton.setEnabled( true ) ;
-						}
-					}else{
-						curSP.installMySQL.setVisible( false ) ;
-//						curSP.progMySQL.downloadMSI(curSP.mysqlPanel, curSP.mySQLDownloadButton, Settings.MSI_TYPE.MySQL_MSI ) ;
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		curSP.addActionToButton(curSP.installTomcat, new ActionListener(){
-			@Override public void actionPerformed( ActionEvent arg0 ){
-				curSP.progMySQL.runExecutable( Tomcat.instance().TOMCAT_INSTALL_FILE ) ;
-			}
-		}) ;
-		curSP.addActionToButton(curSP.installMySQL, new ActionListener(){
-			@Override public void actionPerformed( ActionEvent arg0 ){
-				curSP.progMySQL.runExecutable( MySQL.instance().MYSQL_INSTALL_FILE ) ;
-			}
-		}) ;
-		curSP.addActionToButton(curSP.dirButton, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				curSP.dirChooser.fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int retVal = curSP.dirChooser.fileChooser.showOpenDialog(null);
-				if (retVal == JFileChooser.APPROVE_OPTION) {
-					String dir = curSP.dirChooser.fileChooser.getSelectedFile().getPath();
-					File f = new File(dir + "/webapps/ROOT/");
-					File g = new File(dir + "/Uninstall.exe");
-					if (f.exists() && g.exists()) {
-						Tomcat.instance().TOMCAT_HOME = new File(dir);
-					} else {
-						Tomcat.instance().TOMCAT_HOME = null;
-						JOptionPane.showMessageDialog(null, "Invalid Tomcat Directory", "Error", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-				curSP.dirChooser.textField.setText(Settings.ACTIVE_CONTAINER_PLUGIN.getHomeDirectory().getAbsolutePath());
-			}
-		});
-		setupPanels.put(CUR_SETUP, curSP);
-		parent.add(curSP);
-		switchToCurSetupPanel();
+		SP_config = new ConfigSetupPanel();
+		SP_config.hidePanels();
+		setupPanels.put(CFG_SETUP, SP_config);
+		parent.add(SP_config);
+		switchToConfigSetupPanel();
 	}
+	//============================================================================================================
+	public void switchToConfigSetupPanel()
+	{
+		if( setupPanels.containsKey(CFG_SETUP) )
+		{
+			hideAllPanels();
+			SP_config.setVisible(true);
+			SP_config.showPanel();
+
+			backButton.setEnabled(true);	backButton.setVisible(true);
+			nextButton.setEnabled(true);	nextButton.setVisible(true);
+			backButton.setText("< Back");	nextButton.setText("Next >");
+			configureButton.setEnabled(false); configureButton.setVisible(false);
+			
+			removeButtonActions();
+			nextButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if( SP_config.isLastPanel() )
+					{
+						switchToHomeSetupPanel();
+					}
+					else
+					{
+						SP_config.nextPanel();
+					}
+				}
+			});
+			backButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if( SP_config.isFirstPanel() )
+					{
+						switchToWelcomeSetupPanels();
+					}
+					else
+					{
+						SP_config.previousPanel();
+					}
+				}
+			});
+
+		} else
+			switchToConfigSetupPanel(rightPanel);
+	}
+	//============================================================================================================
 	
-	/**
-	 * Start update timers.
-	 * 
-	 * If the tool is open for extended periods of time (1+ days)
-	 * we should periodically check for updates.
-	 */
+
+	
+	
+	
+	
+	
+	
+	//============================================================================================================
+	//												HOME PANEL													//
+	//============================================================================================================
+	public void switchToHomeSetupPanel(JPanel parent)
+	{
+		if( setupPanels.containsKey(HOME_SETUP) ) {
+			switchToConfigSetupPanel();
+			return;
+		}
+		
+		SP_home = new HomeSetupPanel();
+		SP_home.hidePanels();
+		setupPanels.put(HOME_SETUP, SP_home);
+		parent.add(SP_home);
+		switchToHomeSetupPanel();
+	}
+	//============================================================================================================
+	public void switchToHomeSetupPanel()
+	{
+		if( setupPanels.containsKey(HOME_SETUP) )
+		{
+			hideAllPanels();
+			SP_home.setVisible(true);
+			SP_home.showPanel();
+
+			backButton.setEnabled(false);	backButton.setVisible(false);
+			nextButton.setEnabled(false);	nextButton.setVisible(false);
+			backButton.setText("< Back");	nextButton.setText("Next >");
+			configureButton.setEnabled(true); configureButton.setVisible(true);
+			
+			removeButtonActions();
+			nextButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if( SP_home.isLastPanel() )
+					{
+						
+					}
+					else
+					{
+						SP_home.nextPanel();
+					}
+				}
+			});
+			backButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if( SP_home.isFirstPanel() )
+					{
+						switchToWelcomeSetupPanels();
+					}
+					else
+					{
+						SP_home.previousPanel();
+					}
+				}
+			});
+			configureButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					switchToConfigSetupPanel();
+				}
+			});
+
+		} else
+			switchToHomeSetupPanel(rightPanel);
+	}
+	//============================================================================================================
+	
+	
+	
+	
+	
+	
+	
+
+	//============================================================================================================
 	public void startTimers()
 	{
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if( Settings.isConnectedToInternet() )
-					checkForUpdate();
-			}
-		}, 1000);
-		
-		// check for updates once a day if they keep the tool open
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if( Settings.isConnectedToInternet() )
-					checkForUpdate();
-			}
-		}, 86400000, 86400000);
-	}
-	
-	/**
-	 * Check for update
-	 */
-	public void checkForUpdate()
-	{
-		boolean isUpdate = UpdateUtils.isUpdateAvailable();
-		
-		if( isUpdate )
+		if( Settings.UPDATE_FREQ == UPDATE_TYPE.DAY ||
+			Settings.UPDATE_FREQ == UPDATE_TYPE.WEEK )
 		{
-			int n = JOptionPane.showConfirmDialog(null, "There is a newer version of this tool available for download.\n\n" +
-														"Would you like to restart the tool to apply the update?", "Update Available", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			
-			if( n == JOptionPane.YES_OPTION )
-			{
-				try {
-					LaunchUtils.launchWeaveUpdater(1000);
-					Thread.sleep(50);
-					Settings.shutdown();
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
+			new Timer().schedule(new TimerTask() {
+				@Override public void run() {
+					UpdateUtils.checkForUpdate(UpdateUtils.FROM_EVENT);
 				}
-			}
+			}, 	Settings.UPDATE_MAP.get(Settings.UPDATE_FREQ), 
+				Settings.UPDATE_MAP.get(Settings.UPDATE_FREQ));
 		}
 	}
-	
+	//============================================================================================================
 	private boolean updateToNewUpdater()
 	{
-		File oldUpdater = new File(Settings.BIN_DIRECTORY, Settings.WEAVEUPDATER_JAR);
-		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.WEAVEUDPATER_NEW_JAR);
+		File oldUpdater = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
+		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
 		
 		return ( newUpdater.exists() ? FileUtils.renameTo(newUpdater, oldUpdater, FileUtils.OVERWRITE) : false );
 	}
-
+	//============================================================================================================
 	public void hideAllPanels()
 	{
-		for( String key : setupPanels.keySet() ) {
-			((ISetupPanel) setupPanels.get(key)).hidePanels();
-			setupPanels.get(key).setVisible(false);
+		for( Entry<String, SetupPanel> entry : setupPanels.entrySet() ) {
+			entry.getValue().hidePanels();
+			entry.getValue().setVisible(false);
 		}
 	}
-	
+	//============================================================================================================
 	public void removeButtonActions()
 	{
 		for( ActionListener a : backButton.getActionListeners() )
 			backButton.removeActionListener(a);
 		for( ActionListener a : nextButton.getActionListeners() )
 			nextButton.removeActionListener(a);
+		for( ActionListener a : configureButton.getActionListeners() )
+			configureButton.removeActionListener(a);
 	}
 }

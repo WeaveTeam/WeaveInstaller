@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import weave.Settings;
+import weave.managers.ConfigManager;
 
 public class StatsUtils 
 {
@@ -37,8 +38,12 @@ public class StatsUtils
 	@SuppressWarnings("unused")
 	public static void logUpdate( boolean forced )
 	{
+		if( Settings.isOfflineMode() || !Settings.isConnectedToInternet() )
+			return;
+		
 		URL url					= null;
 		HttpURLConnection conn 	= null;
+		BufferedReader reader	= null;
 		
 		String query	= "action=UPDATE&"
 						+ "uniqueID=" + Settings.UNIQUE_ID + "&"
@@ -55,38 +60,47 @@ public class StatsUtils
 			conn.connect();
 			
 			String line;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			while( (line = reader.readLine()) != null ) ;
-			reader.close();
 			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		} finally {
-			if( conn != null )
-				conn.disconnect();
+			try {
+				if( conn != null )
+					conn.disconnect();
+				if( reader != null )
+					reader.close();
+			} catch (IOException e) {
+				TraceUtils.trace(TraceUtils.STDERR, e);
+			}
 		}
 	}
 
 	@SuppressWarnings("unused")
 	public static void noop()
 	{
+		if( Settings.isOfflineMode() || !Settings.isConnectedToInternet() )
+			return;
+		
 		URL url 				= null;
 		HttpURLConnection conn 	= null;
+		BufferedReader reader 	= null;
 		
 		String query 	= "uniqueID=" + Settings.UNIQUE_ID + "&"
 						+ "os=" + Settings.getExactOS() + "&";
 		
 		query += "server=";
-		if( Settings.ACTIVE_CONTAINER_PLUGIN == null )
+		if( ConfigManager.getConfigManager().getContainer() == null )
 			query += "NONE&";
 		else
-			query += Settings.ACTIVE_CONTAINER_PLUGIN.getPluginName() + "&";
+			query += ConfigManager.getConfigManager().getContainer().getConfigName() + "&";
 		
 		query += "database=";
-		if( Settings.ACTIVE_DATABASE_PLUGIN == null )
+		if( ConfigManager.getConfigManager().getDatabase() == null )
 			query += "NONE";
 		else
-			query += Settings.ACTIVE_DATABASE_PLUGIN.getPluginName();
+			query += ConfigManager.getConfigManager().getDatabase().getConfigName();
 		
 		try {
 			url = new URL(Settings.API_STATS_LIVE + "?" + query);
@@ -99,15 +113,20 @@ public class StatsUtils
 			conn.connect();
 			
 			String line;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			while( (line = reader.readLine()) != null ) ;
-			reader.close();
 			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		} finally {
-			if( conn != null )
-				conn.disconnect();
+			try {
+				if( conn != null )
+					conn.disconnect();
+				if( reader != null )
+					reader.close();
+			} catch (IOException e) {
+				TraceUtils.trace(TraceUtils.STDERR, e);
+			}
 		}
 	}
 }

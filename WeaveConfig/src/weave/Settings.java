@@ -31,25 +31,28 @@ import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import net.jimmc.jshortcut.JShellLink;
-
-import weave.plugins.IPlugin;
+import weave.dll.DLLInterface;
+import weave.managers.TrayManager;
+import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ProcessUtils;
-import weave.utils.RegistryUtils;
+import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
 import weave.utils.TraceUtils;
 
@@ -57,7 +60,8 @@ public class Settings
 {
 
 	public static final String PROJECT_NAME				= "Weave";
-	
+	public static final String PROJECT_PROTOCOL			= "weave://";
+	public static final String PROJECT_EXTENSION		= ".weave";
 	
 	
 	/*
@@ -80,7 +84,7 @@ public class Settings
 	public static final String INSTALLER_NAME			= PROJECT_NAME + " Installer";
 	public static final String INSTALLER_VER			= "1.1.0 R2";
 	public static final String INSTALLER_TITLE 			= INSTALLER_NAME + " v" + INSTALLER_VER;
-	public static final String WEAVEINSTALLER_JAR		= "Installer.jar";
+	public static final String INSTALLER_JAR			= "Installer.jar";
 	
 	/*
 	 * Weave Updater
@@ -88,14 +92,15 @@ public class Settings
 	public static final String UPDATER_NAME				= PROJECT_NAME + " Updater";
 	public static final String UPDATER_VER				= "1.0.1";
 	public static final String UPDATER_TITLE			= UPDATER_NAME + " v" + UPDATER_VER;
-	public static final String WEAVEUPDATER_JAR			= "Updater.jar";
-	public static final String WEAVEUDPATER_NEW_JAR		= "Updater_new.jar";
+	public static final String UPDATER_JAR				= "Updater.jar";
+	public static final String UDPATER_NEW_JAR			= "Updater_new.jar";
 	
 	/*
 	 * Weave Launcher
 	 */
 	public static final String LAUNCHER_NAME			= PROJECT_NAME + " Launcher";
 	public static final String LAUNCHER_VER				= "1.0.0";
+	public static final String LAUNCHER_TITLE			= LAUNCHER_NAME + " v" + LAUNCHER_VER;
 	public static final String LAUNCHER_JAR				= "Launcher.jar";
 	
 	/*
@@ -115,19 +120,15 @@ public class Settings
 	public static File DOWNLOADS_TMP_DIRECTORY			= null;
 	public static File BIN_DIRECTORY					= null;
 	public static File LOGS_DIRECTORY					= null;
-	public static File EXE_DIRECTORY					= null;
 	public static File REVISIONS_DIRECTORY 				= null;
 	public static File UNZIP_DIRECTORY 					= null;
 	public static File DOWNLOADS_PLUGINS_DIRECTORY		= null;
 	public static File DEPLOYED_PLUGINS_DIRECTORY		= null;
 	public static File SETTINGS_FILE 					= null;
-	public static File PLUGINS_FILE						= null;
+	public static File CONFIG_FILE						= null;
 	public static File LOCK_FILE						= null;
 	public static File ICON_FILE						= null;
 	public static File DESKTOP_DIRECTORY				= null;
-	
-	public static IPlugin ACTIVE_CONTAINER_PLUGIN= null;
-	public static IPlugin ACTIVE_DATABASE_PLUGIN	= null;
 	
 	/*
 	 * Operating System
@@ -138,15 +139,19 @@ public class Settings
 	/*
 	 * Settings File
 	 */
-	private static Map<String, Object> settings 		= null;
+	private static Map<String, Object> SETTINGS_MAP 	= null;
+	public static Map<UPDATE_TYPE, Integer> UPDATE_MAP	= null;
 
 	public static enum UPDATE_TYPE						{ START, DAY, WEEK, NEVER };
 	public static UPDATE_TYPE UPDATE_FREQ				= UPDATE_TYPE.START;
+	public static boolean UPDATE_OVERRIDE				= false;
 	
+	public static boolean CONFIGURED					= false;
 	public static String UNIQUE_ID						= "";
 	public static String LAST_UPDATE_CHECK 				= "Never";
 	public static String CURRENT_INSTALL_VER 			= "";
 	public static String SHORTCUT_VER					= "0";
+	public static int 	 RPC_PORT						= 3579;
 
 	/*
 	 * Networking
@@ -158,9 +163,14 @@ public class Settings
 	public static String LOCALHOST						= "";
 	
 	/*
+	 * Socket Server for RPC
+	 */
+	public static Thread rpcThread						= null;
+	public static ServerListener rpcServer				= null;
+	
+	/*
 	 * Misc
 	 */
-	public static final String BINARIES_UPDATE_URL 		= "https://github.com/IVPR/Weave-Binaries/zipball/master";
 	public static final String WIKI_HELP_PAGE			= "http://info.oicweave.org/projects/weave/wiki/Installer";
 	
 	public static boolean canQuit						= true;
@@ -169,7 +179,7 @@ public class Settings
 	public static boolean isConnectedToInternet			= true;
 
 	public static 		String CURRENT_PROGRAM_NAME		= "";
-	public static final String FONT						= "Arial";
+	public static final String FONT						= "Corbel";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
 	public static int recommendPrune					= 6;
 	
@@ -180,12 +190,6 @@ public class Settings
 	 */
 	public static void init()
 	{
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
 		findOS();
 		createFS();
 		
@@ -196,6 +200,12 @@ public class Settings
 		save();		 
 
 		getNetworkInfo(( isOfflineMode() || !isConnectedToInternet() ));
+		
+		UPDATE_MAP = new EnumMap<UPDATE_TYPE, Integer>(UPDATE_TYPE.class);
+		UPDATE_MAP.put(UPDATE_TYPE.NEVER, 	-1);
+		UPDATE_MAP.put(UPDATE_TYPE.START, 	0);
+		UPDATE_MAP.put(UPDATE_TYPE.DAY, 	1000 * 60 * 60 * 24);
+		UPDATE_MAP.put(UPDATE_TYPE.WEEK, 	1000 * 60 * 60 * 24 * 7);
 	}
 	
 	/**
@@ -203,30 +213,33 @@ public class Settings
 	 * 
 	 * @return <code>true</code> if settings file exists, <code>false</code> otherwise
 	 */
-	public static Boolean settingsFileExists()
+	public static boolean settingsFileExists()
 	{
 		return SETTINGS_FILE.exists();
 	}
+	
 	
 	/**
 	 * Check to see if the file that holds all of the plugin settings exists in the file structure.
 	 * 
 	 * @return <code>true</code> if plugins file exists, <code>false</code> otherwise
 	 */
-	public static Boolean pluginsFileExists()
+	public static boolean configsFileExists()
 	{
-		return PLUGINS_FILE.exists();
+		return CONFIG_FILE.exists();
 	}
+	
 	
 	/**
 	 * Check to see if a unique identifier has been assigned to the tool yet.
 	 * 
 	 * @return <code>true</code> if the tool has a unique identifier, <code>false</code> otherwise 
 	 */
-	public static Boolean hasUniqueID()
+	public static boolean hasUniqueID()
 	{
 		return !UNIQUE_ID.equals("");
 	}
+	
 	
 	/**
 	 * Check if the tool is to launch in offline mode.
@@ -235,10 +248,11 @@ public class Settings
 	 * 
 	 * @return <code>true</code> of launching in offline mode
 	 */
-	public static Boolean isOfflineMode()
+	public static boolean isOfflineMode()
 	{
 		return (LAUNCH_MODE == MODE.OFFLINE_MODE);
 	}
+	
 	
 	/**
 	 * Write the current values of data members to the settings map.
@@ -246,7 +260,7 @@ public class Settings
 	 * @return <code>true</code> if successful write, <code>false</code> otherwise
 	 * @see load()
 	 */
-	public static Boolean save()
+	public static boolean save()
 	{
 		try {
 			TraceUtils.trace(TraceUtils.STDOUT, "-> Saving settings file...........");
@@ -256,17 +270,18 @@ public class Settings
 			if( !SETTINGS_FILE.exists() )
 				SETTINGS_FILE.createNewFile();
 			
-			settings = new HashMap<String, Object>();
-			settings.put("UNIQUE_ID", UNIQUE_ID);
-			settings.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
-			settings.put("CURRENT_INSTALL_VER", CURRENT_INSTALL_VER);
-			settings.put("SHORTCUT_VER", SHORTCUT_VER);
-			settings.put("UPDATE_FREQ", UPDATE_FREQ);
-			settings.put("LAUNCH_MODE", LAUNCH_MODE);
+			SETTINGS_MAP = new HashMap<String, Object>();
+			SETTINGS_MAP.put("CONFIGURED", CONFIGURED);
+			SETTINGS_MAP.put("UNIQUE_ID", UNIQUE_ID);
+			SETTINGS_MAP.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
+			SETTINGS_MAP.put("CURRENT_INSTALL_VER", CURRENT_INSTALL_VER);
+			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
+			SETTINGS_MAP.put("UPDATE_FREQ", UPDATE_FREQ);
+			SETTINGS_MAP.put("UPDATE_OVERRIDE", UPDATE_OVERRIDE);
+			SETTINGS_MAP.put("LAUNCH_MODE", LAUNCH_MODE);
 			
-			FileOutputStream fout = new FileOutputStream(SETTINGS_FILE);
-			ObjectOutputStream outstream = new ObjectOutputStream(fout);
-			outstream.writeObject(settings);
+			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(SETTINGS_FILE));
+			outstream.writeObject(SETTINGS_MAP);
 			outstream.close();
 			TraceUtils.put(TraceUtils.STDOUT, "DONE");
 		} catch (IOException e) {
@@ -287,36 +302,42 @@ public class Settings
 	 * @see save()
 	 */
 	@SuppressWarnings("unchecked")
-	public static Boolean load()
+	public static boolean load()
 	{
-		try {Thread.sleep(1000);} catch (InterruptedException e1) {	TraceUtils.trace(TraceUtils.STDERR, e1); }
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e); 
+		}
 		
 		if( !settingsFileExists() ) return false;
 		
 		try {
 			TraceUtils.trace(TraceUtils.STDOUT, "-> Loading settings file..........");
 			
-			FileInputStream fin = new FileInputStream(SETTINGS_FILE);
-			ObjectInputStream instream = new ObjectInputStream(fin);
-			settings = (Map<String, Object>) instream.readObject();
+			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(SETTINGS_FILE));
+			SETTINGS_MAP = (Map<String, Object>) instream.readObject();
 			instream.close();
 			
 			/* Obtain the map values and assign them to data members */
-			UNIQUE_ID = 			(String)		settings.get("UNIQUE_ID");
-			LAST_UPDATE_CHECK = 	(String) 		settings.get("LAST_UPDATE_CHECK");
-			CURRENT_INSTALL_VER = 	(String)  		settings.get("CURRENT_INSTALL_VER");
-			SHORTCUT_VER = 			(String)		settings.get("SHORTCUT_VER");
-			UPDATE_FREQ = 			(UPDATE_TYPE)	settings.get("UPDATE_FREQ");
-			LAUNCH_MODE = 			(MODE)			settings.get("LAUNCH_MODE");
+			CONFIGURED = 			(Boolean)		ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
+			UNIQUE_ID = 			(String)		ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
+			LAST_UPDATE_CHECK = 	(String) 		ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
+			CURRENT_INSTALL_VER = 	(String)  		ternary(SETTINGS_MAP.get("CURRENT_INSTALL_VER"),	CURRENT_INSTALL_VER);
+			SHORTCUT_VER = 			(String)		ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
+			UPDATE_FREQ = 			(UPDATE_TYPE)	ternary(SETTINGS_MAP.get("UPDATE_FREQ"),			UPDATE_FREQ);
+			UPDATE_OVERRIDE	=		(Boolean)		ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
+			LAUNCH_MODE = 			(MODE)			ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
+			RPC_PORT = 				(Integer)		ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
 			
+			TraceUtils.trace(TraceUtils.STDOUT, "\tCONFIGURED: " + CONFIGURED);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tCURRENT_INSTALL_VER: " + CURRENT_INSTALL_VER);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tUPDATE_FREQ: " + UPDATE_FREQ);
+			TraceUtils.trace(TraceUtils.STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
 
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tCURRENT_INSTALL_VER: " + CURRENT_INSTALL_VER);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tUPDATE_FREQ: " + UPDATE_FREQ);
-
-			fin.close();
 		} catch (FileNotFoundException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -345,11 +366,11 @@ public class Settings
 	public static void createFS()
 	{
 		if( OS == OS_TYPE.WINDOWS )
-			APPDATA_DIRECTORY 	= new File(System.getenv("APPDATA"));
+			createFS(System.getenv("APPDATA"));
 		else if( OS == OS_TYPE.LINUX )
-			APPDATA_DIRECTORY 	= new File(USER_HOME + F_S +".config" + F_S);
+			createFS(USER_HOME);
 		else if( OS == OS_TYPE.MAC )
-			APPDATA_DIRECTORY 	= new File(USER_HOME + F_S + "Library" + F_S + "Application Support" + F_S);
+			createFS(USER_HOME + F_S + "Library" + F_S + "Application Support");
 		else
 		{
 			JOptionPane.showConfirmDialog(null, "You have an unknown Operating System\n" +
@@ -360,17 +381,20 @@ public class Settings
 			System.exit(1);
 			return;
 		}
-		
+	}
+	
+	public static void createFS(String directory)
+	{
+		APPDATA_DIRECTORY			= new File(directory);
 		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + ".weave"		 		+ F_S);
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
 		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "configuration.settings"	 );
-		PLUGINS_FILE				= new File(BIN_DIRECTORY, 			F_S + "plugins.settings"		 );
+		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "plugins.settings"		 );
 		LOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".lock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
 		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
 		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
 		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + "tmp" 				+ F_S);
-		EXE_DIRECTORY				= new File(DOWNLOADS_DIRECTORY, 	F_S + "exe" 				+ F_S);
 		DOWNLOADS_PLUGINS_DIRECTORY	= new File(DOWNLOADS_DIRECTORY, 	F_S + "plugins" 			+ F_S);
 		DEPLOYED_PLUGINS_DIRECTORY	= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "plugins" 			+ F_S);
 		REVISIONS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "revisions" 			+ F_S);
@@ -382,7 +406,6 @@ public class Settings
 		if( !BIN_DIRECTORY.exists() )				BIN_DIRECTORY.mkdirs();
 		if( !LOGS_DIRECTORY.exists() )				LOGS_DIRECTORY.mkdirs();
 		if( !DOWNLOADS_DIRECTORY.exists() )			DOWNLOADS_DIRECTORY.mkdirs();
-		if( !EXE_DIRECTORY.exists() )				EXE_DIRECTORY.mkdirs();
 		if( !DOWNLOADS_PLUGINS_DIRECTORY.exists() )	DOWNLOADS_PLUGINS_DIRECTORY.mkdirs();
 		if( !DEPLOYED_PLUGINS_DIRECTORY.exists() )	DEPLOYED_PLUGINS_DIRECTORY.mkdirs();
 		if( !REVISIONS_DIRECTORY.exists() )			REVISIONS_DIRECTORY.mkdirs();
@@ -392,6 +415,7 @@ public class Settings
 		TraceUtils.traceln(TraceUtils.STDOUT, "=== Running Preconfiguration ===");
 		TraceUtils.traceln(TraceUtils.STDOUT, "-> Creating File Structure........DONE");
 	}
+	
 	
 	/**
 	 * Stores all IP values for the client computer.
@@ -421,41 +445,10 @@ public class Settings
 	public static void createShortcut( boolean overwrite ) throws IOException
 	{
 		JShellLink link = new JShellLink();
-//		File shortcut = null;
-//		File target = null;
-		
-//		if( OS == OS_TYPE.WINDOWS ) 
-//		{
-//			shortcut = new File(DESKTOP_DIRECTORY, UPDATER_NAME+".lnk");
-//			target = new File(SHORTCUT_DIRECTORY, "windows.lnk");
-//		} 
-//		else if( OS == OS_TYPE.MAC ) 
-//		{
-//			shortcut = new File(DESKTOP_DIRECTORY, UPDATER_NAME);
-//			target = new File(SHORTCUT_DIRECTORY, "mac");
-//		} 
-//		else if( OS == OS_TYPE.LINUX ) 
-//		{
-//			shortcut = new File(DESKTOP_DIRECTORY, UPDATER_NAME);
-//			target = new File(SHORTCUT_DIRECTORY, "linux");
-//		}
-
-//		if( target.exists() && ( !shortcut.exists() || overwrite ) ) {
-//			if( !shortcut.exists() )
-//				TraceUtils.traceln(TraceUtils.STDOUT, "-> Creating shortcut...");
-//			else if( overwrite )
-//				TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating shortcut...");
-				
-//			try {
-//				FileUtils.copy(target, shortcut, FileUtils.OVERWRITE | FileUtils.OPTION_SINGLE_FILE);
-//			} catch (InterruptedException e) {
-//				TraceUtils.trace(TraceUtils.STDERR, e);
-//			}
-//		}
 		
 		link.setFolder(DESKTOP_DIRECTORY.getCanonicalPath());
 		link.setName(PROJECT_NAME);
-		link.setPath(new File(BIN_DIRECTORY, WEAVEUPDATER_JAR).getCanonicalPath());
+		link.setPath(new File(BIN_DIRECTORY, UPDATER_JAR).getCanonicalPath());
 		link.setIconLocation(ICON_FILE.getCanonicalPath());
 		link.save();
 		
@@ -469,25 +462,39 @@ public class Settings
 	 * Obtain a file lock to allow only 1 instance to be open.
 	 * 
 	 * @return <code>true</code> if lock is obtained successfully, <code>false</code> otherwise
+	 * @throws InterruptedException 
 	 * @see releaseLock()
 	 */
-	public static boolean getLock()
+	public static boolean getLock() throws InterruptedException
 	{
 		int myPID = getPID();
+		TraceUtils.traceln(TraceUtils.STDOUT, "-> Getting lock file..............");
 
 		if( LOCK_FILE.exists() )
 		{
 			try {
 				int lockPID = Integer.parseInt(FileUtils.getFileContents(LOCK_FILE));
 				
-				if( isActivePID(lockPID) )
+				if( isActivePID(lockPID) ) {
+					TraceUtils.put(TraceUtils.STDOUT, "FAILED (ALREADY OPEN)");
 					return false;
+				}
 				
 				releaseLock();
+				Thread.sleep(500);
+				TraceUtils.put(TraceUtils.STDOUT, "CLEANING");
+				
 				return getLock();
 				
-			} catch (FileNotFoundException e) {
+			} catch (NumberFormatException e) {
+				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+				TraceUtils.trace(TraceUtils.STDERR, e); 
+				BugReportUtils.showBugReportDialog(e);
+				return false;
+			} catch (IOException e) {
+				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 				TraceUtils.trace(TraceUtils.STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
 				return false;
 			}
 		}
@@ -500,10 +507,12 @@ public class Settings
 				bw.flush();
 				bw.close();
 			} catch (IOException e) {
+				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 				TraceUtils.trace(TraceUtils.STDERR, e);
 				return false;
 			}
 		}
+		TraceUtils.put(TraceUtils.STDOUT, "DONE");
 		return true;
 	}
 	
@@ -513,10 +522,11 @@ public class Settings
 	 * 
 	 * @see getLock()
 	 */
-	public static void releaseLock()
+	public static boolean releaseLock()
 	{
 		if( LOCK_FILE.exists() )
-			FileUtils.recursiveDelete(LOCK_FILE);
+			return FileUtils.recursiveDelete(LOCK_FILE);
+		return false;
 	}
 	
 	/**
@@ -529,8 +539,8 @@ public class Settings
 		Boolean b = false;
 		try {
 			Socket sock = new Socket(host, port);
-			b = true;
 			sock.close();
+			b = true;
 		} catch (IOException ex) {
 			TraceUtils.trace(TraceUtils.STDERR, ex);
 		} catch (IllegalArgumentException ex) {
@@ -548,32 +558,32 @@ public class Settings
 	 */
 	public static Boolean isConnectedToInternet()
 	{
-		/*
-		 * In order to use inter-thread communication, the thread required an unchangeable
-		 * variable - itc - which we can have are changable variable inside.
-		 */
 		class ITC {
 			boolean isConnected = false;
 		}
 		final ITC itc = new ITC();
 		
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Checking Internet Connection...");
+//		TraceUtils.trace(TraceUtils.STDOUT, "-> Checking Internet Connection...");
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				URL url 			= null;
-				URLConnection conn 	= null;
+				URL url 				= null;
+				HttpURLConnection conn 	= null;
 				try {
 					url = new URL(Settings.OICWEAVE_URL);
-					conn = url.openConnection();
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setUseCaches(false);
 					conn.connect();
-					conn.getContent();
 				} catch (ConnectException e) {
 					// Don't trace error here
 					itc.isConnected = false;
 				} catch (IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					itc.isConnected = false;
+				} finally {
+					if( conn != null )
+						conn.disconnect();
 				}
 				itc.isConnected = true;
 			}
@@ -589,57 +599,95 @@ public class Settings
 		
 		isConnectedToInternet = itc.isConnected;
 		
-		if( itc.isConnected )
-			TraceUtils.put(TraceUtils.STDOUT, "CONNECTED");
-		else
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+//		if( itc.isConnected )
+//			TraceUtils.put(TraceUtils.STDOUT, "CONNECTED");
+//		else
+//			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 		
 		return itc.isConnected;
 	}
 	
-	public static void enableWeaveProtocol() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	public static void startListenerServer()
 	{
-		RegistryUtils.createKey(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave");
-		RegistryUtils.createKey(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave\\DefaultIcon");
-		RegistryUtils.createKey(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave\\Shell\\");
-		RegistryUtils.createKey(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave\\Shell\\Open");
-		RegistryUtils.createKey(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave\\Shell\\Open\\command");
-		
-		RegistryUtils.writeStringValue(
-			RegistryUtils.HKEY_LOCAL_MACHINE, 
-			"SOFTWARE\\classes\\weave", 
-			"",
-			"URL:weave protocol");
-		RegistryUtils.writeStringValue(
-			RegistryUtils.HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\classes\\weave",
-			"URL Protocol",
-			"");
-		RegistryUtils.writeStringValue(
-			RegistryUtils.HKEY_LOCAL_MACHINE, 
-			"SOFTWARE\\classes\\weave\\Shell\\Open\\command", 
-			"",
-			"\"" + WEAVE_ROOT_DIRECTORY + "\\bin\\WeaveInstaller.jar\" \"%1\"");
-//		WinRegistry.writeStringValue(
-//			WinRegistry.HKEY_CURRENT_USER,
-//			"Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiChache",
-//			System.getenv("APPDATA") + "\\WeaveInstaller\\bin\\WeaveInstaller.jar",
-//			"Weave Installer");
+		rpcServer = new ServerListener(RPC_PORT);
+		rpcServer.start();
 	}
 	
-	public static void disableWeaveProtocol() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	public static void stopListenerServer()
 	{
-		RegistryUtils.deleteKey(RegistryUtils.HKEY_LOCAL_MACHINE, "SOFTWARE\\classes\\weave");
+		rpcServer.stop();
+	}
+	
+	
+	public static void enableWeaveProtocol(boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	{
+		if( OS != OS_TYPE.WINDOWS )
+			return;
+
+		// 	weave://
+		if( enable )
+		{
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER,
+					"Software\\Classes\\weave", 
+					RegEdit.REG_SZ, 
+					"", "URL:weave Protocol");
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER,
+					"Software\\Classes\\weave", 
+					RegEdit.REG_SZ,
+					"\"URL Protocol\"", "");
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER, 
+					"Software\\Classes\\weave\\shell\\open\\command", 
+					RegEdit.REG_EXPAND_SZ, 
+					"", "cmd /C start /MIN java -jar \"^%APPDATA^%\\.weave\\bin\\Launcher.jar\" \"%1\"");
+		}
+		else
+		{
+			RegEdit.deleteKey(RegEdit.HKEY_CURRENT_USER, "Software\\Classes\\weave", null);
+		}
+		
+		DLLInterface.refresh();
+	}
+	
+	public static void enableWeaveExtension(boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	{
+		if( OS != OS_TYPE.WINDOWS )
+			return;
+		
+		// .weave extension
+		if( enable )
+		{
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER, 
+					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.weave\\UserChoice",
+					RegEdit.REG_SZ,
+					"Progid", "weavefile");
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER,
+					"Software\\Classes\\weavefile\\DefaultIcon", 
+					RegEdit.REG_EXPAND_SZ, 
+					"", "\"^%APPDATA^%\\.weave\\bin\\icon.ico\"");
+			RegEdit.writeString(
+					RegEdit.HKEY_CURRENT_USER,
+					"Software\\Classes\\weavefile\\shell\\open\\command",
+					RegEdit.REG_EXPAND_SZ, 
+					"", "cmd /C start /MIN java -jar \"^%APPDATA^%\\.weave\\bin\\Launcher.jar\" \"%1\"");
+		}
+		else
+		{
+			RegEdit.deleteKey(
+					RegEdit.HKEY_CURRENT_USER,
+					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.weave", 
+					null);
+			RegEdit.deleteKey(
+					RegEdit.HKEY_CURRENT_USER, 
+					"Software\\Classes\\weavefile",
+					null);
+		}
+		
+		DLLInterface.refresh();
 	}
 	
 	
@@ -715,18 +763,43 @@ public class Settings
 	 */
 	public static boolean isActivePID(int pid)
 	{
-		String cmds[] = {"cmd", "/c", "tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH"};
+		String windows_cmds[] = {"cmd", "/c", "tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH"};
+		String unix_cmds[] = {"/bin/bash", "-c", "ps aux | more" };
+		
+		List<String> result = null;
 		
 		try {
-			ArrayList<String> result = ProcessUtils.runAndWait(cmds);
+			
+			if( OS == OS_TYPE.WINDOWS )		
+				result = ProcessUtils.runAndWait(windows_cmds);
+			else if( OS == OS_TYPE.MAC || OS == OS_TYPE.LINUX )
+				result = ProcessUtils.runAndWait(unix_cmds);
+			else
+				result = new ArrayList<String>();
 			
 			for( int i = 0; i < result.size(); i++ )
-				if( result.get(i).contains("\"" + pid + "\"") )
+				if( result.get(i).contains("" + pid) )
 					return true;
+
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			return false;
 		}
+				
 		return false;
+	}
+	
+	
+	/**
+	 * Shorthand ternary operation to simplify testing
+	 * 
+	 * @param test The test to see if it is null
+	 * @param failDefault The fail-safe default value
+	 * @return This will return the test value if it is non-null, otherwise it will return the default
+	 */
+	public static Object ternary(Object test, Object failDefault)
+	{
+		return test != null ? test : failDefault;
 	}
 	
 	
@@ -761,11 +834,14 @@ public class Settings
 				Thread.sleep(50);
 			} while( success == false && loop < 3 );
 		}
+		
+		System.gc();
 	}
 	
 	
 	/**
 	 * Stops the WeaveInstaller tool
+	 * @throws InterruptedException 
 	 */
 	public static void shutdown()
 	{
@@ -775,6 +851,7 @@ public class Settings
 	/**
 	 * Stops the Weave Installer Tool
 	 * @param errno An error code
+	 * @throws InterruptedException 
 	 */
 	public static void shutdown( int errno )
 	{
@@ -792,7 +869,8 @@ public class Settings
 		}
 		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.INSTALLER_NAME) )
 		{
-			
+			TrayManager.removeTrayIcon();
+			stopListenerServer();
 		}
 		
 		if( errno != JFrame.ERROR && errno != JFrame.ABORT )

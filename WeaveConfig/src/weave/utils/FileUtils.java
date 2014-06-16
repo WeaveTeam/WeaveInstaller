@@ -19,16 +19,16 @@
 
 package weave.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
@@ -140,21 +140,53 @@ public class FileUtils implements IUtils
 	
 	
 	/*
+	 * FileUtils.getClassPath( class )
+	 * 
+	 * Get the current class path of the specified class.
+	 */
+	public static String getClassPath(Class<?> c)
+	{
+		return c.getProtectionDomain().getCodeSource().getLocation().getPath();
+	}
+	
+	
+	/*
+	 * FileUtils.getFileExtension( file )
+	 * 
+	 * Get the extension of the specified file
+	 */
+	public static String getFileExtension(String s)
+	{
+		return s.substring(s.lastIndexOf(".")+1);
+	}
+	public static String getFileExtension(File f)
+	{
+		return getFileExtension(f.getAbsolutePath());
+	}
+
+	
+	/*
 	 * FileUtils.getFileContents( file )
 	 * 
 	 * This can read a text file line by line and return it as a string.
 	 */
-	public static String getFileContents(String f) throws FileNotFoundException
+	public static String getFileContents(String f) throws IOException
 	{
 		return getFileContents(new File(f));
 	}
-	public static String getFileContents(File f) throws FileNotFoundException
+	public static String getFileContents(File f) throws IOException
+	{
+		return getFileContents(new FileInputStream(f));
+	}
+	public static String getFileContents(InputStream in) throws IOException
 	{
 		String contents = "";
+		String line = "";
 		
-		Scanner scanner = new Scanner(f);
-		while( scanner.hasNextLine() )
-			contents += scanner.nextLine();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		while( (line = reader.readLine()) != null )
+			contents += line;
+		reader.close();
 		
 		return contents;
 	}
@@ -284,13 +316,13 @@ public class FileUtils implements IUtils
 					}
 
 					if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) )		setInfo(_func.info.max, _func.info.max);
-				} catch( IOException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch(IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
 					fiu.status = FAILED;
 				} finally {
 					try {
-						in.close();
-						out.close();
+						if( in != null )	in.close();
+						if( out != null )	out.close();
 					} catch (IOException e) {
 						TraceUtils.trace(TraceUtils.STDERR, e);
 					}

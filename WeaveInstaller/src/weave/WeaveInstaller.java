@@ -49,12 +49,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import weave.inc.ISetupPanel;
+import weave.managers.ConfigManager;
 import weave.plugins.MySQL;
-import weave.plugins.PluginManager;
 import weave.plugins.Tomcat;
-import weave.ui.CurSetupPanel;
-import weave.ui.PostSetupPanel;
-import weave.ui.PreSetupPanel;
+import weave.ui.ConfigSetupPanel;
+import weave.ui.HomeSetupPanel;
+import weave.ui.WelcomeSetupPanel;
 import weave.utils.FileUtils;
 import weave.utils.IdentityUtils;
 
@@ -73,9 +73,9 @@ public class WeaveInstaller extends JFrame
 	
 	// === Right Panel === //
 	public JPanel 					rightPanel		= null;
-	public PreSetupPanel 			preSP 			= null;
-	public CurSetupPanel 			curSP			= null;
-	public PostSetupPanel 			postSP 			= null;
+	public WelcomeSetupPanel 			preSP 			= null;
+	public ConfigSetupPanel 			curSP			= null;
+	public HomeSetupPanel 			postSP 			= null;
 	public HashMap<String, JPanel>	setupPanels		= new HashMap<String, JPanel>();
 
 	
@@ -122,7 +122,7 @@ public class WeaveInstaller extends JFrame
 
 	public WeaveInstaller() throws Exception 
 	{	
-		PluginManager.instance().initializePlugins();
+		ConfigManager.getConfigManager().initializeConfigs();
 		
 		// ======== STRUCTURING ========= //
 		setSize(500, 400);
@@ -302,7 +302,7 @@ public class WeaveInstaller extends JFrame
 		{
 			hideAllPanels();
 			setupPanels.get(PRE_SETUP).setVisible(true);
-			((ISetupPanel) setupPanels.get(PRE_SETUP)).showPanels();
+			((ISetupPanel) setupPanels.get(PRE_SETUP)).showPanel();
 			
 			backButton.setEnabled(false);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
@@ -343,7 +343,7 @@ public class WeaveInstaller extends JFrame
 			return;
 		}
 		
-		preSP = new PreSetupPanel();
+		preSP = new WelcomeSetupPanel();
 		preSP.hidePanels();
 		setupPanels.put(PRE_SETUP, preSP);
 		parent.add(preSP);
@@ -356,7 +356,7 @@ public class WeaveInstaller extends JFrame
 		{
 			hideAllPanels();
 			setupPanels.get(CUR_SETUP).setVisible(true);
-			((ISetupPanel) setupPanels.get(CUR_SETUP)).showPanels();
+			((ISetupPanel) setupPanels.get(CUR_SETUP)).showPanel();
 			
 			removeButtonActions();
 			curSP.addActionToButton(backButton, new ActionListener() {
@@ -389,7 +389,7 @@ public class WeaveInstaller extends JFrame
 				public void actionPerformed(ActionEvent e) {
 					if( curSP.getCurrentPanelIndex() == ( curSP.getNumberOfPanels() - 1) )
 					{
-						if (MySQL.instance().MYSQL_PORT == 0 || Tomcat.instance().TOMCAT_PORT == 0 || Tomcat.instance().TOMCAT_HOME.equals(""))
+						if (MySQL.getConfig().MYSQL_PORT == 0 || Tomcat.getConfig().TOMCAT_PORT == 0 || Tomcat.getConfig().TOMCAT_HOME.equals(""))
 							JOptionPane.showMessageDialog(null,	"Error validating settings information.", "Error", JOptionPane.ERROR_MESSAGE);
 						else if (Settings.save()) {
 							JOptionPane.showMessageDialog(null, "Settings saved successfully", "Settings", JOptionPane.INFORMATION_MESSAGE);
@@ -435,7 +435,7 @@ public class WeaveInstaller extends JFrame
 			return;
 		}
 		
-		curSP = new CurSetupPanel();
+		curSP = new ConfigSetupPanel();
 		curSP.hidePanels();
 		curSP.addActionToButton(curSP.tomcatDownloadButton, new ActionListener() {
 			@Override
@@ -445,7 +445,7 @@ public class WeaveInstaller extends JFrame
 				backButton.setEnabled( false ) ;
 				cancelButton.setEnabled( false ) ;
 				try {
-					if( Tomcat.instance().TOMCAT_INSTALL_FILE.exists() ){
+					if( Tomcat.getConfig().TOMCAT_INSTALL_FILE.exists() ){
 						int response = JOptionPane.showConfirmDialog(null, "Weave Installer has detected that an executable" +
 								" installer already exists.\nWould you like to re-download and overwrite?",
 								"Confirm", JOptionPane.YES_NO_OPTION ) ;
@@ -481,7 +481,7 @@ public class WeaveInstaller extends JFrame
 				backButton.setEnabled( false ) ;
 				cancelButton.setEnabled( false ) ;
 				try {
-					if( MySQL.instance().MYSQL_INSTALL_FILE.exists() ){
+					if( MySQL.getConfig().MYSQL_INSTALL_FILE.exists() ){
 						int response = JOptionPane.showConfirmDialog(null, "Weave Installer has detected that an executable" +
 								" installer already exists.\nWould you like to re-download and overwrite?",
 								"Confirm", JOptionPane.YES_NO_OPTION ) ;
@@ -509,12 +509,12 @@ public class WeaveInstaller extends JFrame
 		});
 		curSP.addActionToButton(curSP.installTomcat, new ActionListener(){
 			@Override public void actionPerformed( ActionEvent arg0 ){
-				curSP.progMySQL.runExecutable( Tomcat.instance().TOMCAT_INSTALL_FILE ) ;
+				curSP.progMySQL.runExecutable( Tomcat.getConfig().TOMCAT_INSTALL_FILE ) ;
 			}
 		}) ;
 		curSP.addActionToButton(curSP.installMySQL, new ActionListener(){
 			@Override public void actionPerformed( ActionEvent arg0 ){
-				curSP.progMySQL.runExecutable( MySQL.instance().MYSQL_INSTALL_FILE ) ;
+				curSP.progMySQL.runExecutable( MySQL.getConfig().MYSQL_INSTALL_FILE ) ;
 			}
 		}) ;
 		curSP.addActionToButton(curSP.dirButton, new ActionListener() {
@@ -527,9 +527,9 @@ public class WeaveInstaller extends JFrame
 					File f = new File(dir + "/webapps/ROOT/");
 					File g = new File(dir + "/Uninstall.exe");
 					if (f.exists() && g.exists()) {
-						Tomcat.instance().TOMCAT_HOME = new File(dir);
+						Tomcat.getConfig().TOMCAT_HOME = new File(dir);
 					} else {
-						Tomcat.instance().TOMCAT_HOME = null;
+						Tomcat.getConfig().TOMCAT_HOME = null;
 						JOptionPane.showMessageDialog(null, "Invalid Tomcat Directory", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				}
@@ -547,7 +547,7 @@ public class WeaveInstaller extends JFrame
 		{
 			hideAllPanels();
 			setupPanels.get(POST_SETUP).setVisible(true);
-			((ISetupPanel) setupPanels.get(POST_SETUP)).showPanels();
+			((ISetupPanel) setupPanels.get(POST_SETUP)).showPanel();
 			
 			backButton.setEnabled(false);	backButton.setVisible(false);
 			nextButton.setEnabled(false);	nextButton.setVisible(false);
@@ -565,7 +565,7 @@ public class WeaveInstaller extends JFrame
 			return;
 		}
 		
-		postSP = new PostSetupPanel();
+		postSP = new HomeSetupPanel();
 		postSP.hidePanels();
 		postSP.addActionToButton(postSP.installButton, new ActionListener() {
 			@Override
@@ -576,8 +576,8 @@ public class WeaveInstaller extends JFrame
 					postSP.progress.progBar.setValue(0);
 					return;
 				}
-				if (Settings.isServiceUp("sdf", Tomcat.instance().TOMCAT_PORT)
-				&& !Tomcat.instance().TOMCAT_HOME.equals("")) {
+				if (Settings.isServiceUp("sdf", Tomcat.getConfig().TOMCAT_PORT)
+				&& !Tomcat.getConfig().TOMCAT_HOME.equals("")) {
 					postSP.installButton.setEnabled(false);
 					postSP.revertButton.setEnabled(false);
 					postSP.deleteButton.setEnabled(false);
@@ -626,7 +626,7 @@ public class WeaveInstaller extends JFrame
 						 * not equal to "" If these conditions are met, enable
 						 * the install button; else disable it.
 						 */
-						if (ret == 1 && !Tomcat.instance().TOMCAT_HOME.equals(""))
+						if (ret == 1 && !Tomcat.getConfig().TOMCAT_HOME.equals(""))
 						{
 							postSP.installButton.setEnabled(true);
 							postSP.launchAdmin.setForeground(Color.BLACK);
@@ -676,7 +676,7 @@ public class WeaveInstaller extends JFrame
 					JOptionPane.showMessageDialog(null,	"Cannot revert to current installation.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				if (!Tomcat.instance().TOMCAT_HOME.equals("")) {
+				if (!Tomcat.getConfig().TOMCAT_HOME.equals("")) {
 					postSP.installButton.setEnabled(false);
 					postSP.deleteButton.setEnabled(false);
 					postSP.revertButton.setEnabled(false);
@@ -779,8 +779,8 @@ public class WeaveInstaller extends JFrame
 	
 	public boolean moveNewerUpdater()
 	{
-		File source = new File(Settings.BIN_DIRECTORY, Settings.WEAVEUDPATER_NEW_JAR);
-		File destination = new File(Settings.BIN_DIRECTORY, Settings.WEAVEUPDATER_JAR);
+		File source = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
+		File destination = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
 		
 		if( source.exists() )
 			return FileUtils.renameTo(source, destination, FileUtils.OVERWRITE);

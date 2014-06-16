@@ -19,19 +19,20 @@
 
 package weave.utils;
 
+import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import weave.Settings;
+import weave.managers.TrayManager;
 
 public class UpdateUtils 
 {
-
+	public static final int FROM_USER = 1;
+	public static final int FROM_EVENT = 2;
+	
 	public static List<String> entriesToCheck	= new ArrayList<String>( Arrays.asList( RemoteUtils.WEAVE_UPDATER_VERSION,
 																						RemoteUtils.WEAVE_INSTALLER_VERSION,
 																						RemoteUtils.SHORTCUT_VER));
@@ -39,9 +40,8 @@ public class UpdateUtils
 																						Settings.INSTALLER_VER,
 																						Settings.SHORTCUT_VER));
 	/**
-	 * Assign new values to lookupEntries
-	 * 
-	 * Fixed SHORTCUT_VER bug
+	 * Assign new values to lookupEntries.
+	 *
 	 */
 	public static void refreshLookupValues()
 	{
@@ -60,44 +60,58 @@ public class UpdateUtils
 	 */
 	public static boolean isUpdateAvailable() 
 	{
-		if( Settings.isConnectedToInternet() )
+		if( Settings.isOfflineMode() )
+			return false;
+	
+		File tempFile;
+		boolean missingFile = false;
+		boolean outOfDateFile = false;
+		
+		refreshLookupValues();
+		
+		for( int i = 0; i < entriesToCheck.size(); i++ )
 		{
-			File tempFile;
-			boolean missingFile = false;
-			boolean outOfDateFile = false;
+			String value = RemoteUtils.getConfigEntry( entriesToCheck.get(i) );
+			if( value == null ) return false;
 			
-			refreshLookupValues();
-			
-			for( int i = 0; i < entriesToCheck.size(); i++ )
-			{
-				String value = RemoteUtils.getConfigEntry( entriesToCheck.get(i) );
-				if( value == null ) return false;
-				
-				outOfDateFile |= !(value).equals( lookupEntries.get(i) );
-			}
-			
-			String[] files = RemoteUtils.getRemoteFiles();
-			for( String f : files ) {
-				tempFile = new File(Settings.WEAVE_ROOT_DIRECTORY, f.trim());
-				if( !tempFile.exists() ) {
-					missingFile = true;
-					break;
-				}
-			}
-			return ( missingFile || outOfDateFile );
+			outOfDateFile |= !(value).equals( lookupEntries.get(i) );
 		}
-		else 
-		{
-			JOptionPane.showConfirmDialog(null, 
-				"A connection to the internet could not be established.\n\n" +
-				"Please connect to the internet and try again.", 
-				"No Connection", 
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-			
-			if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.UPDATER_NAME) )
-				Settings.shutdown( JFrame.ERROR );
+		
+		String[] files = RemoteUtils.getRemoteFiles();
+		for( String f : files ) {
+			tempFile = new File(Settings.WEAVE_ROOT_DIRECTORY, f.trim());
+			if( !tempFile.exists() ) {
+				missingFile = true;
+				break;
+			}
 		}
-		return false;
+		return ( missingFile || outOfDateFile );
 	}
 	
+	/**
+	 * 
+	 */
+	public static void checkForUpdate(int from)
+	{
+		boolean isUpdate = isUpdateAvailable();
+		
+		if( isUpdate )
+		{
+			Settings.UPDATE_OVERRIDE = true;
+			Settings.save();
+			
+			TrayManager.displayUpdateMessage(
+					Settings.PROJECT_NAME + " Update Available!", 
+					"Click on this message to recieve the update.",
+					MessageType.INFO);
+		}
+		else
+		{
+			if( from == FROM_USER )
+				TrayManager.displayTrayMessage(
+						Settings.UPDATER_NAME,
+						"No new updates available",
+						MessageType.INFO);
+		}
+	}
 }

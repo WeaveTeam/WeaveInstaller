@@ -61,7 +61,17 @@ public class SetupPanel extends JPanel implements ISetupPanel
 	}
 
 	@Override
-	public void showPanels() {
+	public boolean isFirstPanel() {
+		return getCurrentPanelIndex() == 0;
+	}
+
+	@Override
+	public boolean isLastPanel() {
+		return getCurrentPanelIndex() == getNumberOfPanels() - 1;
+	}
+	
+	@Override
+	public void showPanel() {
 		hidePanels();
 		currentPanel = 0;
 		panels.get(currentPanel).setVisible(true);

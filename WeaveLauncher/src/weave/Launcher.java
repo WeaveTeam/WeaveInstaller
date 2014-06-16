@@ -21,13 +21,18 @@ package weave;
 
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.HeadlessException;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import weave.utils.StringUtils;
 
 @SuppressWarnings("serial")
 public class Launcher extends JFrame
@@ -38,6 +43,13 @@ public class Launcher extends JFrame
 	
 	public static void main( final String[] args )
 	{
+		if( !Desktop.isDesktopSupported() ) {
+			System.out.println("!! Desktop functionality not supported.");
+			System.exit(NORMAL);
+		}
+		
+		Settings.init();
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -62,33 +74,55 @@ public class Launcher extends JFrame
 		panel.setBackground(Color.BLACK);
 		add(panel);
 
-		String program = "";
+		String path = "";
 		int delay = 0;
 		
 		setState(JFrame.ICONIFIED);
 
 		try {
 			if( args.length == 0 ) System.exit(NORMAL);
-			if( args.length > 0 ) program = args[0];
+			if( args.length > 0 ) path = args[0];
 			if( args.length > 1 ) delay = Integer.parseInt(args[1]);
 			
-			File prog = new File(program);
 			
-			if( !Desktop.isDesktopSupported() ) {
-				System.out.println("!! Desktop functionality not supported.");
-				System.exit(NORMAL);
+			// Handle special cases first
+			if( StringUtils.beginsWith(path, Settings.PROJECT_PROTOCOL) )
+			{
+				String[] params = path.substring(Settings.PROJECT_PROTOCOL.length()).split("/");
+				String cmd = params[0];
+//				String arg = params[1];
+				
+				if( cmd.equals("open") ) {
+
+				} 
+				else if( cmd.equals("download") ) {
+					
+				}
+				else if( cmd.equals("startApplication" ) ) {
+					File file = new File(Settings.BIN_DIRECTORY, Settings.INSTALLER_JAR);
+					start(file, delay);
+				}
+				else if( cmd.equals("stopApplication") ) {
+					Socket s = new Socket(Settings.LOCALHOST, Settings.RPC_PORT);
+					PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+					
+					out.println("stopApplication");
+					out.close();
+					s.close();
+				}
+				else {
+					throw new IllegalArgumentException("Invalid protocol command: " + cmd);
+				}
 			}
-			if( !prog.exists() ) {
-				System.out.println("!! Program not found: \"" + prog.getCanonicalPath() + "\"");
-				JOptionPane.showMessageDialog(null, 
-						"Program not found: \n\"" + prog.getCanonicalPath() + "\"", 
-						"File Not Found", 
-						JOptionPane.ERROR_MESSAGE);
-				System.exit(NORMAL);
+			else if( StringUtils.endsWith(path, Settings.PROJECT_EXTENSION) )
+			{
+				
 			}
-			
-			Desktop.getDesktop().open(prog.getCanonicalFile());
-			Thread.sleep(delay);
+			else
+			{
+				start(path, delay);
+			}
+
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		} catch (IOException e2) {
@@ -98,5 +132,25 @@ public class Launcher extends JFrame
 		}
 		
 		System.exit(NORMAL);
+	}
+	
+	private void start(String path, int delay) throws HeadlessException, IOException, InterruptedException 
+	{
+		start(new File(path), delay);
+	}
+	private void start(File file, int delay) throws IOException, InterruptedException
+	{
+		if( !file.exists() ) {
+			System.out.println("!! Program not found: \"" + file.getCanonicalPath() + "\"");
+			JOptionPane.showMessageDialog(null, 
+					"Program not found: \n\"" + file.getCanonicalPath() + "\"", 
+					"File Not Found", 
+					JOptionPane.ERROR_MESSAGE);
+			System.exit(NORMAL);
+		}
+		
+		Thread.sleep(delay);
+		Desktop.getDesktop().open(file.getCanonicalFile());
+		Thread.sleep(delay);
 	}
 }

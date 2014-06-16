@@ -19,15 +19,30 @@
 
 package weave.utils;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.managers.ConfigManager;
 
 public class LaunchUtils
 {
+	public static Boolean launch(String path, int delay) throws IOException, URISyntaxException, InterruptedException
+	{
+		if( Desktop.isDesktopSupported() )
+		{
+			Thread.sleep(delay);
+			Desktop.getDesktop().browse(new URI(path));
+			return true;
+		}
+		return false;
+	}
+	
 	private static Boolean launch(File f, int delay) throws IOException, InterruptedException
 	{
 		File launcher = new File(Settings.BIN_DIRECTORY, Settings.LAUNCHER_JAR);
@@ -59,8 +74,8 @@ public class LaunchUtils
 	public static Boolean launchWeaveUpdater(int delay) throws IOException, InterruptedException
 	{
 		File updater= null;
-		File WU		= new File(Settings.BIN_DIRECTORY, Settings.WEAVEUPDATER_JAR);
-		File WUN	= new File(Settings.BIN_DIRECTORY, Settings.WEAVEUDPATER_NEW_JAR);
+		File WU		= new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
+		File WUN	= new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
 		
 		if( WU.exists() )
 			updater = WU;
@@ -76,6 +91,25 @@ public class LaunchUtils
 	}
 	public static Boolean launchWeaveInstaller(int delay) throws IOException, InterruptedException
 	{
-		return launch(new File(Settings.BIN_DIRECTORY, Settings.WEAVEINSTALLER_JAR), delay);
+		return launch(new File(Settings.BIN_DIRECTORY, Settings.INSTALLER_JAR), delay);
+	}
+	
+	public static Boolean openAdminConsole() throws IOException, URISyntaxException, InterruptedException
+	{
+		return openAdminConsole(100);
+	}
+	public static Boolean openAdminConsole(int delay) throws IOException, URISyntaxException, InterruptedException
+	{
+		if( ConfigManager.getConfigManager().getContainer() == null )
+		{
+			JOptionPane.showMessageDialog(null,	
+					"   You do not have an active servlet container.   ", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return launch("http://" + 
+				Settings.LOCALHOST + ":" + 
+				ConfigManager.getConfigManager().getContainer().getPort(),
+				delay);
 	}
 }

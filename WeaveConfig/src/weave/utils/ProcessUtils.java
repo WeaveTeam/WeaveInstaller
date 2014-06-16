@@ -33,10 +33,6 @@ public class ProcessUtils implements IUtils
 	protected static Runtime runtime = Runtime.getRuntime();
 	protected static Process proccess = null;
 	
-	protected static InputStream inStream;
-	protected static InputStreamReader inStreamReader;
-	protected static BufferedReader buffReader;
-	
 	private static Thread currentThread = null;
 	
 	public ProcessUtils(){
@@ -48,21 +44,26 @@ public class ProcessUtils implements IUtils
 	}
 	
 	
-	public static ArrayList<String> runAndWait( List<String> cmds ) throws IOException, InterruptedException
+	public static List<String> runAndWait( List<String> cmds ) throws IOException, InterruptedException
 	{
-		String[] strList = new String[cmds.size()];
+		String[] strList = cmds.toArray(new String[cmds.size()]);
 		return runAndWait(strList);
 	}
-	public static ArrayList<String> runAndWait( final String cmds[] ) throws InterruptedException
+	public static List<String> runAndWait( final String cmds[] ) throws InterruptedException
 	{
 		ProcInternals proc = new ProcInternals();
-		ProccessRunnable pr = new ProccessRunnable(cmds, proc); 
+		ProcessRunnable pr = new ProcessRunnable(cmds, proc); 
 		currentThread = new Thread(pr);
+		
+//		System.out.println("Running query: " + Arrays.toString(cmds));
 		
 		currentThread.start();
 		currentThread.join();
+
+//		System.out.println("\tOutput: " + proc.output);
+//		System.out.println("\tError: " + proc.error + "\n");
 		
-		return proc.result;
+		return proc.output;
 	}
 	public static void stopWaiting()
 	{
@@ -76,39 +77,69 @@ public class ProcessUtils implements IUtils
 
 class ProcInternals
 {
-	public ArrayList<String> result = null;
+	public List<String> output = null;
+	public List<String> error = null;
 }
 
-class ProccessRunnable extends ProcessUtils implements Runnable
+class ProcessStream extends Thread
+{
+	private InputStream is = null;
+	private BufferedReader reader = null;
+	private List<String> list = null;
+	
+	public ProcessStream(InputStream is, List<String> list)
+	{
+		this.is = is;
+		this.list = list;
+	}
+	
+	@Override
+	public void run()
+	{
+		try {
+
+			String line = "";
+			reader = new BufferedReader(new InputStreamReader(is));
+		
+			while( (line = reader.readLine()) != null )
+				list.add(line);
+
+			reader.close();
+			
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+	}
+}
+
+class ProcessRunnable extends ProcessUtils implements Runnable
 {
 	private String cmds[] = null;
 	ProcInternals proc = null;
 	
-	public ProccessRunnable(String cmds[], ProcInternals proc)
+	public ProcessRunnable(String cmds[], ProcInternals proc)
 	{
 		this.cmds = cmds;
 		this.proc = proc;
-		this.proc.result = new ArrayList<String>();
+		this.proc.output = new ArrayList<String>();
+		this.proc.error = new ArrayList<String>();
 	}
 	
 	
 	@Override
 	public void run() {
 		
-		String line = "";
-		
 		try {
 			proccess = runtime.exec(cmds);
-			proccess.waitFor();
 
-			inStream = proccess.getInputStream();
-			inStreamReader = new InputStreamReader(inStream);
-			buffReader = new BufferedReader(inStreamReader);
+			ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), proc.output);
+			ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), proc.error);
 			
-			while( (line = buffReader.readLine()) != null )
-				proc.result.add(line);
+			outputStream.start();
+			errorStream.start();
 			
-			buffReader.close();
+			proccess.waitFor();
 			
 			proccess.getOutputStream().close();
 			proccess.getInputStream().close();

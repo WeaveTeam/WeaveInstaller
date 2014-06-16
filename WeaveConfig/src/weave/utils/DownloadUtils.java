@@ -24,8 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,6 +38,7 @@ public class DownloadUtils implements IUtils
 	public static final int FAILED		= ( 1 << 0 );
 	public static final int COMPLETE	= ( 1 << 1 );
 	public static final int CANCELLED 	= ( 1 << 2 );
+	public static final int OFFLINE		= ( 1 << 3 );
 	
 	private IUtilsInfo _func = null;
 	
@@ -121,14 +122,24 @@ public class DownloadUtils implements IUtils
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
+				HttpURLConnection conn 	= null;
+				InputStream in 			= null;
+				OutputStream out 		= null;
+				
 				try {
-					URLConnection conn 	= url.openConnection();
-					InputStream in 		= conn.getInputStream();
-					OutputStream out 	= new FileOutputStream(destination);
-					int sizeOfDownload 	= conn.getContentLength();
+					// Setup the connection to follow redirects
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setInstanceFollowRedirects(true);
+					conn.setRequestMethod("GET");
+					conn.connect();
+
+					// Initialize input and output streams
+					in 	= conn.getInputStream();
+					out = new FileOutputStream(destination);
 					
-					int length = 0, cur = 0, kbps = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
 					byte buffer[] 		= new byte[1024*4];
+					int sizeOfDownload 	= conn.getContentLength();
+					int length = 0, cur = 0, kbps = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
 					long speedLongNew 	= 0, speedLongOld = System.currentTimeMillis();
 					long cancelLongNew 	= 0, cancelLongOld = System.currentTimeMillis();
 					
@@ -151,12 +162,17 @@ public class DownloadUtils implements IUtils
 							speedLongOld = speedLongNew;
 							aveDownSpeed = (cur/1024)/seconds;
 						}
+						
+						// Throttle the check to see if the user has clicked the
+						// cancel button to every 100 milliseconds to stop the download. 
 						if( ( cancelLongNew - cancelLongOld ) > 200 ) {
 							cancelLongOld = cancelLongNew;
-							if( Settings.downloadCanceled == true ) {
+							if( Settings.downloadCanceled == true ) 
+							{
 								diu.status = CANCELLED;
-								in.close();
-								out.close();
+
+								if( in != null )	in.close();
+								if( out != null )	out.close();
 								return;
 							}
 						}
@@ -165,13 +181,27 @@ public class DownloadUtils implements IUtils
 					}
 					out.flush();
 					if( _func != null ) setInfo(sizeOfDownload, sizeOfDownload, 0);
-					in.close();
-					out.close();
+					
 				} catch ( IOException e ) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 					diu.status = FAILED;
-					return;
+				
+				} finally {
+					try {
+						if( in != null )	in.close();
+						if( out != null )	out.close();
+						
+						if( conn != null ) {
+							conn.getInputStream().close();
+							conn.getOutputStream().close();
+							conn.getErrorStream().close();
+							conn.disconnect();
+						}
+					} catch (IOException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
 				}
 			}
 		});

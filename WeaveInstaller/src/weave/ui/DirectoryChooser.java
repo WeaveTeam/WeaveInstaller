@@ -27,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import weave.Settings;
 import weave.plugins.Tomcat;
 
 @SuppressWarnings("serial")
@@ -45,14 +46,14 @@ public class DirectoryChooser extends JPanel
 	{
 		setLayout(new GridLayout(1, 2));
 		
-		fileChooser = new JFileChooser("C:\\");
+		fileChooser = new JFileChooser(Settings.USER_HOME);
 		label = new JLabel(_label);
-		label.setFont(new Font("Serif", Font.BOLD, 14));
+		label.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		
-		if( Tomcat.instance().getHomeDirectory() == null )
+		if( Tomcat.getConfig().getHomeDirectory() == null )
 			textField = new JTextField("", 19);
 		else
-			textField = new JTextField(Tomcat.instance().getHomeDirectory().getAbsolutePath(), 19);
+			textField = new JTextField(Tomcat.getConfig().getHomeDirectory().getAbsolutePath(), 19);
 		
 		textField.setEditable(false);
 		

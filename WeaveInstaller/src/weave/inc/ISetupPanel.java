@@ -50,9 +50,23 @@ public interface ISetupPanel
 	public void previousPanel();
 	
 	/**
+	 * Check if we are on the first panel in the list
+	 * 
+	 * @return <code>true</code> if we are on the first panel, <code>false</code> otherwise
+	 */
+	public boolean isFirstPanel();
+	
+	/**
+	 * Check if we are on the last panel in the list.
+	 * 
+	 * @return <code>true</code> if we are on the last panel, <code>false</code> otherwise
+	 */
+	public boolean isLastPanel();
+	
+	/**
 	 * Shows only the first panel of a SetupPanel group
 	 */
-	public void showPanels();
+	public void showPanel();
 	
 	/**
 	 * Hides all panels within the SetupPanel group

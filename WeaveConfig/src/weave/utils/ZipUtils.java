@@ -110,8 +110,10 @@ public class ZipUtils implements IUtils
 					zip.close();
 				} catch (ZipException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 				}
@@ -142,8 +144,10 @@ public class ZipUtils implements IUtils
 			return z.size();
 		} catch (ZipException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 		
 		return 0;

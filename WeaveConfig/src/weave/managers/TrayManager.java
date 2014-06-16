@@ -20,7 +20,6 @@
 package weave.managers;
 
 import java.awt.AWTException;
-import java.awt.Desktop;
 import java.awt.Image;
 import java.awt.Menu;
 import java.awt.MenuItem;
@@ -33,7 +32,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.imageio.ImageIO;
@@ -41,8 +39,11 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.Settings.MODE;
+import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
+import weave.utils.UpdateUtils;
 
 public class TrayManager 
 {
@@ -58,11 +59,14 @@ public class TrayManager
 
 	private static MenuItem restoreItem 		= null;
 	private static MenuItem onOffItem			= null;
-	private static MenuItem aboutItem 			= null;
 	private static Menu 	quickLinksMenu 		= null;
 	private static MenuItem adminConsoleItem 	= null;
 	private static MenuItem installerWikiItem 	= null;
+	private static MenuItem aboutItem 			= null;
+	private static MenuItem updateItem			= null;
 	private static MenuItem exitItem 			= null;
+	
+	private static boolean updateAvailable 		= false;
 	
 //	private static enum states					{ ONLINE, OFFLINE, ERROR };
 //	private static states state					= states.OFFLINE;
@@ -86,11 +90,12 @@ public class TrayManager
 		popupMenu = new PopupMenu();
 		
 		restoreItem = new MenuItem("Restore " + Settings.INSTALLER_NAME);
-		onOffItem = new MenuItem("Go into " + ((Settings.isOfflineMode()) ? "Online" : "Offline") + " Mode");
-		aboutItem = new MenuItem("About");
+		onOffItem = new MenuItem("Go into " + (Settings.isOfflineMode() ? "Online" : "Offline") + " Mode");
 		quickLinksMenu = new Menu("Quick Links");
 		adminConsoleItem = new MenuItem("Admin Console");
 		installerWikiItem = new MenuItem("Help");
+		aboutItem = new MenuItem("About");
+		updateItem = new MenuItem("Check for updates");
 		exitItem = new MenuItem("Exit");
 		
 		popupMenu.add(restoreItem);
@@ -99,16 +104,18 @@ public class TrayManager
 		popupMenu.add(quickLinksMenu);
 		quickLinksMenu.add(adminConsoleItem);
 		quickLinksMenu.add(installerWikiItem);
-		popupMenu.add(aboutItem);
 		popupMenu.addSeparator();
+		popupMenu.add(aboutItem);
+		popupMenu.add(updateItem);
 		popupMenu.add(exitItem);
 		
-		trayIcon = new TrayIcon(trayIconOffline, Settings.INSTALLER_NAME);
+		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.INSTALLER_NAME);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.setPopupMenu(popupMenu);
 		
 		setupActionListeners();
 		setupWindowListeners();
+		setupDefaultEnabled();
 		
         try {
 			systemTray.add(trayIcon);
@@ -134,11 +141,20 @@ public class TrayManager
 		if( !SystemTray.isSupported() ) return;
 		trayIcon.setImageAutoSize(b);
 	}
-	
+	public static void displayUpdateMessage( String caption, String text, MessageType type )
+	{
+		updateAvailable = true;
+		displayTrayMessage(caption, text, type);
+	}
 	public static void displayTrayMessage( String caption, String text, MessageType type )
 	{
 		if( !SystemTray.isSupported() ) return;
 		trayIcon.displayMessage(caption, text, type);
+	}
+	public static void removeTrayIcon()
+	{
+		if( !SystemTray.isSupported() ) return;
+		systemTray.remove(trayIcon);
 	}
 
 	private static void setupActionListeners()
@@ -146,17 +162,43 @@ public class TrayManager
 		if( !SystemTray.isSupported() ) return;
 		
 		// Double click on the tray icon
-        trayIcon.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	_parent.setVisible( !_parent.isVisible() );
-            	_parent.setExtendedState( _parent.isVisible() ? JFrame.NORMAL : JFrame.ICONIFIED );
-            }
-        });
+		trayIcon.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if( updateAvailable )
+				{
+					updateAvailable = false;
+
+					int n = JOptionPane.showConfirmDialog(null, "There is a newer version of this tool available for download.\n\n" +
+																"Would you like to restart the tool to apply the update?", Settings.PROJECT_NAME + " Update Available!", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+					if( n == JOptionPane.YES_OPTION )
+					{
+						try {
+							LaunchUtils.launchWeaveUpdater(1000);
+							Thread.sleep(50);
+							Settings.shutdown();
+						} catch (IOException e1) {
+							TraceUtils.trace(TraceUtils.STDERR, e1);
+							BugReportUtils.showBugReportDialog(e1);
+						} catch (InterruptedException e1) {
+							TraceUtils.trace(TraceUtils.STDERR, e1);
+							BugReportUtils.showBugReportDialog(e1);
+						}
+					}
+				}
+				else
+				{
+					_parent.setVisible( !_parent.isVisible() );
+					_parent.setExtendedState( _parent.isVisible() ? JFrame.NORMAL : JFrame.ICONIFIED );
+				}
+			}
+		});
         
         // Restore Menu Item
         restoreItem.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent e) {
 				_parent.setVisible(true);
 				_parent.setExtendedState(JFrame.NORMAL);
 			}
@@ -166,20 +208,15 @@ public class TrayManager
         onOffItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if( Settings.isOfflineMode() )
-					Settings.LAUNCH_MODE = Settings.MODE.ONLINE_MODE;
-				else
-					Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
 				
+				Settings.LAUNCH_MODE = ( Settings.isOfflineMode() ? MODE.ONLINE_MODE : MODE.OFFLINE_MODE );
 				Settings.save();
 				
 				try {
 					LaunchUtils.launchWeaveUpdater();
 					Settings.shutdown();
-				} catch (IOException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (InterruptedException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (IOException e1) {				TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (InterruptedException e1) {		TraceUtils.trace(TraceUtils.STDERR, e1);
 				}
 			}
 		});
@@ -188,15 +225,14 @@ public class TrayManager
         adminConsoleItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if( Desktop.isDesktopSupported() ) {
-					try {
-						Desktop.getDesktop().browse(new URI("http://" + Settings.LOCALHOST + ":"	+ Settings.ACTIVE_CONTAINER_PLUGIN.getPort() + "/AdminConsole.html"));
-					} catch (IOException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);
-					} catch (URISyntaxException e1) {	TraceUtils.trace(TraceUtils.STDERR, e1);
-					} catch (Exception e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);
-					}
-				} else
-					JOptionPane.showMessageDialog(null, "Feature not supported.", "Error", JOptionPane.ERROR_MESSAGE);
+				
+				try {
+					LaunchUtils.openAdminConsole();
+				} catch (IOException e2) {				TraceUtils.trace(TraceUtils.STDERR, e2);
+				} catch (URISyntaxException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);
+				} catch (InterruptedException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);		
+				}
+				
 			}
 		});
         
@@ -204,14 +240,14 @@ public class TrayManager
         installerWikiItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if( Desktop.isDesktopSupported() ) {
-					try {
-						Desktop.getDesktop().browse(new URI(Settings.WIKI_HELP_PAGE));
-					} catch (IOException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);
-					} catch (URISyntaxException e1) {	TraceUtils.trace(TraceUtils.STDERR, e1);
-					}
-				} else
-					JOptionPane.showMessageDialog(null, "Feature not supported.", "Error", JOptionPane.ERROR_MESSAGE);
+				
+				try {
+					LaunchUtils.launch(Settings.WIKI_HELP_PAGE, 100);
+				} catch (IOException e2) {				TraceUtils.trace(TraceUtils.STDERR, e2);
+				} catch (URISyntaxException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);
+				} catch (InterruptedException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);		
+				}
+
 			}
 		});
         
@@ -223,11 +259,19 @@ public class TrayManager
 			}
 		});
         
+        // Update Menu Item
+        updateItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if( !Settings.isOfflineMode() )
+					UpdateUtils.checkForUpdate(UpdateUtils.FROM_USER);
+			}
+		});
+        
         // Exit Menu Item
         exitItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				systemTray.remove(trayIcon);
 				Settings.shutdown();
 			}
 		});
@@ -240,6 +284,9 @@ public class TrayManager
 		_parent.addWindowStateListener(new WindowStateListener() {
 			@Override
 			public void windowStateChanged(WindowEvent e) {
+				
+				System.gc();
+				
 				if( e.getNewState() == JFrame.ICONIFIED || e.getNewState() == 7) {
 					_parent.setVisible(false);
 					if( !Settings.INSTALLER_POPUP_SHOWN ) {
@@ -251,5 +298,22 @@ public class TrayManager
 				}
 			}
 		});
+	}
+	
+	private static void setupDefaultEnabled()
+	{
+		restoreItem.setEnabled(true);
+		onOffItem.setEnabled(true);
+		quickLinksMenu.setEnabled(true);
+		adminConsoleItem.setEnabled(true);
+		installerWikiItem.setEnabled(true);
+		aboutItem.setEnabled(true);
+		updateItem.setEnabled(true);
+		exitItem.setEnabled(true);
+
+		if( Settings.isOfflineMode() )
+		{
+			updateItem.setEnabled(false);
+		}
 	}
 }

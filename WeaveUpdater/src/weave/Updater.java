@@ -41,6 +41,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
+import weave.Settings.UPDATE_TYPE;
 import weave.dll.DLLInterface;
 import weave.includes.IUtilsInfo;
 import weave.managers.TrayManager;
@@ -65,7 +66,9 @@ public class Updater extends JFrame
 	public 	JLabel			statusLabel 	= null;
 	public	JProgressBar 	statusProgress	= null;
 	public 	JButton			cancelButton	= null;
+	
 	private boolean			isUpdate		= false;
+	private boolean			shouldUpdate	= false;
 	
 	private final String _TMP_UPDATE_ZIPFILE_NAME = "updates.zip";
 	private final String _TMP_UPDATE_FOLDER_NAME = Settings.F_S + "updates" + Settings.F_S;
@@ -81,7 +84,10 @@ public class Updater extends JFrame
 			Thread.sleep(1000);
 			if( !Settings.getLock() )
 			{
-				JOptionPane.showMessageDialog(null, Settings.CURRENT_PROGRAM_NAME + " is already running.", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, 
+						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+						"Please stop that one before starting another.", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
 			
@@ -171,10 +177,8 @@ public class Updater extends JFrame
 			public void actionPerformed(ActionEvent arg0) {
 				if( Settings.downloadLocked )
 					Settings.downloadCanceled = true;
-				else {
-					if( Settings.canQuit )
-						Settings.shutdown();
-				}
+				else
+					Settings.shutdown();
 			}
 		});
 		cancelButton.setVisible(true);
@@ -208,9 +212,7 @@ public class Updater extends JFrame
 			staticLabel.setText(Settings.UPDATER_NAME);
 			statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
 			
-			Thread.sleep(1000);
-			
-			LaunchUtils.launchWeaveInstaller();
+			LaunchUtils.launchWeaveInstaller(1000);
 			
 			Settings.shutdown();
 		}
@@ -231,34 +233,48 @@ public class Updater extends JFrame
 		Settings.canQuit = true;
 
 		isUpdate = UpdateUtils.isUpdateAvailable();
+		shouldUpdate = Settings.UPDATE_FREQ == UPDATE_TYPE.START;
 		
-		if( isUpdate )
+		if( isUpdate && ( shouldUpdate || Settings.UPDATE_OVERRIDE ) )
 		{
 			TraceUtils.traceln(TraceUtils.STDOUT, "-> Update is available!");
+			
+			Settings.UPDATE_OVERRIDE = false;
+			Settings.save();
 
 			int status = downloadUpdate();
+
+			switch( status ) {
 			
-			if( status == DownloadUtils.FAILED )
-			{
-				
-			}
-			else if( status == DownloadUtils.CANCELLED )
-			{
-				if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, "Would you like to launch anyway?", "Download Cancelled", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
-					Settings.shutdown();
-				}
-			}
-			else if( status == DownloadUtils.COMPLETE ) 
-			{
-				StatsUtils.logUpdate();
-				installUpdate();
+				case DownloadUtils.COMPLETE:
+					StatsUtils.logUpdate();
+					installUpdate();
+					break;
+					
+				case DownloadUtils.CANCELLED:
+					if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, "Would you like to launch anyway?", "Download Cancelled", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+						Settings.shutdown();
+					}
+					break;
+					
+				case DownloadUtils.FAILED:
+					break;
+					
+				case DownloadUtils.OFFLINE:
+					JOptionPane.showConfirmDialog(null, 
+						"A connection to the internet could not be established.\n\n" +
+						"Please connect to the internet and try again.", 
+						"No Connection", 
+						JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+					Settings.shutdown(JFrame.ERROR);
+					break;
 			}
 		}
 
 		StatsUtils.noop();
 		
 		cleanUp();
-		moveToNewFolder();
+		upgradeOldStuff();
 		
 		String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
 		if( ver != null )
@@ -284,7 +300,8 @@ public class Updater extends JFrame
 		try {
 			String link = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
 			if( link == null )
-				return 0;
+				return DownloadUtils.OFFLINE;
+			
 			
 			File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
 
@@ -307,8 +324,15 @@ public class Updater extends JFrame
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							statusProgress.setValue( info.progress );
-							statusLabel.setText( String.format("Downloading update....%d%%", info.progress) );
+							if( info.max == -1 ) {
+								// Unknown max size
+								statusProgress.setIndeterminate(true);
+								statusLabel.setText( String.format("Downloading update....%s @ %s", FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+							} else {
+								// Known max size
+								statusProgress.setValue( info.progress );
+								statusLabel.setText( String.format("Downloading update....%d%% %s @ %s", info.progress, FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+							}
 						}
 					});
 				}
@@ -361,7 +385,7 @@ public class Updater extends JFrame
 		
 		try {
 			
-			IUtilsInfo zipInfo = new IUtilsInfo() {
+			IUtilsInfo zipListener = new IUtilsInfo() {
 				@Override
 				public void onProgressUpdate() {
 					SwingUtilities.invokeLater(new Runnable() {
@@ -373,7 +397,7 @@ public class Updater extends JFrame
 					});
 				}
 			};
-			IUtilsInfo fileInfo = new IUtilsInfo() {
+			IUtilsInfo fileListener = new IUtilsInfo() {
 				@Override
 				public void onProgressUpdate() {
 					SwingUtilities.invokeLater(new Runnable() {
@@ -397,7 +421,7 @@ public class Updater extends JFrame
 			Thread.sleep(800);
 			
 			ZipUtils zu = new ZipUtils();
-			zu.addStatusListener(null, zipInfo, zipFile);
+			zu.addStatusListener(null, zipListener, zipFile);
 			zu.extractZipWithInfo(zipFile, unzippedFile);
 			
 			statusProgress.setValue( 50 );
@@ -405,7 +429,7 @@ public class Updater extends JFrame
 			Thread.sleep(800);
 			
 			FileUtils fu = new FileUtils();
-			fu.addStatusListener(null, fileInfo, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
+			fu.addStatusListener(null, fileListener, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
 			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
 			
 			statusProgress.setValue( 100 );
@@ -435,7 +459,6 @@ public class Updater extends JFrame
 		statusProgress.setString("");
 		statusProgress.setIndeterminate(true);
 		statusProgress.setValue(0);
-		System.gc();
 		Settings.cleanUp();
 	}
 	
@@ -470,7 +493,7 @@ public class Updater extends JFrame
 		}
 	}
 	
-	private void moveToNewFolder() throws IOException, InterruptedException
+	private void upgradeOldStuff() throws IOException, InterruptedException
 	{
 		File oldDir = new File(Settings.APPDATA_DIRECTORY, Settings.F_S + "WeaveUpdater" + Settings.F_S);
 		

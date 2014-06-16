@@ -48,9 +48,9 @@ public class StatusConfig extends JPanel
 		inputTimer = new Timer();
 		labelPort = new JLabel(_label);
 		if( _portType == SERVICE_PORTS.MySQL )
-			textPort = new JTextField(Integer.toString(MySQL.instance().MYSQL_PORT));
+			textPort = new JTextField(Integer.toString(MySQL.getConfig().MYSQL_PORT));
 		else
-			textPort = new JTextField(Integer.toString(Tomcat.instance().TOMCAT_PORT));
+			textPort = new JTextField(Integer.toString(Tomcat.getConfig().TOMCAT_PORT));
 		
 		textPort.addKeyListener(new KeyAdapter() {
 			@Override
@@ -58,9 +58,9 @@ public class StatusConfig extends JPanel
 				if( textPort.getText().equals("") ) {
 					JOptionPane.showMessageDialog(null, "Port value cannot be empty");
 					if( _portType == SERVICE_PORTS.MySQL )
-						MySQL.instance().MYSQL_PORT = 0;
+						MySQL.getConfig().MYSQL_PORT = 0;
 					else
-						Tomcat.instance().TOMCAT_PORT = 0;
+						Tomcat.getConfig().TOMCAT_PORT = 0;
 					return;
 				}
 				
@@ -70,15 +70,15 @@ public class StatusConfig extends JPanel
 					if( port > 65535 || port < 1 ) {
 						JOptionPane.showMessageDialog(null, "Input values: 0 < port < 65535");
 						if( _portType == SERVICE_PORTS.MySQL )
-							MySQL.instance().MYSQL_PORT = 0;
+							MySQL.getConfig().MYSQL_PORT = 0;
 						else
-							Tomcat.instance().TOMCAT_PORT = 0;
+							Tomcat.getConfig().TOMCAT_PORT = 0;
 						return;
 					}
 					if( _portType == SERVICE_PORTS.MySQL )
-						MySQL.instance().MYSQL_PORT = port;
+						MySQL.getConfig().MYSQL_PORT = port;
 					else
-						Tomcat.instance().TOMCAT_PORT = port;
+						Tomcat.getConfig().TOMCAT_PORT = port;
 				} catch (NumberFormatException fe) {
 					JOptionPane.showMessageDialog(null, "Only numbers are allowed as inputs.");
 					return;
