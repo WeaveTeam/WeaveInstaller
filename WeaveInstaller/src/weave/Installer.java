@@ -100,6 +100,7 @@ public class Installer extends JFrame
 			Thread.sleep(1000);
 
 			Settings.init();
+			Settings.CURRENT_PROGRAM_NAME = Settings.INSTALLER_NAME;
 
 			Thread.sleep(1000);
 			if( !Settings.getLock() )
@@ -111,7 +112,6 @@ public class Installer extends JFrame
 				Settings.shutdown(JFrame.ERROR);
 			}
 			
-			Settings.CURRENT_PROGRAM_NAME = Settings.INSTALLER_NAME;
 			
 			TraceUtils.traceln(TraceUtils.STDOUT, "");
 			TraceUtils.traceln(TraceUtils.STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");

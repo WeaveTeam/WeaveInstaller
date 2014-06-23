@@ -21,9 +21,9 @@ package weave.ui;
 
 import java.awt.GridLayout;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -36,20 +36,15 @@ import weave.Settings;
 @SuppressWarnings("serial")
 public class RevisionTable extends JPanel
 {
-	public JTable table;
-	JScrollPane scrollPane;
-	private int numColumns = 2;
+	private JTable table;
+	private JScrollPane scrollPane;
 	
 	String[] columnNames =
 	{
 			"Revision",
 			"Date Downloaded"
 	};
-	/** ReivisonTable()
-	 * 
-	 * Constructor for a revision table, the GUI element that keeps track of current/old installations.
-	 * 
-	 */
+
 	public RevisionTable()
 	{
 		setLayout(new GridLayout());
@@ -62,57 +57,40 @@ public class RevisionTable extends JPanel
 		
 		add(scrollPane);
 	}
-	/**
-	 * Updates the table.
-	 */
-	@SuppressWarnings("deprecation")
+
 	public void updateTableData()
 	{
-		/* Initialization */
-		int numberOfRevisions = Revisions.getNumberOfRevisions();
-		Object[][] data = new Object[numberOfRevisions][numColumns];
 		ArrayList<File> sortedFiles = Revisions.getRevisionData();
-		String fileName = "";
-		String s = "";
-		Date d = new Date();
+		Object[][] data = new Object[sortedFiles.size()][columnNames.length];
+		File file = null;
+		Date date = new Date();
+		String revisionName = "";
 		
-		/* Iterate through the sorted files. */
-		int k = 0;
-		Iterator<File> it = sortedFiles.iterator();
-		while( it.hasNext() )
+		for( int i = 0; i < sortedFiles.size(); i++ )
 		{
-			File f = it.next();
-			fileName = f.getName();
-			s = Revisions.getRevisionName(fileName);
-			/* If we find the current installation version, append ( current ) to the end of the string */
-			if( s.equals(Settings.CURRENT_INSTALL_VER) )
-				s += "  (current)";
+			file = sortedFiles.get(i);
+			revisionName = Revisions.getRevisionName(file.getName());
+			date.setTime(file.lastModified());
 			
-			/* Add each revision to a different column */
-			data[k][0] = s;
-			
-			/* Set the date of the revision to the second column of each revision entry row */
-			d.setTime(f.lastModified());
-			if( d.getHours() > 12 )
-				data[k][1] = (d.getMonth()+1)+"/"+d.getDate()+"/"+(d.getYear()+1900)+" "+(d.getHours()-12)+":"+((d.getMinutes()>= 0 && d.getMinutes() < 10) ? "0":"")+d.getMinutes()+" PM";
-			else
-				data[k][1] = (d.getMonth()+1)+"/"+d.getDate()+"/"+(d.getYear()+1900)+" "+d.getHours()+":"+((d.getMinutes()>= 0 && d.getMinutes() < 10) ? "0":"")+d.getMinutes()+" AM";
-			k++;
+			data[i][0] = revisionName + ((revisionName.equals(Settings.CURRENT_INSTALL_VER)) ? "  (current)" : "" );
+			data[i][1] = new SimpleDateFormat("M/d/yyyy h:m a").format(date);
 		}
 
-		/* Finally, if the number of revisions exceeds the current row count, add a new row and set the value */
-		for( int i = 0; i < numberOfRevisions; i++ )
-			for( int j = 0; j < numColumns; j++ )
+		// Add row(s) if needed
+		for( int i = 0; i < sortedFiles.size(); i++ )
+		{
+			for( int j = 0; j < columnNames.length; j++ )
 			{
 				if( table.getModel().getRowCount() <= i )
 					((DefaultTableModel)table.getModel()).addRow(data[i]);
 				else
 					table.getModel().setValueAt(data[i][j], i, j);
 			}
-		/* If the number of revisions is less than the rowCount(), remove a row */
-		if( numberOfRevisions < table.getModel().getRowCount() )
+		}
+		// Remove row(s) if needed
+		if( sortedFiles.size() < table.getModel().getRowCount() )
 		{
-			for( int i = table.getModel().getRowCount()-1; i >= numberOfRevisions; i-- )
+			for( int i = table.getModel().getRowCount()-1; i >= sortedFiles.size(); i-- )
 			{
 				((DefaultTableModel)table.getModel()).removeRow(i);
 			}

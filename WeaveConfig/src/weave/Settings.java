@@ -615,6 +615,7 @@ public class Settings
 	
 	public static void stopListenerServer()
 	{
+		if( rpcServer == null ) return;
 		rpcServer.stop();
 	}
 	

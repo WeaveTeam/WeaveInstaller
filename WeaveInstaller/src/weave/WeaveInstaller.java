@@ -629,7 +629,7 @@ public class WeaveInstaller extends JFrame
 						if (ret == 1 && !Tomcat.getConfig().TOMCAT_HOME.equals(""))
 						{
 							postSP.installButton.setEnabled(true);
-							postSP.launchAdmin.setForeground(Color.BLACK);
+							postSP.adminButton.setForeground(Color.BLACK);
 						}
 						else
 						{
@@ -752,7 +752,7 @@ public class WeaveInstaller extends JFrame
 				}
 			}
 		});
-		postSP.addActionToButton(postSP.launchAdmin, new ActionListener() {
+		postSP.addActionToButton(postSP.adminButton, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!Settings.isServiceUp("sdf", Settings.ACTIVE_CONTAINER_PLUGIN.getPort()))

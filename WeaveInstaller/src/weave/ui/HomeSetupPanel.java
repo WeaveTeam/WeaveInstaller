@@ -20,38 +20,66 @@
 package weave.ui;
 
 import java.awt.Color;
-import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 
+import weave.Settings;
 import weave.inc.SetupPanel;
+import weave.includes.IUtilsInfo;
+import weave.utils.DownloadUtils;
+import weave.utils.FileUtils;
+import weave.utils.RemoteUtils;
+import weave.utils.TraceUtils;
+import weave.utils.UpdateUtils;
+import weave.utils.ZipUtils;
 
 @SuppressWarnings("serial")
 public class HomeSetupPanel extends SetupPanel
 {
-	public JButton 				installButton 	= new JButton("Install");
-	public JButton 				checkButton 	= new JButton("Refresh");
-	public JButton 				revertButton 	= new JButton("Revert");
-	public JButton 				deleteButton 	= new JButton("Delete");
-	public JButton				pruneButton		= new JButton("<html><center>Auto <br> Clean</center></html>");
-	public JButton 				launchAdmin 	= new JButton("Launch Admin Console");
+	private static final String _TMP_FOLDERNAME_ = "weave";
+	private static final String _TMP_FILENAME_   = _TMP_FOLDERNAME_ + ".zip";
+	
+	public JTabbedPane tabbedPane;
+	public JPanel tab1, tab2, tab3, tab4;
+
+	
+	// ============== Tab 1 ============== //
+	public JButton  installButton, refreshButton, 
+					revertButton, deleteButton, 
+					pruneButton, adminButton;
+	public JLabel	downloadLabel;
+	public JProgressBar progressbar;
 	public WeaveStats 			weaveStats 		= new WeaveStats();
 	public RevisionTable 		revisionTable 	= new RevisionTable();
-	private Timer				timer 			= new Timer();
 	
-	public JLabel				zipLabelSpeed, zipLabelTimeleft; 
-	public JLabel				zipLabelSpeedHolder, zipLabelTimeleftHolder, zipLabelSizeDownloadHolder;
+	
+	// ============== Tab 2 ============== //
+	
+	
+	// ============== Tab 3 ============== //
+	
+	
+	// ============== Tab 4 ============== //
+	
 	
 	public HomeSetupPanel()
 	{
 		maxPanels = 1;
 		
 		setLayout(null);
-		setSize(350, 325);
 		setBounds(0, 0, 350, 325);
 
 		JPanel panel = null;
@@ -66,7 +94,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		setVisible(true);
 
-		timer.schedule(new TimerTask() {
+		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
 				revisionTable.updateTableData();
@@ -80,55 +108,350 @@ public class HomeSetupPanel extends SetupPanel
 		panel.setLayout(null);
 		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
+		
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+		tabbedPane.setBounds(0, 0, 350, 325);
 
-		zipLabelSpeed = new JLabel("Download Rate:");
-		zipLabelTimeleft = new JLabel("Time left:");
-		zipLabelSpeedHolder = new JLabel();
-		zipLabelTimeleftHolder = new JLabel();
-		zipLabelSizeDownloadHolder = new JLabel();
+		tabbedPane.addTab("Weave", (tab1 = createTab1(tabbedPane)));
+		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
+		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
+		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
 		
-		// ======== SET COORDINATES ======== //
-		zipLabelSpeed.setBounds(10, 60, 100, 20);
-		zipLabelSpeed.setFont(new Font("Serif", Font.PLAIN, 13));
-		zipLabelSpeed.setVisible(false);
-		zipLabelTimeleft.setBounds(10, 80, 100, 20);
-		zipLabelTimeleft.setFont(new Font("Serif", Font.PLAIN, 13));
-		zipLabelTimeleft.setVisible(false);
-		zipLabelSpeedHolder.setBounds(150, 60, 170, 20);
-		zipLabelSpeedHolder.setHorizontalAlignment(JLabel.RIGHT);
-		zipLabelTimeleftHolder.setBounds(150, 80, 170, 20);
-		zipLabelTimeleftHolder.setHorizontalAlignment(JLabel.RIGHT);
-		zipLabelSizeDownloadHolder.setBounds(150, 100, 170, 20);
-		zipLabelSizeDownloadHolder.setHorizontalAlignment(JLabel.RIGHT);
-		zipLabelSizeDownloadHolder.setFont(new Font("Serif", Font.PLAIN, 13));
 		
-		weaveStats.setBounds(10, 10, 230, 50);
-		installButton.setBounds(250, 35, 80, 23);	installButton.setToolTipText("Download the latest version of Weave and install it.");
+		panel.add(tabbedPane);
+		return panel;
+	}
+	
+	public JPanel createTab(JComponent parent)
+	{
+		JPanel panel = new JPanel(null);
+		panel.setBounds(0, 0, parent.getWidth(), parent.getHeight());
+		panel.setBackground(Color.WHITE);
+		
+		return panel;
+	}
+	
+	public JPanel createTab1(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+
+		refreshButton = new JButton("Refresh");
+		refreshButton.setBounds(250, 10, 80, 23);
+		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
+		refreshButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) 
+			{
+				try {
+					Settings.canQuit = false;
+					setButtonsEnabled(false);
+					
+					int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(true);
+					weaveStats.refresh(updateAvailable);
+
+					setButtonsEnabled(true);
+					installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
+					Settings.canQuit = true;
+					
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
+			}
+		});
+		
+		
+		installButton = new JButton("Install");
+		installButton.setBounds(250, 35, 80, 23);	
+		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
 		installButton.setEnabled(false);
-		checkButton.setBounds(250, 10, 80, 23);		checkButton.setToolTipText("Check for a new version of Weave");
+		installButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a)
+			{
+				try {
+					setButtonsEnabled(false);
+					progressbar.setIndeterminate(true);
+					downloadLabel.setText("Preparing Download....");
+					Thread.sleep(1000);
+					int status = downloadUpdate();
+					
+					switch (status) {
+						case DownloadUtils.COMPLETE:
+							installUpdate();
+							break;
+						
+						case DownloadUtils.CANCELLED:
+							break;
+							
+						case DownloadUtils.FAILED:
+							break;
+	
+						case DownloadUtils.OFFLINE:
+							JOptionPane.showConfirmDialog(null, 
+									"A connection to the internet could not be established.\n\n" +
+									"Please connect to the internet and try again.", 
+									"No Connection", 
+									JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+							break;
+					}
+					
+					downloadLabel.setText("");
+					progressbar.setIndeterminate(true);
+					progressbar.setString("");
+					progressbar.setValue(0);
+					setButtonsEnabled(true);
+					installButton.setEnabled(false);
+					revisionTable.updateTableData();
+					
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
+			}
+		});
 		
-		revisionTable.setBounds(10, 150, 230, 130);	
-		revertButton.setBounds(250, 150, 80, 25);	revertButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
-		deleteButton.setBounds(250, 180, 80, 25);	deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
-		pruneButton.setBounds(250, 210, 80, 40);	pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
-		launchAdmin.setBounds(10, 290, 230, 25);	launchAdmin.setToolTipText("Open up the Admin Console");
-
-		// ======== ADD TO PANEL ======== //
-		panel.add(zipLabelSpeed);
-		panel.add(zipLabelTimeleft);
-		panel.add(zipLabelSpeedHolder);
-		panel.add(zipLabelTimeleftHolder);
-		panel.add(zipLabelSizeDownloadHolder);
+		revertButton = new JButton("Revert");
+		deleteButton = new JButton("Delete");
+		pruneButton = new JButton("Clean");
+		adminButton = new JButton("Launch Admin Console");
 		
+		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+		progressbar.setBounds(20, 80, 310, 20);
+		progressbar.setIndeterminate(true);
+		progressbar.setStringPainted(true);
+		progressbar.setString("");
+		progressbar.setVisible(false);
+		panel.add(progressbar);
+		
+//		zipLabelSpeed = new JLabel("Download Rate:");
+//		zipLabelTimeleft = new JLabel("Time left:");
+//		zipLabelSpeedHolder = new JLabel();
+//		zipLabelTimeleftHolder = new JLabel();
+//		zipLabelSizeDownloadHolder = new JLabel();
+//		
+//		// ======== SET COORDINATES ======== //
+//		zipLabelSpeed.setBounds(10, 60, 100, 20);
+//		zipLabelSpeed.setFont(new Font("Serif", Font.PLAIN, 13));
+//		zipLabelSpeed.setVisible(false);
+//		zipLabelTimeleft.setBounds(10, 80, 100, 20);
+//		zipLabelTimeleft.setFont(new Font("Serif", Font.PLAIN, 13));
+//		zipLabelTimeleft.setVisible(false);
+//		zipLabelSpeedHolder.setBounds(150, 60, 170, 20);
+//		zipLabelSpeedHolder.setHorizontalAlignment(JLabel.RIGHT);
+//		zipLabelTimeleftHolder.setBounds(150, 80, 170, 20);
+//		zipLabelTimeleftHolder.setHorizontalAlignment(JLabel.RIGHT);
+//		zipLabelSizeDownloadHolder.setBounds(150, 100, 170, 20);
+//		zipLabelSizeDownloadHolder.setHorizontalAlignment(JLabel.RIGHT);
+//		zipLabelSizeDownloadHolder.setFont(new Font("Serif", Font.PLAIN, 13));
+//		
+//		weaveStats.setBounds(10, 10, 230, 50);
+//		
+//		revisionTable.setBounds(10, 150, 230, 130);	
+//		revertButton.setBounds(250, 150, 80, 25);	revertButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
+//		deleteButton.setBounds(250, 180, 80, 25);	deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
+//		pruneButton.setBounds(250, 210, 80, 40);	pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
+//		launchAdmin.setBounds(10, 290, 230, 25);	launchAdmin.setToolTipText("Open up the Admin Console");
+//
+//		// ======== ADD TO PANEL ======== //
+//		panel.add(zipLabelSpeed);
+//		panel.add(zipLabelTimeleft);
+//		panel.add(zipLabelSpeedHolder);
+//		panel.add(zipLabelTimeleftHolder);
+//		panel.add(zipLabelSizeDownloadHolder);
+//		
 		panel.add(weaveStats);
+		panel.add(refreshButton);
 		panel.add(installButton);
-		panel.add(checkButton);
 		panel.add(revisionTable);
 		panel.add(revertButton);
 		panel.add(deleteButton);
 		panel.add(pruneButton);
-		panel.add(launchAdmin);
+		panel.add(adminButton);
 		
 		return panel;
+	}
+	public JPanel createTab2(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		return panel;
+	}
+	public JPanel createTab3(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		return panel;
+	}
+	public JPanel createTab4(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		return panel;
+	}
+	
+	private int downloadUpdate()
+	{
+		int status = DownloadUtils.FAILED;
+		String url = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+		File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_);
+		
+		if( url == null )
+			return DownloadUtils.OFFLINE;
+		
+		IUtilsInfo downloadInfo = new IUtilsInfo() {
+			@Override
+			public void onProgressUpdate() {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if( info.max == -1 ) {
+							// Unknown max size
+							progressbar.setIndeterminate(true);
+							downloadLabel.setText( String.format("Downloading update....%s @ %s", FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+						} else {
+							// Known max size
+							progressbar.setValue( info.progress );
+							downloadLabel.setText( String.format("Downloading update....%d%% %s @ %s", info.progress, FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+						}
+					}
+				});
+			}
+		};
+		
+		try {
+			// Error checking
+			if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() )
+				Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
+			if( destination.exists() )
+				destination.delete();
+			destination.createNewFile();
+
+			TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
+			downloadLabel.setText("Downloading update.....");
+			progressbar.setIndeterminate(true);
+
+			Settings.downloadLocked = true;
+			Settings.downloadCanceled = false;
+			
+			DownloadUtils du = new DownloadUtils();
+			du.addStatusListener(null, downloadInfo);
+			status = du.downloadWithInfo(url, destination);
+
+			Settings.downloadCanceled = false;
+			Settings.downloadLocked = false;
+			
+			switch (status) {
+				case DownloadUtils.FAILED:
+					TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+					downloadLabel.setText("Download Failed....");
+					downloadLabel.setForeground(Color.RED);
+					break;
+					
+				case DownloadUtils.CANCELLED:
+					TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+					downloadLabel.setText("Cancelling Download....");
+					downloadLabel.setForeground(Color.BLACK);
+					break;
+
+				case DownloadUtils.COMPLETE:
+					TraceUtils.put(TraceUtils.STDOUT, "DONE");
+					downloadLabel.setText("Donwload Complete....");
+					downloadLabel.setForeground(Color.BLACK);
+					break;
+			}
+			
+			du.removeStatusListener();
+			System.gc();
+			Thread.sleep(2000);
+			
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		return status;
+	}
+	private void installUpdate()
+	{
+		File zipFile = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_);
+		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_FOLDERNAME_);
+		
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
+		
+		try {
+			
+			IUtilsInfo zipListener = new IUtilsInfo() {
+				@Override
+				public void onProgressUpdate() {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							progressbar.setValue( info.progress / 2 );
+							downloadLabel.setText( String.format("Extracting update....%d%%", info.progress / 2 ) );
+						}
+					});
+				}
+			};
+			IUtilsInfo fileListener = new IUtilsInfo() {
+				@Override
+				public void onProgressUpdate() {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							progressbar.setValue(50 + info.progress / 2 );
+							downloadLabel.setText( String.format("Installing update....%d%%", 50 + info.progress / 2 ));
+						}
+					});
+				}
+			};
+
+			Settings.canQuit = false;
+			
+			downloadLabel.setText("Extracting update....");
+			progressbar.setIndeterminate(false);
+			Thread.sleep(500);
+			
+			progressbar.setValue(0);
+			downloadLabel.setText("Extracting update....0%" );
+			Thread.sleep(800);
+			
+			ZipUtils zu = new ZipUtils();
+			zu.addStatusListener(null, zipListener, zipFile);
+			zu.extractZipWithInfo(zipFile, unzippedFile);
+			
+			progressbar.setValue( 50 );
+			downloadLabel.setText( "Installing update....50%" );
+			Thread.sleep(800);
+			
+			FileUtils fu = new FileUtils();
+			fu.addStatusListener(null, fileListener, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
+			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
+			
+			progressbar.setValue( 100 );
+			downloadLabel.setText( "Installing update....100%" );
+			Thread.sleep(800);
+			
+			System.gc();
+			downloadLabel.setText("Install complete....");
+			TraceUtils.put(TraceUtils.STDOUT, "DONE");
+			
+			Settings.canQuit = true;
+			
+			zu.removeStatusListener();
+			fu.removeStatusListener();
+			
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IOException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+	}
+
+	private void setButtonsEnabled(boolean enabled)
+	{
+		refreshButton.setEnabled(enabled);
+		installButton.setEnabled(enabled);
+		revertButton.setEnabled(enabled);
+		deleteButton.setEnabled(enabled);
+		pruneButton.setEnabled(enabled);
 	}
 }

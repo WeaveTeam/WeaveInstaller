@@ -21,8 +21,10 @@ package weave.utils;
 
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import weave.Settings;
@@ -33,15 +35,15 @@ public class UpdateUtils
 	public static final int FROM_USER = 1;
 	public static final int FROM_EVENT = 2;
 	
-	public static List<String> entriesToCheck	= new ArrayList<String>( Arrays.asList( RemoteUtils.WEAVE_UPDATER_VERSION,
-																						RemoteUtils.WEAVE_INSTALLER_VERSION,
-																						RemoteUtils.SHORTCUT_VER));
-	public static List<String> lookupEntries	= new ArrayList<String>( Arrays.asList( Settings.UPDATER_VER,
-																						Settings.INSTALLER_VER,
-																						Settings.SHORTCUT_VER));
+	public static final int NO_UPDATE_AVAILABLE = 0;
+	public static final int UPDATE_AVAILABLE = 1;
+	public static final int UPDATE_ERROR = 2;
+	
+	public static List<String> entriesToCheck	= null;
+	public static List<String> lookupEntries	= null;
+	
 	/**
 	 * Assign new values to lookupEntries.
-	 *
 	 */
 	public static void refreshLookupValues()
 	{
@@ -53,11 +55,6 @@ public class UpdateUtils
 																Settings.SHORTCUT_VER ));
 	}
 	
-	/**
-	 * Check to see if an update is available for download.
-	 * 
-	 * @return TRUE if update exists, FALSE otherwise
-	 */
 	public static boolean isUpdateAvailable() 
 	{
 		if( Settings.isOfflineMode() )
@@ -88,9 +85,6 @@ public class UpdateUtils
 		return ( missingFile || outOfDateFile );
 	}
 	
-	/**
-	 * 
-	 */
 	public static void checkForUpdate(int from)
 	{
 		boolean isUpdate = isUpdateAvailable();
@@ -113,5 +107,28 @@ public class UpdateUtils
 						"No new updates available",
 						MessageType.INFO);
 		}
+	}
+	
+	public static int isWeaveUpdateAvailable(final boolean save) throws InterruptedException
+	{
+		if( Settings.isOfflineMode() )
+			return NO_UPDATE_AVAILABLE;
+		
+		String search = "filename=";
+		String header = RemoteUtils.getContentHeader(
+							RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL), 
+							"Content-Disposition");
+		int index = ((header != null) ? header.indexOf(search) : -1);
+		
+		if( index == -1 )	
+			return UPDATE_ERROR;
+		
+		if( save ) {
+			Settings.LAST_UPDATE_CHECK = new SimpleDateFormat("M/d/yyyy h:mm a").format(new Date());
+			Settings.save();
+		}
+		
+		File f = new File(Settings.REVISIONS_DIRECTORY, header.substring(index+search.length()));
+		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE ); 
 	}
 }

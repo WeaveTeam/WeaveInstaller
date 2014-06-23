@@ -153,7 +153,9 @@ public class TrayManager
 	}
 	public static void removeTrayIcon()
 	{
-		if( !SystemTray.isSupported() ) return;
+		if( !SystemTray.isSupported() || 
+			systemTray == null || 
+			trayIcon == null ) return;
 		systemTray.remove(trayIcon);
 	}
 

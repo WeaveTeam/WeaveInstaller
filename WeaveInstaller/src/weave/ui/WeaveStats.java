@@ -26,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import weave.Settings;
+import weave.utils.UpdateUtils;
 
 @SuppressWarnings("serial")
 public class WeaveStats extends JPanel 
@@ -68,11 +69,11 @@ public class WeaveStats extends JPanel
 	 */
 	public void refresh(int _status)
 	{
-		if( _status == 1 )
+		if( _status == UpdateUtils.UPDATE_AVAILABLE )
 		{
 			status.setText("Update Available");
 			status.setForeground(new Color(0x004F00));
-		} else if( _status == 0 ){
+		} else if( _status == UpdateUtils.NO_UPDATE_AVAILABLE ){
 			status.setText("Up to Date");
 			status.setForeground(Color.BLACK);
 		} else {
