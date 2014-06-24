@@ -53,8 +53,8 @@ public class WeaveStats extends JPanel
 		
 		desc.setBounds(0, 0, 115, 25);
 		status.setBounds(115, 0, 140, 25);
-		desc2.setBounds(0, 25, 140, 20);
-		lastUpdateTime.setBounds(115, 25, 140, 20);
+		desc2.setBounds(0, 30, 140, 20);
+		lastUpdateTime.setBounds(115, 30, 140, 20);
 
 		add(desc);
 		add(status);

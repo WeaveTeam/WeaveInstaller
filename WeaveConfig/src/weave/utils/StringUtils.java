@@ -45,4 +45,29 @@ public class StringUtils
 	{
 		return word.substring(word.length() - test.length(), word.length()).equals(test);
 	}
+	
+	/**
+	 * Repeat a String <code>repeat</code> times to form a new String.
+	 * <p>
+	 * Examples:
+	 * <pre>
+	 * StringUtils.repeat(null, 2)  = null
+	 * StringUtils.repeat("", 2)    = ""
+	 * StringUtils.repeat("a", 3)   = "aaa"
+	 * </pre>
+	 * </p>
+	 * 
+	 * @param str The String to repeat, may be null
+	 * @param repeat The number of times to repeat <code>str</code>, negative treated as zero
+	 * @return A new String consisting of the original String repeated, <code>null</code> if null String input
+	 */
+	public static String repeat(String str, int repeat)
+	{
+		String s = "";
+		if( str == null ) return null;
+		if( repeat < 0 ) return "";
+		for( int i = 0; i < repeat; ++i ) s += str;
+		
+		return s;
+	}
 }

@@ -48,6 +48,7 @@ import weave.managers.ConfigManager;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.TimeUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
@@ -68,8 +69,8 @@ public class HomeSetupPanel extends SetupPanel
 					pruneButton, adminButton;
 	public JLabel	downloadLabel;
 	public JProgressBar progressbar;
-	public WeaveStats 			weaveStats 		= new WeaveStats();
-	public RevisionTable 		revisionTable 	= new RevisionTable();
+	public WeaveStats weaveStats;
+	public RevisionTable revisionTable;
 	
 	
 	// ============== Tab 2 ============== //
@@ -103,7 +104,7 @@ public class HomeSetupPanel extends SetupPanel
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				revisionTable.updateTableData();
+				refreshButton.doClick();
 			}
 		}, 1000);
 	}
@@ -122,9 +123,10 @@ public class HomeSetupPanel extends SetupPanel
 		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
 		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
-		
-		
 		panel.add(tabbedPane);
+		
+		tabbedPane.setSelectedComponent(tab1);
+		
 		return panel;
 	}
 	
@@ -142,13 +144,15 @@ public class HomeSetupPanel extends SetupPanel
 		JPanel panel = createTab(parent);
 
 		refreshButton = new JButton("Refresh");
-		refreshButton.setBounds(250, 10, 80, 23);
+		refreshButton.setBounds(250, 10, 80, 25);
 		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
 		refreshButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
 				try {
+					TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for new Weave Binaries....");
+
 					Settings.canQuit = false;
 					setButtonsEnabled(false);
 					
@@ -158,6 +162,8 @@ public class HomeSetupPanel extends SetupPanel
 					setButtonsEnabled(true);
 					installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+					revisionTable.updateTableData();
+					
 					Settings.canQuit = true;
 					
 				} catch (InterruptedException e) {
@@ -168,7 +174,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(250, 35, 80, 23);	
+		installButton.setBounds(250, 40, 80, 25);
 		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
 		installButton.setEnabled(false);
 		installButton.addActionListener(new ActionListener() {
@@ -184,7 +190,7 @@ public class HomeSetupPanel extends SetupPanel
 					
 					switch (status) {
 						case DownloadUtils.COMPLETE:
-							installBinaries(new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_));
+//							installBinaries(new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_));
 							break;
 						
 						case DownloadUtils.CANCELLED:
@@ -218,7 +224,7 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		
 		revertButton = new JButton("Revert");
-		revertButton.setBounds(250, 150, 80, 25);
+		revertButton.setBounds(250, 125, 80, 25);
 		revertButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
 		revertButton.setVisible(true);
 		revertButton.addActionListener(new ActionListener() {
@@ -229,13 +235,14 @@ public class HomeSetupPanel extends SetupPanel
 				if( index < 0 )
 					return;
 				
-				
+				installBinaries(Revisions.getRevisionsList().get(index));
+				revisionTable.updateTableData();
 			}
 		});
 		
 		
 		deleteButton = new JButton("Delete");
-		deleteButton.setBounds(250, 180, 80, 25);
+		deleteButton.setBounds(250, 155, 80, 25);
 		deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
 		deleteButton.setVisible(true);
 		deleteButton.addActionListener(new ActionListener() {
@@ -262,7 +269,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		pruneButton = new JButton("Clean");
-		pruneButton.setBounds(250, 210, 80, 25);
+		pruneButton.setBounds(250, 185, 80, 25);
 		pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
 		pruneButton.setVisible(true);
 		pruneButton.addActionListener(new ActionListener() {
@@ -312,49 +319,31 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
-		progressbar.setBounds(20, 80, 310, 20);
+		progressbar.setBounds(10, 75, 320, 15);
 		progressbar.setIndeterminate(true);
-		progressbar.setStringPainted(true);
-		progressbar.setString("");
 		progressbar.setVisible(false);
-		panel.add(progressbar);
 		
-//		zipLabelSpeed = new JLabel("Download Rate:");
-//		zipLabelTimeleft = new JLabel("Time left:");
-//		zipLabelSpeedHolder = new JLabel();
-//		zipLabelTimeleftHolder = new JLabel();
-//		zipLabelSizeDownloadHolder = new JLabel();
-//		
-//		// ======== SET COORDINATES ======== //
-//		zipLabelSpeed.setBounds(10, 60, 100, 20);
-//		zipLabelSpeed.setFont(new Font("Serif", Font.PLAIN, 13));
-//		zipLabelSpeed.setVisible(false);
-//		zipLabelTimeleft.setBounds(10, 80, 100, 20);
-//		zipLabelTimeleft.setFont(new Font("Serif", Font.PLAIN, 13));
-//		zipLabelTimeleft.setVisible(false);
-//		zipLabelSpeedHolder.setBounds(150, 60, 170, 20);
-//		zipLabelSpeedHolder.setHorizontalAlignment(JLabel.RIGHT);
-//		zipLabelTimeleftHolder.setBounds(150, 80, 170, 20);
-//		zipLabelTimeleftHolder.setHorizontalAlignment(JLabel.RIGHT);
-//		zipLabelSizeDownloadHolder.setBounds(150, 100, 170, 20);
-//		zipLabelSizeDownloadHolder.setHorizontalAlignment(JLabel.RIGHT);
-//		zipLabelSizeDownloadHolder.setFont(new Font("Serif", Font.PLAIN, 13));
-//		
-//		weaveStats.setBounds(10, 10, 230, 50);
-//		
-//		revisionTable.setBounds(10, 150, 230, 130);	
-//
-//		// ======== ADD TO PANEL ======== //
-//		panel.add(zipLabelSpeed);
-//		panel.add(zipLabelTimeleft);
-//		panel.add(zipLabelSpeedHolder);
-//		panel.add(zipLabelTimeleftHolder);
-//		panel.add(zipLabelSizeDownloadHolder);
-//		
+		downloadLabel = new JLabel();
+		downloadLabel.setBounds(10, 90, 320, 25);
+		downloadLabel.setText("");
+		downloadLabel.setVisible(false);
+		
+		weaveStats = new WeaveStats();
+		weaveStats.setBounds(10, 10, 230, 55);
+		weaveStats.setVisible(true);
+		
+		
+		revisionTable = new RevisionTable();
+		revisionTable.setBounds(10, 125, 230, 130);
+		revisionTable.setVisible(true);
+		
+		
 		panel.add(weaveStats);
+		panel.add(revisionTable);
+		panel.add(progressbar);
+		panel.add(downloadLabel);
 		panel.add(refreshButton);
 		panel.add(installButton);
-		panel.add(revisionTable);
 		panel.add(revertButton);
 		panel.add(deleteButton);
 		panel.add(pruneButton);
@@ -394,13 +383,34 @@ public class HomeSetupPanel extends SetupPanel
 					@Override
 					public void run() {
 						if( info.max == -1 ) {
-							// Unknown max size
+							// Unknown max size - progress unavailable
 							progressbar.setIndeterminate(true);
 							downloadLabel.setText( String.format("Downloading update....%s @ %s", FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
 						} else {
 							// Known max size
+							progressbar.setIndeterminate(false);
 							progressbar.setValue( info.progress );
-							downloadLabel.setText( String.format("Downloading update....%d%% %s @ %s", info.progress, FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+							if( info.timeleft > 3600 )
+								downloadLabel.setText(
+										String.format("Downloading - %d%% - %s - %s (%s)", 
+										info.progress, 
+										"Calculating ETA...",
+										FileUtils.sizeify(info.cur),
+										DownloadUtils.speedify(info.speed)) );
+							else if( info.timeleft < 60 )
+								downloadLabel.setText(
+										String.format("Downloading - %d%% - %s - %s (%s)", 
+										info.progress, 
+										TimeUtils.format("%s s remaining", info.timeleft),
+										FileUtils.sizeify(info.cur),
+										DownloadUtils.speedify(info.speed)) );
+							else
+								downloadLabel.setText(
+										String.format("Downloading - %d%% - %s - %s (%s)",
+										info.progress, 
+										TimeUtils.format("%m:%ss remaining", info.timeleft),
+										FileUtils.sizeify(info.cur),
+										DownloadUtils.speedify(info.speed)) );
 						}
 					}
 				});
@@ -416,6 +426,10 @@ public class HomeSetupPanel extends SetupPanel
 			destination.createNewFile();
 
 			TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
+			
+			downloadLabel.setVisible(true);
+			progressbar.setVisible(true);
+			
 			downloadLabel.setText("Downloading update.....");
 			progressbar.setIndeterminate(true);
 
@@ -463,6 +477,7 @@ public class HomeSetupPanel extends SetupPanel
 	private void installBinaries(File zipFile)
 	{
 		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_FOLDERNAME_);
+		File configWEBAPPS = ConfigManager.getConfigManager().getContainer().getWebappsDirectory();
 		
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
 		
@@ -513,7 +528,7 @@ public class HomeSetupPanel extends SetupPanel
 			
 			FileUtils fu = new FileUtils();
 			fu.addStatusListener(null, fileListener, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
-			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
+			fu.copyWithInfo(unzippedFile, configWEBAPPS, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
 			
 			progressbar.setValue( 100 );
 			downloadLabel.setText( "Installing update....100%" );

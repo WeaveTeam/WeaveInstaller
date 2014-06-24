@@ -78,7 +78,7 @@ public class RevisionTable extends JPanel
 			date.setTime(file.lastModified());
 			
 			data[i][0] = revisionName + ((revisionName.equals(Settings.CURRENT_INSTALL_VER)) ? "  (current)" : "" );
-			data[i][1] = new SimpleDateFormat("M/d/yyyy h:m a").format(date);
+			data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 		}
 
 		// Add row(s) if needed

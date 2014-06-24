@@ -80,7 +80,7 @@ public class DownloadUtils implements IUtils
 			speed = speed / 1024;
 			i++;
 		}
-		return String.format("%0." + i + "f %s", s.get(i));
+		return String.format("%." + i + "f %s", speed, s.get(i));
 	}
 	
 	
@@ -193,9 +193,6 @@ public class DownloadUtils implements IUtils
 						if( out != null )	out.close();
 						
 						if( conn != null ) {
-							conn.getInputStream().close();
-							conn.getOutputStream().close();
-							conn.getErrorStream().close();
 							conn.disconnect();
 						}
 					} catch (IOException e) {
