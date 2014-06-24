@@ -58,9 +58,14 @@ public class RevisionTable extends JPanel
 		add(scrollPane);
 	}
 
+	public JTable getTable()
+	{
+		return table;
+	}
+	
 	public void updateTableData()
 	{
-		ArrayList<File> sortedFiles = Revisions.getRevisionData();
+		ArrayList<File> sortedFiles = Revisions.getRevisionsList();
 		Object[][] data = new Object[sortedFiles.size()][columnNames.length];
 		File file = null;
 		Date date = new Date();

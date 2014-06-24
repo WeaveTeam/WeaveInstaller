@@ -671,7 +671,7 @@ public class WeaveInstaller extends JFrame
 				 * Get the nth element in the revision table list, which
 				 * corresponds to a File. ArrayList<File> getRevisionData()
 				 */
-				File f = Revisions.getRevisionData().get(n);
+				File f = Revisions.getRevisionsList().get(n);
 				if (Settings.CURRENT_INSTALL_VER.equals(Revisions.getRevisionName(f.getPath()))) {
 					JOptionPane.showMessageDialog(null,	"Cannot revert to current installation.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -697,7 +697,7 @@ public class WeaveInstaller extends JFrame
 				if (val == JOptionPane.NO_OPTION)
 					return;
 
-				File f = Revisions.getRevisionData().get(n);
+				File f = Revisions.getRevisionsList().get(n);
 				if (Settings.CURRENT_INSTALL_VER.equals(Revisions.getRevisionName(f.getPath()))) {
 					JOptionPane.showMessageDialog(null, "Cannot delete current installation.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;

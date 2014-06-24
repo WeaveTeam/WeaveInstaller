@@ -49,7 +49,7 @@ public class Revisions
 		return size;
 	}
 
-	public static ArrayList<File> getRevisionData()
+	public static ArrayList<File> getRevisionsList()
 	{
 		File[] files = Settings.REVISIONS_DIRECTORY.listFiles();
 		ArrayList<File> sortedFiles = new ArrayList<File>();
@@ -73,7 +73,7 @@ public class Revisions
 		int i = 0;
 		boolean ret = true;
 		File file = null;
-		ArrayList<File> files = getRevisionData();
+		ArrayList<File> files = getRevisionsList();
 		Iterator<File> it = files.iterator();
 		long[] mods = new long[files.size()];
 		

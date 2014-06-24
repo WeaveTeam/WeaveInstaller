@@ -20,10 +20,13 @@
 package weave.ui;
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,9 +39,12 @@ import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import weave.Revisions;
 import weave.Settings;
+import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.includes.IUtilsInfo;
+import weave.managers.ConfigManager;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.RemoteUtils;
@@ -151,6 +157,7 @@ public class HomeSetupPanel extends SetupPanel
 
 					setButtonsEnabled(true);
 					installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
+					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 					Settings.canQuit = true;
 					
 				} catch (InterruptedException e) {
@@ -173,11 +180,11 @@ public class HomeSetupPanel extends SetupPanel
 					progressbar.setIndeterminate(true);
 					downloadLabel.setText("Preparing Download....");
 					Thread.sleep(1000);
-					int status = downloadUpdate();
+					int status = downloadBinaries();
 					
 					switch (status) {
 						case DownloadUtils.COMPLETE:
-							installUpdate();
+							installBinaries(new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_));
 							break;
 						
 						case DownloadUtils.CANCELLED:
@@ -201,6 +208,7 @@ public class HomeSetupPanel extends SetupPanel
 					progressbar.setValue(0);
 					setButtonsEnabled(true);
 					installButton.setEnabled(false);
+					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 					revisionTable.updateTableData();
 					
 				} catch (InterruptedException e) {
@@ -210,9 +218,98 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		
 		revertButton = new JButton("Revert");
+		revertButton.setBounds(250, 150, 80, 25);
+		revertButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
+		revertButton.setVisible(true);
+		revertButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) 
+			{
+				int index = revisionTable.getTable().getSelectedRow();
+				if( index < 0 )
+					return;
+				
+				
+			}
+		});
+		
+		
 		deleteButton = new JButton("Delete");
+		deleteButton.setBounds(250, 180, 80, 25);
+		deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
+		deleteButton.setVisible(true);
+		deleteButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) 
+			{
+				int index = revisionTable.getTable().getSelectedRow();
+				if( index < 0 )
+					return;
+				
+				if( JOptionPane.showConfirmDialog(
+						null, 
+						"Deleting revisions cannot be undone.\n\nAre you sure you want to continue?", 
+						"Warning", 
+						JOptionPane.YES_NO_OPTION, 
+						JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION )
+					return;
+				
+				File selectedFile = Revisions.getRevisionsList().get(index);
+				FileUtils.recursiveDelete(selectedFile);
+				revisionTable.updateTableData();
+			}
+		});
+		
+		
 		pruneButton = new JButton("Clean");
+		pruneButton.setBounds(250, 210, 80, 25);
+		pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
+		pruneButton.setVisible(true);
+		pruneButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				if( JOptionPane.showConfirmDialog(
+						null, 
+						"Auto-cleaned revisions will be deleted\nand cannot be undone.\n\nAre you sure you want to continue?",
+						"Warning",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION )
+					return;
+				
+				Revisions.pruneRevisions();
+				pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			}
+		});
+		
+		
 		adminButton = new JButton("Launch Admin Console");
+		adminButton.setBounds(10, 235, 230, 25);
+		adminButton.setToolTipText("Open up the Admin Console");
+		adminButton.setVisible(true);
+		adminButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) 
+			{
+				IConfig containerConfig = ConfigManager.getConfigManager().getContainer();
+				
+				if( containerConfig != null )
+				{
+					try {
+						Desktop.getDesktop().browse(new URI(
+								"http://" + Settings.LOCALHOST + ":" + 
+								containerConfig.getPort() + "/" + 
+								"AdminConsole.html"));
+					} catch (IOException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+					} catch (URISyntaxException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+					}
+				} else
+					JOptionPane.showMessageDialog(null, "No servlet container loaded.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		});
+		
 		
 		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
 		progressbar.setBounds(20, 80, 310, 20);
@@ -246,10 +343,6 @@ public class HomeSetupPanel extends SetupPanel
 //		weaveStats.setBounds(10, 10, 230, 50);
 //		
 //		revisionTable.setBounds(10, 150, 230, 130);	
-//		revertButton.setBounds(250, 150, 80, 25);	revertButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
-//		deleteButton.setBounds(250, 180, 80, 25);	deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
-//		pruneButton.setBounds(250, 210, 80, 40);	pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
-//		launchAdmin.setBounds(10, 290, 230, 25);	launchAdmin.setToolTipText("Open up the Admin Console");
 //
 //		// ======== ADD TO PANEL ======== //
 //		panel.add(zipLabelSpeed);
@@ -285,7 +378,7 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 	
-	private int downloadUpdate()
+	private int downloadBinaries()
 	{
 		int status = DownloadUtils.FAILED;
 		String url = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
@@ -367,9 +460,8 @@ public class HomeSetupPanel extends SetupPanel
 		}
 		return status;
 	}
-	private void installUpdate()
+	private void installBinaries(File zipFile)
 	{
-		File zipFile = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_);
 		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_FOLDERNAME_);
 		
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
