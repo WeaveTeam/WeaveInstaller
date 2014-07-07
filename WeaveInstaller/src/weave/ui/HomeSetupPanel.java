@@ -59,6 +59,7 @@ public class HomeSetupPanel extends SetupPanel
 	private static final String _TMP_FOLDERNAME_ = "weave";
 	private static final String _TMP_FILENAME_   = _TMP_FOLDERNAME_ + ".zip";
 	
+	private boolean refreshProgramatically = false;
 	public JTabbedPane tabbedPane;
 	public JPanel tab1, tab2, tab3, tab4;
 
@@ -104,6 +105,7 @@ public class HomeSetupPanel extends SetupPanel
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
+				refreshProgramatically = true;
 				refreshButton.doClick();
 			}
 		}, 1000);
@@ -156,9 +158,14 @@ public class HomeSetupPanel extends SetupPanel
 					Settings.canQuit = false;
 					setButtonsEnabled(false);
 					
-					int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(true);
+					int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
 					weaveStats.refresh(updateAvailable);
+					refreshProgramatically = false;
 
+					downloadLabel.setText("");
+					progressbar.setIndeterminate(true);
+					progressbar.setString("");
+					progressbar.setValue(0);
 					setButtonsEnabled(true);
 					installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
@@ -178,17 +185,33 @@ public class HomeSetupPanel extends SetupPanel
 		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
 		installButton.setEnabled(false);
 		installButton.addActionListener(new ActionListener() {
+			class Internal
+			{
+				public int status;
+			}
+			
 			@Override
 			public void actionPerformed(ActionEvent a)
 			{
 				try {
+					final Internal internal = new Internal();
+					internal.status = DownloadUtils.FAILED;
+					
+					Thread t = new Thread(new Runnable() {
+						@Override
+						public void run() {
+							internal.status = downloadBinaries();
+						}
+					});
+					
 					setButtonsEnabled(false);
 					progressbar.setIndeterminate(true);
 					downloadLabel.setText("Preparing Download....");
 					Thread.sleep(1000);
-					int status = downloadBinaries();
+					t.start();
+					t.join();
 					
-					switch (status) {
+					switch (internal.status) {
 						case DownloadUtils.COMPLETE:
 //							installBinaries(new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_FILENAME_));
 							break;
@@ -207,15 +230,6 @@ public class HomeSetupPanel extends SetupPanel
 									JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 							break;
 					}
-					
-					downloadLabel.setText("");
-					progressbar.setIndeterminate(true);
-					progressbar.setString("");
-					progressbar.setValue(0);
-					setButtonsEnabled(true);
-					installButton.setEnabled(false);
-					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-					revisionTable.updateTableData();
 					
 				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
@@ -385,7 +399,10 @@ public class HomeSetupPanel extends SetupPanel
 						if( info.max == -1 ) {
 							// Unknown max size - progress unavailable
 							progressbar.setIndeterminate(true);
-							downloadLabel.setText( String.format("Downloading update....%s @ %s", FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+							downloadLabel.setText( 
+									String.format("Downloading update....%s @ %s",
+									FileUtils.sizeify(info.cur), 
+									DownloadUtils.speedify(info.speed)) );
 						} else {
 							// Known max size
 							progressbar.setIndeterminate(false);
@@ -408,7 +425,7 @@ public class HomeSetupPanel extends SetupPanel
 								downloadLabel.setText(
 										String.format("Downloading - %d%% - %s - %s (%s)",
 										info.progress, 
-										TimeUtils.format("%m:%ss remaining", info.timeleft),
+										TimeUtils.format("%m:%s remaining", info.timeleft),
 										FileUtils.sizeify(info.cur),
 										DownloadUtils.speedify(info.speed)) );
 						}
@@ -438,7 +455,7 @@ public class HomeSetupPanel extends SetupPanel
 			
 			DownloadUtils du = new DownloadUtils();
 			du.addStatusListener(null, downloadInfo);
-			status = du.downloadWithInfo(url, destination);
+			status = du.downloadWithInfo(url, destination, 100 * DownloadUtils.KB);
 
 			Settings.downloadCanceled = false;
 			Settings.downloadLocked = false;

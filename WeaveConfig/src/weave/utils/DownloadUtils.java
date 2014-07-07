@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +40,11 @@ public class DownloadUtils implements IUtils
 	public static final int COMPLETE	= ( 1 << 1 );
 	public static final int CANCELLED 	= ( 1 << 2 );
 	public static final int OFFLINE		= ( 1 << 3 );
+	
+	public static final int B			= 1;
+	public static final int KB			= B * 1024;
+	public static final int MB			= KB * 1024;
+	public static final int GB			= MB * 1024;
 	
 	private IUtilsInfo _func = null;
 	
@@ -106,15 +112,29 @@ public class DownloadUtils implements IUtils
 	 * This will open an input stream to the URL and download the contents to the destination.
 	 * Stats can be tracked through the `info` object.
 	 */
-	public int downloadWithInfo( String url, File destination ) throws IOException, InterruptedException
+	public int downloadWithInfo( String url, String destination ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(new URL(url), destination);
+		return downloadWithInfo(url, destination, 0);
 	}
-	public int downloadWithInfo( String url, String destination ) throws IOException, InterruptedException
+	public int downloadWithInfo( String url, String destination, long downloadLimit ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(new URL(url), new File(destination));
+		return downloadWithInfo(new URL(url), new File(destination), downloadLimit);
 	}
-	public int downloadWithInfo( final URL url, final File destination ) throws InterruptedException
+	
+	public int downloadWithInfo( String url, File destination ) throws MalformedURLException, InterruptedException
+	{
+		return downloadWithInfo(url, destination, 0);
+	}
+	public int downloadWithInfo( String url, File destination, long downloadLimit ) throws MalformedURLException, InterruptedException
+	{
+		return downloadWithInfo(new URL(url), destination, downloadLimit);
+	}
+
+	public int downloadWithInfo( URL url, File destination ) throws InterruptedException
+	{
+		return downloadWithInfo(url, destination, 0);
+	}
+	public int downloadWithInfo( final URL url, final File destination, final long downloadLimit ) throws InterruptedException
 	{
 		final DownloadInternalUtils diu = new DownloadInternalUtils();
 		diu.status = COMPLETE;
@@ -139,7 +159,7 @@ public class DownloadUtils implements IUtils
 					
 					byte buffer[] 		= new byte[1024*4];
 					int sizeOfDownload 	= conn.getContentLength();
-					int length = 0, cur = 0, kbps = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
+					int length = 0, cur = 0, kbps = 0, limit = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
 					long speedLongNew 	= 0, speedLongOld = System.currentTimeMillis();
 					long cancelLongNew 	= 0, cancelLongOld = System.currentTimeMillis();
 					
@@ -178,6 +198,17 @@ public class DownloadUtils implements IUtils
 						}
 						timeleft = (sizeOfDownload - cur) / aveDownSpeed / 1024;
 						updateInfo(length, sizeOfDownload, timeleft);
+						
+						if( downloadLimit > 0 ) 
+						{
+							limit += length;
+							
+							// 1/10th for speedy UI updates
+							if( limit >= ( downloadLimit / 10 ) ) {
+								limit = 0;
+								Thread.sleep(100);
+							}
+						}
 					}
 					out.flush();
 					if( _func != null ) setInfo(sizeOfDownload, sizeOfDownload, 0);
@@ -186,7 +217,12 @@ public class DownloadUtils implements IUtils
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 					diu.status = FAILED;
-				
+					return;
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+					diu.status = FAILED;
+					return;
 				} finally {
 					try {
 						if( in != null )	in.close();

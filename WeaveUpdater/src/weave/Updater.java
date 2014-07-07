@@ -327,11 +327,11 @@ public class Updater extends JFrame
 							if( info.max == -1 ) {
 								// Unknown max size
 								statusProgress.setIndeterminate(true);
-								statusLabel.setText( String.format("Downloading update....%s @ %s", FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+								statusLabel.setText( String.format("Downloading update....  %s", FileUtils.sizeify(info.cur)));
 							} else {
 								// Known max size
 								statusProgress.setValue( info.progress );
-								statusLabel.setText( String.format("Downloading update....%d%% %s @ %s", info.progress, FileUtils.sizeify(info.cur), DownloadUtils.speedify(info.speed)) );
+								statusLabel.setText( String.format("Downloading update....  %d%%", info.progress));
 							}
 						}
 					});
@@ -343,7 +343,7 @@ public class Updater extends JFrame
 			
 			DownloadUtils d = new DownloadUtils();
 			d.addStatusListener(null, downloadInfo);
-			status = d.downloadWithInfo(link, destination);
+			status = d.downloadWithInfo(link, destination, 500 * DownloadUtils.KB);
 			
 			Settings.downloadCanceled = false;
 			Settings.downloadLocked = false;
