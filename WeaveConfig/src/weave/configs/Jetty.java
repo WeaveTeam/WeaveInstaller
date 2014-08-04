@@ -35,7 +35,9 @@ import weave.utils.TraceUtils;
 
 public class Jetty extends Config
 {
-	public static Jetty _instance = null;
+	public static String NAME		= "Jetty";
+	public static Jetty _instance 	= null;
+	
 	public static Jetty getConfig()
 	{
 		if( _instance == null )
@@ -45,12 +47,13 @@ public class Jetty extends Config
 	
 	public Jetty()
 	{
-		super("Jetty");
+		super(NAME);
 		
 		try {
+			setPort(8080);
 			setTechLevel("Easy");
-			setDescription(	"Jetty is a free and open-source project as part of the Eclipse Foundation." + 
-							"Jetty features a pure Java-based HTTP server and Java Servlet container.");
+			setDescription("Jetty is a free and open-source project as part of the Eclipse Foundation.");
+			setWarning("<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

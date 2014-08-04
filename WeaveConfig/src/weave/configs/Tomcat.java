@@ -31,7 +31,10 @@ import weave.utils.TraceUtils;
 
 public class Tomcat extends Config
 {
-	public static Tomcat _instance = null;
+	public static String NAME		= "Tomcat";
+	public static String URL		= "http://tomcat.apache.org/";
+	public static Tomcat _instance 	= null;
+	
 	public static Tomcat getConfig()
 	{
 		if( _instance == null )
@@ -41,13 +44,16 @@ public class Tomcat extends Config
 	
 	public Tomcat()
 	{
-		super("Tomcat");
+		super(NAME, URL);
 		
 		try {
+			setPort(8080);
 			setTechLevel("Advanced");
-			setDescription(	"Apache Tomcat is an open source web server and servlet" +
-							"container that provides a pure Java HTTP web server " + 
-							"environment for Java code to run in.");
+			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
+							"that provides a pure Java HTTP web server environment for " +
+							"Java code to run in.");
+			setWarning("<center><b>" + getConfigName() + " requires the use of its external application " +
+						"found <a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

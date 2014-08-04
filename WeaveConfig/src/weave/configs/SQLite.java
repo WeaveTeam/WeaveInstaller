@@ -26,6 +26,7 @@ public class SQLite extends Config
 		super("SQLite");
 		
 		try {
+			setPort(3306);
 			setTechLevel("Easy");
 			setDescription(	"SQLite is a software library that implements a self-contained, " +
 							"serverless, zero-configuration, transactional SQL database engine.");

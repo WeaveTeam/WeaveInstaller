@@ -44,6 +44,7 @@ public class MySQL extends Config
 		super("MySQL");
 		
 		try {
+			setPort(3306);
 			setTechLevel("Advanced");
 			setDescription("MySQL is a widely used open-source relational database management system.");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));

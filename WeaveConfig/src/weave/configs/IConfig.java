@@ -40,6 +40,9 @@ public interface IConfig
 	public String getDescription();
 	public void setDescription(String s);
 	
+	public String getWarning();
+	public void setWarning(String s);
+	
 	public BufferedImage getImage();
 	public void setImage(BufferedImage i);
 	
