@@ -191,6 +191,34 @@ public class FileUtils implements IUtils
 		return contents;
 	}
 	
+
+	/*
+	 * FileUtils.sizeify( size )
+	 * 
+	 * Will return a String representation of the size given in bytes.
+	 */
+	public static String sizeify( long size )
+	{
+		return sizeify( (double)size );
+	}
+	public static String sizeify( int size )
+	{
+		double d = size;
+		return sizeify(d);
+	}
+	public static String sizeify( double size )
+	{
+		int i = 0;
+		List<String> s = Arrays.asList("B", "KB", "MB", "GB", "TB");
+		
+		while( (size/1024) > 1 )
+		{
+			size = size / 1024;
+			i++;
+		}
+		return String.format("%." + i + "f %s", size, s.get(i));
+	}
+	
 	
 	/*
 	 * FileUtils.recursiveDelete( loc )
@@ -304,12 +332,13 @@ public class FileUtils implements IUtils
 			@Override
 			public void run() {
 				try {
-					int length= 0;
+					long length = 0;
 					byte[] buffer = new byte[4*1024*1024];
 					
-					while ((length = in.read(buffer)) > 0)
+					while (in.read(buffer) > 0)
 					{
-						out.write(buffer, 0, length);
+						length = buffer.length;
+						out.write(buffer);
 						out.flush();
 						
 						if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) ) 	updateInfo(length, _func.info.max);
@@ -335,33 +364,6 @@ public class FileUtils implements IUtils
 	}
 	
 
-	/*
-	 * FileUtils.sizeify( size )
-	 * 
-	 * Will return a String representation of the size given in bytes.
-	 */
-	public static String sizeify( long size )
-	{
-		return sizeify( (double)size );
-	}
-	public static String sizeify( int size )
-	{
-		double d = size;
-		return sizeify(d);
-	}
-	public static String sizeify( double size )
-	{
-		int i = 0;
-		List<String> s = Arrays.asList("B", "KB", "MB", "GB", "TB");
-		
-		while( (size/1024) > 1 )
-		{
-			size = size / 1024;
-			i++;
-		}
-		return String.format("%." + i + "f %s", size, s.get(i));
-	}
-	
 	
 	public void addStatusListener(IUtils parent, IUtilsInfo func, String source, int flags)
 	{
@@ -381,23 +383,23 @@ public class FileUtils implements IUtils
 	{
 		_func = null;
 	}
-	private void updateInfo(int cur, int max)
+	private void updateInfo(long cur, long max)
 	{
 		if( _func != null )
 		{
 			_func.info.cur += cur;
 			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
+			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
 			_func.onProgressUpdate();
 		}
 	}
-	private void setInfo(int cur, int max)
+	private void setInfo(long cur, long max)
 	{
 		if( _func != null )
 		{
 			_func.info.cur = cur;
 			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
+			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
 			_func.onProgressUpdate();
 		}
 	}

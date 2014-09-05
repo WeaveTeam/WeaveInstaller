@@ -27,17 +27,22 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import weave.Revisions;
 import weave.Settings;
@@ -45,6 +50,7 @@ import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.includes.IUtilsInfo;
 import weave.managers.ConfigManager;
+import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.RemoteUtils;
@@ -81,6 +87,9 @@ public class HomeSetupPanel extends SetupPanel
 	
 	
 	// ============== Tab 4 ============== //
+	public String faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
+	public JEditorPane troubleshootHTML;
+	public JScrollPane troubleshootScrollPane;
 	
 	
 	public HomeSetupPanel()
@@ -125,6 +134,24 @@ public class HomeSetupPanel extends SetupPanel
 		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
 		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
+		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent event)
+			{
+				JPanel selectedPanel = (JPanel) tabbedPane.getSelectedComponent();
+				if( selectedPanel == tab4 )
+				{
+					try {
+						faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
+						System.out.println("page updated to " + faqURL);
+						troubleshootHTML.setPage(faqURL);
+					} catch (IOException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
+				}
+			}
+		});
 		panel.add(tabbedPane);
 		
 		tabbedPane.setSelectedComponent(tab1);
@@ -378,6 +405,23 @@ public class HomeSetupPanel extends SetupPanel
 	public JPanel createTab4(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
+
+		try {
+			troubleshootHTML = new JEditorPane();
+			troubleshootHTML.setPage(faqURL);
+			troubleshootHTML.setEditable(false);
+			troubleshootHTML.setVisible(true);
+			
+			troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			troubleshootScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
+			troubleshootScrollPane.setVisible(true);
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+
+		panel.add(troubleshootScrollPane);
+		
 		return panel;
 	}
 	

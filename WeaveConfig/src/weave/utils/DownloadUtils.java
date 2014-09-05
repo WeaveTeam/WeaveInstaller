@@ -158,7 +158,7 @@ public class DownloadUtils implements IUtils
 					out = new FileOutputStream(destination);
 					
 					byte buffer[] 		= new byte[1024*4];
-					int sizeOfDownload 	= conn.getContentLength();
+					long sizeOfDownload = conn.getContentLengthLong();
 					int length = 0, cur = 0, kbps = 0, limit = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
 					long speedLongNew 	= 0, speedLongOld = System.currentTimeMillis();
 					long cancelLongNew 	= 0, cancelLongOld = System.currentTimeMillis();
@@ -196,7 +196,7 @@ public class DownloadUtils implements IUtils
 								return;
 							}
 						}
-						timeleft = (sizeOfDownload - cur) / aveDownSpeed / 1024;
+						timeleft = (int) ((sizeOfDownload - cur) / aveDownSpeed / 1024);
 						updateInfo(length, sizeOfDownload, timeleft);
 						
 						if( downloadLimit > 0 ) 
@@ -261,25 +261,25 @@ public class DownloadUtils implements IUtils
 		_func = null;
 	}
 	
-	private void updateInfo(int cur, int max, int timeleft)
+	private void updateInfo(long cur, long max, int timeleft)
 	{
 		if( _func != null )
 		{
 			_func.info.cur += cur;
 			_func.info.max = max;
 			_func.info.timeleft = timeleft;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
+			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
 			_func.onProgressUpdate();
 		}
 	}
-	private void setInfo(int cur, int max, int timeleft)
+	private void setInfo(long cur, long max, int timeleft)
 	{
 		if( _func != null )
 		{
 			_func.info.cur = cur;
 			_func.info.max = max;
 			_func.info.timeleft = timeleft;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
+			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
 			_func.onProgressUpdate();
 		}
 	}

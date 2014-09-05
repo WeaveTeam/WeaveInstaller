@@ -28,6 +28,16 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class SetupPanel extends JPanel implements ISetupPanel 
 {
+	public static final int LEFT_PANEL_WIDTH 	= 150;
+	public static final int LEFT_PANEL_HEIGHT 	= 325;
+	
+	public static final int BOTTOM_PANEL_WIDTH 	= 500;
+	public static final int BOTTOM_PANEL_HEIGHT = 50;
+	
+	public static final int RIGHT_PANEL_WIDTH 	= 350;
+	public static final int RIGHT_PANEL_HEIGHT 	= 325;
+	
+	
 	protected int 					currentPanel ;
 	protected int 					maxPanels 	 ;
 	public 	  ArrayList<JPanel> 	panels 		 = new ArrayList<JPanel>();

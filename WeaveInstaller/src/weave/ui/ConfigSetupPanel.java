@@ -22,6 +22,7 @@ package weave.ui;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -46,6 +47,7 @@ import javax.swing.text.html.HTMLDocument;
 import weave.Settings;
 import weave.configs.IConfig;
 import weave.configs.Jetty;
+import weave.configs.SQLite;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
@@ -55,7 +57,7 @@ import weave.utils.TraceUtils;
 @SuppressWarnings("serial")
 public class ConfigSetupPanel extends SetupPanel
 {
-	public JComboBox			servletCombo,	databaseCombo;
+	public JComboBox<String>	servletCombo,	databaseCombo;
 	public JLabel				servletImage, 	databaseImage;
 	public JLabel				servletLevel,	databaseLevel;
 	public JEditorPane			servletDesc, 	databaseDesc;
@@ -69,7 +71,7 @@ public class ConfigSetupPanel extends SetupPanel
 	public ConfigSetupPanel()
 	{
 		maxPanels = 3;
-		
+
 		setLayout(null);
 		setBounds(0, 0, 350, 325);
 		
@@ -102,7 +104,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet Combobox
 		List<IConfig> servlets = ConfigManager.getConfigManager().getServletConfigs();
-		servletCombo = new JComboBox();
+		servletCombo = new JComboBox<String>();
 		servletCombo.setBounds(160, 22, 170, 22);
 		servletCombo.setVisible(true);
 		servletCombo.setEnabled(true);
@@ -195,7 +197,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet directory label
 		servletWebappsLabel = new JLabel("Webapps:");
-		servletWebappsLabel.setBounds(20, 250, 70, 25);
+		servletWebappsLabel.setBounds(20, 280, 70, 25);
 		servletWebappsLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		panel.add(servletWebappsLabel);
 		
@@ -207,7 +209,7 @@ public class ConfigSetupPanel extends SetupPanel
 		servletFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		
 		servletBrowserPath = new JTextField();
-		servletBrowserPath.setBounds(100, 250, 150, 25);
+		servletBrowserPath.setBounds(100, 280, 150, 25);
 		servletBrowserPath.setEditable(false);
 		servletBrowserPath.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		servletBrowserPath.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
@@ -215,7 +217,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(servletBrowserPath);
 		
 		servletBrowserButton = new JButton("Browse");
-		servletBrowserButton.setBounds(260, 250, 70, 25);
+		servletBrowserButton.setBounds(260, 280, 70, 25);
 		servletBrowserButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -246,7 +248,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet Port
 		servletPortLabel = new JLabel("Port:");
-		servletPortLabel.setBounds(20, 280, 70, 25);
+		servletPortLabel.setBounds(20, 250, 70, 25);
 		servletPortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		servletPortLabel.setVisible(true);
 		panel.add(servletPortLabel);
@@ -254,7 +256,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet Port Input
 		servletPortInput = new JTextField();
-		servletPortInput.setBounds(100, 280, 150, 25);
+		servletPortInput.setBounds(100, 250, 150, 25);
 		servletPortInput.setEditable(true);
 		servletPortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 14));
 		servletPortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
@@ -275,7 +277,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.setLayout(null);
 		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
-
+		
 		// Title
 		JLabel title = new JLabel("Select Database");
 		title.setFont(new Font(Settings.FONT, Font.BOLD, 15));
@@ -284,7 +286,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Database Combobox
 		List<IConfig> databases = ConfigManager.getConfigManager().getDatabaseConfigs();
-		databaseCombo = new JComboBox();
+		databaseCombo = new JComboBox<String>();
 		databaseCombo.setBounds(160, 22, 170, 22);
 		databaseCombo.setVisible(true);
 		databaseCombo.setEnabled(true);
@@ -300,7 +302,6 @@ public class ConfigSetupPanel extends SetupPanel
 						ConfigManager
 							.getConfigManager()
 							.getConfigByName(databaseCombo.getSelectedItem()));
-				
 			}
 		});
 		panel.add(databaseCombo);
@@ -313,14 +314,14 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Image
 		databaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		databaseImage.setBounds(20, 100, 90, 90);
+		databaseImage.setBounds(20, 90, 80, 80);
 		databaseImage.setVerticalAlignment(JLabel.TOP);
 		panel.add(databaseImage);
 
 		
 		// Description
 		databaseDesc = new JEditorPane();
-		databaseDesc.setBounds(120, 90, 210, 100);
+		databaseDesc.setBounds(110, 90, 210, 100);
 		databaseDesc.setEditable(false);
 		databaseDesc.setContentType("text/html");
 		databaseDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -349,7 +350,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Warning
 		databaseWarning = new JEditorPane();
-		databaseWarning.setBounds(20, 200, 310, 60);
+		databaseWarning.setBounds(20, 190, 310, 60);
 		databaseWarning.setEditable(false);
 		databaseWarning.setContentType("text/html");
 		databaseWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -378,16 +379,17 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Database port label
 		databasePortLabel = new JLabel("Port:");
-		databasePortLabel.setBounds(20, 270, 70, 25);
+		databasePortLabel.setBounds(20, 250, 70, 25);
 		databasePortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		databasePortLabel.setVisible(true);
 		panel.add(databasePortLabel);
 		
 		// Database port input
 		databasePortInput = new JTextField();
-		databasePortInput.setBounds(100, 270, 150, 25);
+		databasePortInput.setBounds(100, 250, 150, 25);
 		databasePortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		databasePortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
+		databasePortInput.setMargin(new Insets(2, 2, 2, 2));
 		databasePortInput.setVisible(true);
 		panel.add(databasePortInput);
 		
@@ -459,5 +461,9 @@ public class ConfigSetupPanel extends SetupPanel
 			databaseWarning.setText(database.getWarning());
 		if( databasePortInput != null )
 			databasePortInput.setText(Integer.toString(database.getPort()));
+		
+		boolean visible = !database.getConfigName().equals(SQLite.NAME);
+		databasePortLabel.setVisible(visible);
+		databasePortInput.setVisible(visible);
 	}
 }

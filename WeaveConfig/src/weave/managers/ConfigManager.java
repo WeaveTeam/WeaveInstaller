@@ -47,7 +47,7 @@ public class ConfigManager
 	private static IConfig ACTIVE_DATABASE_PLUGIN 	= null;
 	
 	private ArrayList<Map<String, IConfig>> availableConfigs = null;
-	public static Map<String, Map<String, String>> CONFIGS_MAP	= null;
+	private Map<String, Map<String, String>> CONFIGS_MAP	= null;
 	
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +116,11 @@ public class ConfigManager
 				if( entry.getValue().getConfigName().equals(name) )
 					return entry.getValue();
 		return null;
+	}
+	
+	public Map<String, String> getSavedConfigSettings(String name)
+	{
+		return CONFIGS_MAP.get(name);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////

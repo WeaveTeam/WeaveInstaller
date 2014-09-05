@@ -3,6 +3,8 @@ package weave.configs;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+import weave.utils.TraceUtils;
+
 public class Config implements IConfig
 {
 	protected String 	CONFIG_NAME 	= "";
@@ -74,9 +76,13 @@ public class Config implements IConfig
 	}
 
 	@Override public void setPort(String s) {
-		if( s != null )
-			setPort(Integer.parseInt(s));
-		else
-			setPort(0);
+		int i = 0;
+		
+		try {
+			i = Integer.parseInt(s);
+		} catch (NumberFormatException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		setPort(i);
 	}
 }

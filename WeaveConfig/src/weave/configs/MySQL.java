@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class MySQL extends Config
@@ -41,19 +42,29 @@ public class MySQL extends Config
 	
 	public MySQL()
 	{
-		super("MySQL");
-		
+		super("MySQL", "http://dev.mysql.com/downloads/mysql/");
+	}
+
+	@Override public void initConfig()
+	{
+		super.initConfig();
 		try {
-			setPort(3306);
+			setPort(Integer.parseInt((String)ObjectUtils.ternary(
+					ConfigManager
+						.getConfigManager()
+						.getSavedConfigSettings(getConfigName())
+						.get("PORT"),
+					3306)));
 			setTechLevel("Advanced");
-			setDescription("MySQL is a widely used open-source relational database management system.");
+			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
+			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
+						"<a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}
-
 	@Override public void loadConfig() 
 	{
 		if( ConfigManager.getConfigManager().setDatabase(_instance) )

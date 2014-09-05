@@ -51,6 +51,7 @@ import weave.managers.TrayManager;
 import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
@@ -122,7 +123,6 @@ public class Settings
 	public static File LOGS_DIRECTORY					= null;
 	public static File REVISIONS_DIRECTORY 				= null;
 	public static File UNZIP_DIRECTORY 					= null;
-	public static File DOWNLOADS_PLUGINS_DIRECTORY		= null;
 	public static File DEPLOYED_PLUGINS_DIRECTORY		= null;
 	public static File SETTINGS_FILE 					= null;
 	public static File CONFIG_FILE						= null;
@@ -178,7 +178,7 @@ public class Settings
 	public static boolean downloadLocked				= false;
 	public static boolean isConnectedToInternet			= true;
 
-	public static 		String CURRENT_PROGRAM_NAME		= "";
+	public static 		String CURRENT_PROGRAM_NAME		= "Weave";
 	public static final String FONT						= "Corbel";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
 	public static int recommendPrune					= 6;
@@ -320,15 +320,15 @@ public class Settings
 			instream.close();
 			
 			/* Obtain the map values and assign them to data members */
-			CONFIGURED = 			(Boolean)		ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
-			UNIQUE_ID = 			(String)		ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
-			LAST_UPDATE_CHECK = 	(String) 		ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
-			CURRENT_INSTALL_VER = 	(String)  		ternary(SETTINGS_MAP.get("CURRENT_INSTALL_VER"),	CURRENT_INSTALL_VER);
-			SHORTCUT_VER = 			(String)		ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
-			UPDATE_FREQ = 			(UPDATE_TYPE)	ternary(SETTINGS_MAP.get("UPDATE_FREQ"),			UPDATE_FREQ);
-			UPDATE_OVERRIDE	=		(Boolean)		ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
-			LAUNCH_MODE = 			(MODE)			ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
-			RPC_PORT = 				(Integer)		ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
+			CONFIGURED = 			(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
+			UNIQUE_ID = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
+			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
+			CURRENT_INSTALL_VER = 	(String)  		ObjectUtils.ternary(SETTINGS_MAP.get("CURRENT_INSTALL_VER"),	CURRENT_INSTALL_VER);
+			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
+			UPDATE_FREQ = 			(UPDATE_TYPE)	ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_FREQ"),			UPDATE_FREQ);
+			UPDATE_OVERRIDE	=		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
+			LAUNCH_MODE = 			(MODE)			ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
+			RPC_PORT = 				(Integer)		ObjectUtils.ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
 			
 //			TraceUtils.trace(TraceUtils.STDOUT, "\tCONFIGURED: " + CONFIGURED);
 //			TraceUtils.trace(TraceUtils.STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
@@ -343,12 +343,12 @@ public class Settings
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			JOptionPane.showMessageDialog(null, "Error reading settings file: File not found", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
-		} catch (IOException e) {
+		} catch (ClassNotFoundException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
-		} catch (ClassNotFoundException e) {
+		} catch (IOException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -388,14 +388,13 @@ public class Settings
 		APPDATA_DIRECTORY			= new File(directory);
 		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + ".weave"		 		+ F_S);
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
-		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "configuration.settings"	 );
-		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "plugins.settings"		 );
+		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "settings.save"			 );
+		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
 		LOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".lock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
 		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
 		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
 		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + "tmp" 				+ F_S);
-		DOWNLOADS_PLUGINS_DIRECTORY	= new File(DOWNLOADS_DIRECTORY, 	F_S + "plugins" 			+ F_S);
 		DEPLOYED_PLUGINS_DIRECTORY	= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "plugins" 			+ F_S);
 		REVISIONS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "revisions" 			+ F_S);
 		UNZIP_DIRECTORY 			= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "unzip" 				+ F_S);
@@ -406,7 +405,6 @@ public class Settings
 		if( !BIN_DIRECTORY.exists() )				BIN_DIRECTORY.mkdirs();
 		if( !LOGS_DIRECTORY.exists() )				LOGS_DIRECTORY.mkdirs();
 		if( !DOWNLOADS_DIRECTORY.exists() )			DOWNLOADS_DIRECTORY.mkdirs();
-		if( !DOWNLOADS_PLUGINS_DIRECTORY.exists() )	DOWNLOADS_PLUGINS_DIRECTORY.mkdirs();
 		if( !DEPLOYED_PLUGINS_DIRECTORY.exists() )	DEPLOYED_PLUGINS_DIRECTORY.mkdirs();
 		if( !REVISIONS_DIRECTORY.exists() )			REVISIONS_DIRECTORY.mkdirs();
 
@@ -765,7 +763,7 @@ public class Settings
 	public static boolean isActivePID(int pid)
 	{
 		String windows_cmds[] = {"cmd", "/c", "tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH"};
-		String unix_cmds[] = {"/bin/bash", "-c", "ps aux | more" };
+		String unix_cmds[] = {"/bin/bash", "-c", "ps -A -o pid,command | grep -i \"java\"" };
 		
 		List<String> result = null;
 		
@@ -788,19 +786,6 @@ public class Settings
 		}
 				
 		return false;
-	}
-	
-	
-	/**
-	 * Shorthand ternary operation to simplify testing
-	 * 
-	 * @param test The test to see if it is null
-	 * @param failDefault The fail-safe default value
-	 * @return This will return the test value if it is non-null, otherwise it will return the default
-	 */
-	public static Object ternary(Object test, Object failDefault)
-	{
-		return test != null ? test : failDefault;
 	}
 	
 	

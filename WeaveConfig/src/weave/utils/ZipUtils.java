@@ -170,13 +170,13 @@ public class ZipUtils implements IUtils
 	{
 		_func = null;
 	}
-	private void updateInfo(int cur, int max)
+	private void updateInfo(long cur, long max)
 	{
 		if( _func != null )
 		{
 			_func.info.cur += cur;
 			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
+			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
 			_func.onProgressUpdate();
 		}
 	}

@@ -24,9 +24,9 @@ public class IUtilsInfoObject
 	public IUtils parent;
 	
 	// generic
-	public int min;
-	public int cur;
-	public int max;
+	public long min;
+	public long cur;
+	public long max;
 	public int progress;
 	
 	// DownloadUtils specific

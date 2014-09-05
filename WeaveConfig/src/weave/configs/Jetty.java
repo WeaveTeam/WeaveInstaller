@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -29,13 +29,14 @@ import weave.Settings;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TraceUtils;
 
 public class Jetty extends Config
 {
-	public static String NAME		= "Jetty";
+	public static final String NAME = "Jetty";
 	public static Jetty _instance 	= null;
 	
 	public static Jetty getConfig()
@@ -48,9 +49,22 @@ public class Jetty extends Config
 	public Jetty()
 	{
 		super(NAME);
+	}
+
+	@Override public void initConfig()
+	{
+		super.initConfig();
 		
+		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
 		try {
-			setPort(8080);
+			setWebappsDirectory(new File(thisPluginDir, "webapps"));
+			setPort(Integer.parseInt((String)ObjectUtils.ternary(
+					ConfigManager
+						.getConfigManager()
+						.getSavedConfigSettings(getConfigName())
+						.get("PORT"),
+					8084)));
+			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 			setTechLevel("Easy");
 			setDescription("Jetty is a free and open-source project as part of the Eclipse Foundation.");
 			setWarning("<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.</b></center>");
@@ -59,15 +73,6 @@ public class Jetty extends Config
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-	}
-
-	@Override public void initConfig()
-	{
-		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
-		if( WEBAPPS == null || WEBAPPS.length() == 0 )
-			setWebappsDirectory(new File(thisPluginDir, "webapps"));
-			
-		setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 	}
 	
 	@Override public void loadConfig() 

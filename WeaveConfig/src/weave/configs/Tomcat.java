@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -27,14 +27,12 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class Tomcat extends Config
 {
-	public static String NAME		= "Tomcat";
-	public static String URL		= "http://tomcat.apache.org/";
 	public static Tomcat _instance 	= null;
-	
 	public static Tomcat getConfig()
 	{
 		if( _instance == null )
@@ -44,10 +42,24 @@ public class Tomcat extends Config
 	
 	public Tomcat()
 	{
-		super(NAME, URL);
-		
+		super("Tomcat", "http://tomcat.apache.org/");
+	}
+	
+	@Override public void initConfig()
+	{
+		super.initConfig();
 		try {
-			setPort(8080);
+			setWebappsDirectory(
+					ConfigManager
+						.getConfigManager()
+						.getSavedConfigSettings(getConfigName())
+						.get("WEBAPPS"));
+			setPort(Integer.parseInt((String)ObjectUtils.ternary(
+					ConfigManager
+						.getConfigManager()
+						.getSavedConfigSettings(getConfigName())
+						.get("PORT"),
+					8080)));
 			setTechLevel("Advanced");
 			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
 							"that provides a pure Java HTTP web server environment for " +

@@ -189,7 +189,7 @@ public class Installer extends JFrame
 		// ======== CREATE LEFT PANEL ======== //
 		leftPanel = new SetupPanel();
 		leftPanel.setLayout(null);
-		leftPanel.setBounds(0, 0, 150, 325);
+		leftPanel.setBounds(0, 0, SetupPanel.LEFT_PANEL_WIDTH, SetupPanel.LEFT_PANEL_HEIGHT);
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
@@ -227,7 +227,7 @@ public class Installer extends JFrame
 		// ======== CREATE BOTTOM PANEL ======== //
 		bottomPanel = new SetupPanel();
 		bottomPanel.setLayout(null);
-		bottomPanel.setBounds(0, 325, 500, 50);
+		bottomPanel.setBounds(0, 325, SetupPanel.BOTTOM_PANEL_WIDTH, SetupPanel.BOTTOM_PANEL_HEIGHT);
 		bottomPanel.setBackground(new Color(0x507AAA));
 		bottomPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.black));
 		//////////////////////////////////////////////////////////////////////////////////
@@ -291,7 +291,7 @@ public class Installer extends JFrame
 		// ======== CREATE RIGHT PANEL ======== //
 		rightPanel = new SetupPanel();
 		rightPanel.setLayout(null);
-		rightPanel.setBounds(150, 0, 500 - 150, 325);
+		rightPanel.setBounds(150, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
 		rightPanel.setBackground(new Color(0xFFFFFF));
 		rightPanel.setVisible(false);
 		add(rightPanel);
@@ -332,9 +332,9 @@ public class Installer extends JFrame
 	
 	
 
-	//============================================================================================================
+	//==========================================================================================================//
 	//											WELCOME PANEL													//
-	//============================================================================================================
+	//==========================================================================================================//
 	public void switchToWelcomeSetupPanels(final JPanel parent)
 	{
 		if( setupPanels.containsKey(PRE_SETUP) ) {
@@ -397,9 +397,9 @@ public class Installer extends JFrame
 	
 	
 	
-	//============================================================================================================
+	//==========================================================================================================//
 	//												CONFIG PANEL												//
-	//============================================================================================================
+	//==========================================================================================================//
 	public void switchToConfigSetupPanel(JPanel parent)
 	{
 		if( setupPanels.containsKey(CFG_SETUP) ) {
