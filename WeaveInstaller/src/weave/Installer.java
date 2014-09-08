@@ -433,11 +433,19 @@ public class Installer extends JFrame
 				public void actionPerformed(ActionEvent e) {
 					if( SP_config.isLastPanel() )
 					{
+						SP_config.savePanelInput();
 						switchToHomeSetupPanel();
 					}
 					else
 					{
+						if( !SP_config.validatePanelInput(SP_config.getCurrentPanelIndex()) )
+							return;
+						
+						SP_config.savePanelInput(SP_config.getCurrentPanelIndex());
 						SP_config.nextPanel();
+						
+						if( SP_config.isLastPanel() )
+							nextButton.setText("Finish");
 					}
 				}
 			});
@@ -451,6 +459,7 @@ public class Installer extends JFrame
 					else
 					{
 						SP_config.previousPanel();
+						nextButton.setText("Next >");
 					}
 				}
 			});

@@ -21,6 +21,7 @@ package weave.configs;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -57,19 +58,36 @@ public class Jetty extends Config
 		
 		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
 		try {
-			setWebappsDirectory(new File(thisPluginDir, "webapps"));
+			Class<?>[] argClasses = { Object.class };
+			Object[] args = { "PORT" };
+			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager
-						.getConfigManager()
-						.getSavedConfigSettings(getConfigName())
-						.get("PORT"),
-					8084)));
+					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()), 
+					"8084", "get", argClasses, args)));
+			
+			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
-			setTechLevel("Easy");
 			setDescription("Jetty is a free and open-source project as part of the Eclipse Foundation.");
-			setWarning("<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.</b></center>");
+			setWarning(	"<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.<br>" + 
+						"This is the appropriate choice for new users.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
+			
 		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -81,7 +99,7 @@ public class Jetty extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + CONFIG_NAME + " plugin.\n" + 
+					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 	}

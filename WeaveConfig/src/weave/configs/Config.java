@@ -18,7 +18,6 @@ public class Config implements IConfig
 	protected BufferedImage	_icon			= null;
 	protected String 		_description	= "";
 	protected String		_warning		= "";
-	protected String		_techLevel		= "";
 	
 	public Config() {
 		
@@ -59,20 +58,18 @@ public class Config implements IConfig
 	@Override public void setInstallFile(File f) 		{ 			INSTALL_FILE = f; }
 	@Override public void setPort(int i) 				{ 			PORT = i; }
 
-	@Override public String getTechLevel() 				{ return 	_techLevel; }
 	@Override public String getDescription() 			{ return 	_description; }
 	@Override public String getWarning()				{ return	_warning; }
 	@Override public BufferedImage getImage() 			{ return 	_icon; }
-	@Override public void setTechLevel(String s) 		{ 			_techLevel = s; }
 	@Override public void setDescription(String s) 		{			_description = s; }
 	@Override public void setWarning(String s)			{			_warning = s; }
 	@Override public void setImage(BufferedImage i) 	{ 			_icon = i; }
 
 	@Override public void setWebappsDirectory(String s) {
-		if( s != null )
-			setWebappsDirectory(new File(s));
-		else
+		if( s == null || s.length() == 0 )
 			setWebappsDirectory((File)null);
+		else
+			setWebappsDirectory(new File(s));
 	}
 
 	@Override public void setPort(String s) {

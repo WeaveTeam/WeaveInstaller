@@ -20,6 +20,7 @@
 package weave.configs;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -49,18 +50,37 @@ public class MySQL extends Config
 	{
 		super.initConfig();
 		try {
+			Class<?>[] argClasses = { Object.class };
+			Object[] args = { "PORT" };
+			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager
-						.getConfigManager()
-						.getSavedConfigSettings(getConfigName())
-						.get("PORT"),
-					3306)));
-			setTechLevel("Advanced");
+					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
+					"3306", "get", argClasses, args)));
+			
 			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
+			
 		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NumberFormatException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -71,7 +91,7 @@ public class MySQL extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + CONFIG_NAME + " plugin.\n" + 
+					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 	}

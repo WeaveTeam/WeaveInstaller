@@ -19,6 +19,9 @@
 
 package weave.utils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public class ObjectUtils
 {
 	/**
@@ -32,6 +35,36 @@ public class ObjectUtils
 	{
 		return testNotNull != null ? testNotNull : failDefault;
 	}
+	
+	
+	/**
+	 * Shorthand ternary operation to simplify testing null cases.
+	 * 
+	 * You can specify a function to apply to the null object if the test
+	 * of the object is not null.
+	 * 
+	 * @param testNotNull The test to see if it is <code>null</code>
+	 * @param failDefault The fail-safe default value
+	 * @param functionName The name of the function to apply to the non-null test case
+	 * @param argClassList The function argument signature
+	 * @param args The function arguments
+	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
+	 * 
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	public static Object ternary(Object testNotNull, Object failDefault, String functionName, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		if( testNotNull == null )
+			return failDefault;
+		
+		Method m = testNotNull.getClass().getDeclaredMethod(functionName, argClassList);
+		return m.invoke(testNotNull, args);
+	}
+	
 	
 	/**
 	 * Coalesce all of the arguments passed to this function

@@ -120,6 +120,9 @@ public class ConfigManager
 	
 	public Map<String, String> getSavedConfigSettings(String name)
 	{
+		if( CONFIGS_MAP == null )
+			return null;
+		
 		return CONFIGS_MAP.get(name);
 	}
 	

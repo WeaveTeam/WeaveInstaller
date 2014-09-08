@@ -57,11 +57,10 @@ import weave.utils.TraceUtils;
 @SuppressWarnings("serial")
 public class ConfigSetupPanel extends SetupPanel
 {
-	public JComboBox<String>	servletCombo,	databaseCombo;
-	public JLabel				servletImage, 	databaseImage;
-	public JLabel				servletLevel,	databaseLevel;
-	public JEditorPane			servletDesc, 	databaseDesc;
-	public JEditorPane			servletWarning,	databaseWarning;
+	public JComboBox<String>	servletCombo,		databaseCombo;
+	public JLabel				servletImage, 		databaseImage;
+	public JEditorPane			servletDesc, 		databaseDesc;
+	public JEditorPane			servletWarning,		databaseWarning;
 
 	public JLabel				servletWebappsLabel,	servletPortLabel,	databasePortLabel;
 	public JTextField			servletBrowserPath,		servletPortInput,	databasePortInput;
@@ -124,22 +123,16 @@ public class ConfigSetupPanel extends SetupPanel
 		});
 		panel.add(servletCombo);
 
-		// Experience label
-		servletLevel = new JLabel("Experience Level: ");
-		servletLevel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
-		servletLevel.setBounds(20, 60, 300, 25);
-		panel.add(servletLevel);
-		
 		// Image
 		servletImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		servletImage.setBounds(20, 90, 80, 80);
+		servletImage.setBounds(20, 60, 80, 80);
 		servletImage.setVerticalAlignment(JLabel.TOP);
 		panel.add(servletImage);
 
 		
 		// Description
 		servletDesc = new JEditorPane();
-		servletDesc.setBounds(110, 90, 210, 100);
+		servletDesc.setBounds(110, 60, 210, 100);
 		servletDesc.setEditable(false);
 		servletDesc.setContentType("text/html");
 		servletDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -164,11 +157,11 @@ public class ConfigSetupPanel extends SetupPanel
 			}
 		});
 		panel.add(servletDesc);
-		
+
 		
 		// Warning
 		servletWarning = new JEditorPane();
-		servletWarning.setBounds(20, 190, 310, 60);
+		servletWarning.setBounds(20, 160, 310, 60);
 		servletWarning.setEditable(false);
 		servletWarning.setContentType("text/html");
 		servletWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -306,22 +299,16 @@ public class ConfigSetupPanel extends SetupPanel
 		});
 		panel.add(databaseCombo);
 
-		// Experience label
-		databaseLevel = new JLabel("Experience Level: ");
-		databaseLevel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
-		databaseLevel.setBounds(20, 60, 300, 25);
-		panel.add(databaseLevel);
-		
 		// Image
 		databaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		databaseImage.setBounds(20, 90, 80, 80);
+		databaseImage.setBounds(20, 60, 80, 80);
 		databaseImage.setVerticalAlignment(JLabel.TOP);
 		panel.add(databaseImage);
 
 		
 		// Description
 		databaseDesc = new JEditorPane();
-		databaseDesc.setBounds(110, 90, 210, 100);
+		databaseDesc.setBounds(110, 60, 210, 100);
 		databaseDesc.setEditable(false);
 		databaseDesc.setContentType("text/html");
 		databaseDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -350,12 +337,12 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Warning
 		databaseWarning = new JEditorPane();
-		databaseWarning.setBounds(20, 190, 310, 60);
+		databaseWarning.setBounds(20, 160, 310, 60);
 		databaseWarning.setEditable(false);
 		databaseWarning.setContentType("text/html");
 		databaseWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
-		String styleWarning=  "body { font-family: " + databaseWarning.getFont().getFamily() + "; " + 
-							"font-size: " + databaseWarning.getFont().getSize() + "px; }";
+		String styleWarning =	"body { font-family: " + databaseWarning.getFont().getFamily() + "; " + 
+								"font-size: " + databaseWarning.getFont().getSize() + "px; }";
 		((HTMLDocument)databaseWarning.getDocument()).getStyleSheet().addRule(styleWarning);
 		databaseWarning.addHyperlinkListener(new HyperlinkListener() {
 			@Override
@@ -410,15 +397,99 @@ public class ConfigSetupPanel extends SetupPanel
 		return panel;
 	}
 	
+	public boolean validatePanelInput(int panelIndex)
+	{
+		switch( panelIndex )
+		{
+			case 0:
+				try {
+					String str = servletPortInput.getText();
+					int port = Integer.parseInt(str);
+					if( port < 1 || port > 65535 ) {
+						JOptionPane.showMessageDialog(null, "Port value out of range.", "Error", JOptionPane.WARNING_MESSAGE);
+						return false;
+					}
+				} catch (NumberFormatException e) {
+					JOptionPane.showMessageDialog(null, "Port must be a number.", "Error", JOptionPane.ERROR_MESSAGE);
+					return false;
+				}
+				if( servletBrowserPath.isVisible() )
+				{
+					String str = servletBrowserPath.getText();
+					if( str == null || str.length() == 0 ) {
+						JOptionPane.showMessageDialog(null, "Webapps path must be specified below.", "Error", JOptionPane.WARNING_MESSAGE);
+						return false;
+					}
+						
+					File f = new File(str);
+					if( !f.exists() ) {
+						JOptionPane.showMessageDialog(null, "Webapps directory does not exist.\n\nPlease make sure the path exists and try again.", "Error", JOptionPane.ERROR_MESSAGE);
+						return false;
+					}
+				}
+				break;
+				
+			case 1:
+				if( databasePortInput.isVisible() )
+				{
+					try {
+						String str = databasePortInput.getText();
+						int port = Integer.parseInt(str);
+						if( port < 1 || port > 65535 ) {
+							JOptionPane.showMessageDialog(null, "Port value out of range.", "Error", JOptionPane.WARNING_MESSAGE);
+							return false;
+						}
+					} catch (NumberFormatException e) {
+						JOptionPane.showMessageDialog(null, "Port must be a number.", "Error", JOptionPane.ERROR_MESSAGE);
+						return false;
+					}
+				}
+				break;
+				
+			case 2:
+				break;
+				
+			default: break;
+		}
+		return true;
+	}
 	
+	public boolean savePanelInput()
+	{
+		return ConfigManager.getConfigManager().save();
+	}
+	public boolean savePanelInput(int panelIndex)
+	{
+		IConfig config = null;
+		
+		switch (panelIndex) {
+			case 0:
+				config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
+				config.setPort(servletPortInput.getText());
+				if( servletBrowserPath.isVisible() )
+					config.setWebappsDirectory(servletBrowserPath.getText());
+				break;
+	
+			case 1:
+				config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+				if( databasePortInput.isVisible() )
+					config.setPort(databasePortInput.getText());
+				break;
+	
+			case 2:
+				break;
+				
+			default:
+				break;
+		}
+		return true;
+	}
 	
 	private void updateServletInfo(IConfig servlet)
 	{
 		if( servlet == null )
 			return;
 		
-		if( servletLevel != null )
-			servletLevel.setText("Experience Level: " + servlet.getTechLevel());
 		if( servletImage != null )
 			servletImage.setIcon(
 					new ImageIcon(ImageUtils.scale(
@@ -447,8 +518,6 @@ public class ConfigSetupPanel extends SetupPanel
 		if( database == null )
 			return;
 		
-		if( databaseLevel != null )
-			databaseLevel.setText("Experience Level: " + database.getTechLevel());
 		if( databaseImage != null )
 			databaseImage.setIcon(
 					new ImageIcon(ImageUtils.scale(

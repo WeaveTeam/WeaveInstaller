@@ -43,6 +43,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import weave.Revisions;
 import weave.Settings;
@@ -143,8 +145,30 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					try {
 						faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
-						System.out.println("page updated to " + faqURL);
+//						System.out.println("page updated to " + faqURL);
 						troubleshootHTML.setPage(faqURL);
+						
+						// Remove all link listeners
+						for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )
+							troubleshootHTML.removeHyperlinkListener(h);
+						// Add new link listener
+						troubleshootHTML.addHyperlinkListener(new HyperlinkListener() {
+							@Override
+							public void hyperlinkUpdate(HyperlinkEvent e) {
+								if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+								{
+									try {
+										Desktop.getDesktop().browse(e.getURL().toURI());
+									} catch (IOException ex) {
+										TraceUtils.trace(TraceUtils.STDERR, ex);
+										BugReportUtils.showBugReportDialog(ex);
+									} catch (URISyntaxException ex) {
+										TraceUtils.trace(TraceUtils.STDERR, ex);
+										BugReportUtils.showBugReportDialog(ex);
+									}
+								}
+							}
+						});
 					} catch (IOException e) {
 						TraceUtils.trace(TraceUtils.STDERR, e);
 						BugReportUtils.showBugReportDialog(e);

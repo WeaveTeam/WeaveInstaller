@@ -34,9 +34,6 @@ public interface IConfig
 	public String getURL();
 	public void setURL(String s);
 	
-	public String getTechLevel();
-	public void setTechLevel(String s);
-	
 	public String getDescription();
 	public void setDescription(String s);
 	

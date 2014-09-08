@@ -8,7 +8,6 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class SQLite extends Config
@@ -33,16 +32,10 @@ public class SQLite extends Config
 	{
 		super.initConfig();
 		try {
-			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager
-						.getConfigManager()
-						.getSavedConfigSettings(getConfigName())
-						.get("PORT"),
-					3306)));
-			setTechLevel("Easy");
 			setDescription(	getConfigName() + " is a software library that implements a self-contained, " +
 							"serverless, zero-configuration, transactional SQL database engine.");
-			setWarning("<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.</b></center>");
+			setWarning(	"<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.<br>" +
+						"This is the appropriate choice for new users.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_SQLITE));
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

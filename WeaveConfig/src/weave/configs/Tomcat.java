@@ -20,6 +20,7 @@
 package weave.configs;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -49,18 +50,18 @@ public class Tomcat extends Config
 	{
 		super.initConfig();
 		try {
-			setWebappsDirectory(
-					ConfigManager
-						.getConfigManager()
-						.getSavedConfigSettings(getConfigName())
-						.get("WEBAPPS"));
+			Class<?>[] argClasses = { Object.class };
+			Object[] argsWebapps = { "WEBAPPS" };
+			Object[] argsPort = { "PORT" };
+			
+			setWebappsDirectory((String)ObjectUtils.ternary(
+					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
+					"", "get", argClasses, argsWebapps));
+			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager
-						.getConfigManager()
-						.getSavedConfigSettings(getConfigName())
-						.get("PORT"),
-					8080)));
-			setTechLevel("Advanced");
+					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
+					"8080", "get", argClasses, argsPort)));
+
 			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
 							"that provides a pure Java HTTP web server environment for " +
 							"Java code to run in.");
@@ -68,6 +69,21 @@ public class Tomcat extends Config
 						"found <a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
 		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -79,7 +95,7 @@ public class Tomcat extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + CONFIG_NAME + " plugin.\n" + 
+					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 	}
