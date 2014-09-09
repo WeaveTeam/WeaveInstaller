@@ -55,7 +55,7 @@ public class MySQL extends Config
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
 					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"3306", "get", argClasses, args)));
+					"get", "3306", argClasses, args)));
 			
 			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 

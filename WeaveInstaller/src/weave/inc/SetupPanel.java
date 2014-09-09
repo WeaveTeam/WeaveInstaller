@@ -42,17 +42,14 @@ public class SetupPanel extends JPanel implements ISetupPanel
 	protected int 					maxPanels 	 ;
 	public 	  ArrayList<JPanel> 	panels 		 = new ArrayList<JPanel>();
 	
-	@Override
 	public int getCurrentPanelIndex() {
 		return currentPanel;
 	}
 
-	@Override
 	public int getNumberOfPanels() {
 		return maxPanels;
 	}
 
-	@Override
 	public void nextPanel() {
 		if( currentPanel < maxPanels)
 		{
@@ -61,7 +58,6 @@ public class SetupPanel extends JPanel implements ISetupPanel
 		}
 	}
 
-	@Override
 	public void previousPanel() {
 		if( currentPanel > 0 )
 		{
@@ -70,30 +66,25 @@ public class SetupPanel extends JPanel implements ISetupPanel
 		}
 	}
 
-	@Override
 	public boolean isFirstPanel() {
 		return getCurrentPanelIndex() == 0;
 	}
 
-	@Override
 	public boolean isLastPanel() {
 		return getCurrentPanelIndex() == getNumberOfPanels() - 1;
 	}
 	
-	@Override
-	public void showPanel() {
+	public void showFirstPanel() {
 		hidePanels();
 		currentPanel = 0;
 		panels.get(currentPanel).setVisible(true);
 	}
 
-	@Override
 	public void hidePanels() {
 		for( int i = 0; i < maxPanels; i++ )
 			panels.get(i).setVisible(false);
 	}
 
-	@Override
 	public void addActionToButton(JButton button, ActionListener action) {
 		button.addActionListener(action);
 	}

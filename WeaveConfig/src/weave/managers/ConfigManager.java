@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ import weave.configs.MySQL;
 import weave.configs.SQLite;
 import weave.configs.Tomcat;
 import weave.utils.BugReportUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class ConfigManager
@@ -47,7 +49,7 @@ public class ConfigManager
 	private static IConfig ACTIVE_DATABASE_PLUGIN 	= null;
 	
 	private ArrayList<Map<String, IConfig>> availableConfigs = null;
-	private Map<String, Map<String, String>> CONFIGS_MAP	= null;
+	private Map<String, Map<String, Object>> CONFIGS_MAP	= null;
 	
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,7 @@ public class ConfigManager
 		return null;
 	}
 	
-	public Map<String, String> getSavedConfigSettings(String name)
+	public Map<String, Object> getSavedConfigSettings(String name)
 	{
 		if( CONFIGS_MAP == null )
 			return null;
@@ -157,30 +159,44 @@ public class ConfigManager
 	
 	/////////////////////////////////////////////////////////////////////////////////////
 	
-	public IConfig getContainer() 
+	public IConfig getActiveContainer() 
 	{
 		return ACTIVE_CONTAINER_PLUGIN;
 	}
-	public IConfig getDatabase()
+	public IConfig getActiveDatabase()
 	{
 		return ACTIVE_DATABASE_PLUGIN;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
 	
+	public boolean unloadAllConfigs()
+	{
+		for( int i = 0; i < availableConfigs.size(); i++ )
+		{
+			for( Map.Entry<String, IConfig> entry : availableConfigs.get(i).entrySet() )
+			{
+				IConfig config = entry.getValue();
+				if( config.isConfigLoaded() )
+					config.unloadConfig();
+			}
+		}
+		return true;
+	}
+	
 	public boolean setContainer(IConfig c) 
 	{
 		if( c == null )
 		{
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Unloading Config Container....." + ACTIVE_CONTAINER_PLUGIN.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = null;
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Config Container set to........NULL");
 			return true;
 		}
 		
 		if( ACTIVE_CONTAINER_PLUGIN == null ) 
 		{
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading Config Container......." + c.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = c;
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Config Container set to........" + c.getConfigName());
 			return true;
 		}
 		
@@ -190,15 +206,15 @@ public class ConfigManager
 	{
 		if( d == null )
 		{
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Unloading Database Container..." + ACTIVE_DATABASE_PLUGIN.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = null;
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Config Database set to.........NULL");
 			return true;
 		}
 		
 		if( ACTIVE_DATABASE_PLUGIN == null ) 
 		{
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading Database Container....." + d.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = d;
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Config Database set to........." + d.getConfigName());
 			return true;
 		}
 		
@@ -215,17 +231,18 @@ public class ConfigManager
 			if( !Settings.configsFileExists() )
 				Settings.CONFIG_FILE.createNewFile();
 			
-			CONFIGS_MAP = new HashMap<String, Map<String, String>>();
+			CONFIGS_MAP = new HashMap<String, Map<String, Object>>();
 			
 			for( int i = 0; i < availableConfigs.size(); ++i )
 			{
 				for( Map.Entry<String, IConfig> entry : availableConfigs.get(i).entrySet() )
 				{
 					IConfig config = entry.getValue();
-					Map<String, String> values = new HashMap<String, String>();
+					Map<String, Object> values = new HashMap<String, Object>();
 					
-					values.put("WEBAPPS", 	( config.getWebappsDirectory() == null )? null : config.getWebappsDirectory().getCanonicalPath());
+					values.put("WEBAPPS", 	ObjectUtils.ternary(config.getWebappsDirectory(), "getCanonicalPath", null));
 					values.put("PORT",		"" + config.getPort());
+					values.put("ACTIVE", 	config.isConfigLoaded());
 					
 					CONFIGS_MAP.put(config.getConfigName(), values);
 				}
@@ -236,6 +253,31 @@ public class ConfigManager
 			outstream.close();
 			TraceUtils.put(TraceUtils.STDOUT, "DONE");
 		} catch (IOException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+			return false;
+		} catch (NoSuchMethodException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+			return false;
+		} catch (SecurityException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+			return false;
+		} catch (IllegalAccessException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+			return false;
+		} catch (IllegalArgumentException e) {
+			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+			return false;
+		} catch (InvocationTargetException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -254,28 +296,8 @@ public class ConfigManager
 			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading config file............");
 
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(Settings.CONFIG_FILE));
-			CONFIGS_MAP = (Map<String, Map<String, String>>) instream.readObject();
+			CONFIGS_MAP = (Map<String, Map<String, Object>>) instream.readObject();
 			instream.close();
-			
-			for( int i = 0; i < availableConfigs.size(); ++i )
-			{
-				for( Map.Entry<String, IConfig> entry : availableConfigs.get(i).entrySet() )
-				{
-					IConfig config = entry.getValue();
-					Map<String, String> values = CONFIGS_MAP.get(config.getConfigName());
-					
-					if( values == null )
-					{
-						config.setWebappsDirectory((String)null);
-						config.setPort(null);
-					}
-					else
-					{
-						config.setWebappsDirectory( (String) values.get("WEBAPPS") );
-						config.setPort( 			(String) values.get("PORT")	);
-					}
-				}
-			}
 			
 		} catch (IOException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");

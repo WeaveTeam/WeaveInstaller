@@ -100,7 +100,7 @@ public class LaunchUtils
 	}
 	public static Boolean openAdminConsole(int delay) throws IOException, URISyntaxException, InterruptedException
 	{
-		if( ConfigManager.getConfigManager().getContainer() == null )
+		if( ConfigManager.getConfigManager().getActiveContainer() == null )
 		{
 			JOptionPane.showMessageDialog(null,	
 					"   You do not have an active servlet container.   ", 
@@ -109,7 +109,7 @@ public class LaunchUtils
 		}
 		return launch("http://" + 
 				Settings.LOCALHOST + ":" + 
-				ConfigManager.getConfigManager().getContainer().getPort(),
+				ConfigManager.getConfigManager().getActiveContainer().getPort(),
 				delay);
 	}
 }

@@ -59,13 +59,18 @@ public class ConfigSetupPanel extends SetupPanel
 {
 	public JComboBox<String>	servletCombo,		databaseCombo;
 	public JLabel				servletImage, 		databaseImage;
-	public JEditorPane			servletDesc, 		databaseDesc;
+	public JLabel				reviewServletImage, reviewDatabaseImage;
+	public JEditorPane			servletDesc, 		databaseDesc,		reviewDesc;
 	public JEditorPane			servletWarning,		databaseWarning;
 
 	public JLabel				servletWebappsLabel,	servletPortLabel,	databasePortLabel;
+	public JLabel				reviewServletPortLabel,	reviewServletWebappsLabel, reviewDatabasePortLabel;
 	public JTextField			servletBrowserPath,		servletPortInput,	databasePortInput;
+	public JTextField			reviewServletPortInput, reviewServletWebappsInput, reviewDatabasePortInput;
 	public JFileChooser			servletFileChooser;
 	public JButton				servletBrowserButton;
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public ConfigSetupPanel()
 	{
@@ -86,6 +91,8 @@ public class ConfigSetupPanel extends SetupPanel
 		}
 		hidePanels();
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public JPanel createServletPanel()
 	{
@@ -263,6 +270,8 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		return panel;
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public JPanel createDatabasePanel()
 	{
@@ -313,7 +322,7 @@ public class ConfigSetupPanel extends SetupPanel
 		databaseDesc.setContentType("text/html");
 		databaseDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
 		String styleDesc =  "body { font-family: " + databaseDesc.getFont().getFamily() + "; " + 
-						"font-size: " + databaseDesc.getFont().getSize() + "px; }";
+							"font-size: " + databaseDesc.getFont().getSize() + "px; }";
 		((HTMLDocument)databaseDesc.getDocument()).getStyleSheet().addRule(styleDesc);
 		databaseDesc.addHyperlinkListener(new HyperlinkListener() {
 			@Override
@@ -387,6 +396,8 @@ public class ConfigSetupPanel extends SetupPanel
 		return panel;
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////
+
 	public JPanel createReviewPanel()
 	{
 		JPanel panel = new JPanel();
@@ -394,8 +405,52 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
 		
+		
+		JLabel title = new JLabel("Review Configuration");
+		title.setFont(new Font(Settings.FONT, Font.BOLD, 15));
+		title.setBounds(20, 20, 140, 30);
+		panel.add(title);
+		
+		reviewServletImage = new JLabel((ImageIcon)null, JLabel.CENTER);
+		reviewServletImage.setBounds(20, 60, 80, 80);
+		reviewServletImage.setVerticalAlignment(JLabel.TOP);
+		reviewServletImage.setVisible(true);
+		panel.add(reviewServletImage);
+		
+		reviewDatabaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
+		reviewDatabaseImage.setBounds(20, 160, 80, 80);
+		reviewDatabaseImage.setVerticalAlignment(JLabel.TOP);
+		reviewDatabaseImage.setVisible(true);
+		panel.add(reviewDatabaseImage);
+		
+		reviewServletPortLabel = new JLabel("Port: ");
+		reviewServletPortLabel.setBounds(120, 60, 80, 25);
+		reviewServletPortLabel.setVisible(true);
+		panel.add(reviewServletPortLabel);
+		
+		reviewServletPortInput = new JTextField();
+		reviewServletPortInput.setBounds(200, 60, 100, 25);
+		reviewServletPortInput.setVisible(true);
+		reviewServletPortInput.setEnabled(false);
+		panel.add(reviewServletPortInput);
+		
+		reviewDesc = new JEditorPane();
+		reviewDesc.setBounds(20, 250, 310, 60);
+		reviewDesc.setEditable(false);
+		reviewDesc.setContentType("text/html");
+		reviewDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
+		String reviewWarning =	"body { font-family: " + reviewDesc.getFont().getFamily() + "; " + 
+								"font-size: " + reviewDesc.getFont().getSize() + "px; }";
+		((HTMLDocument)reviewDesc.getDocument()).getStyleSheet().addRule(reviewWarning);
+		reviewDesc.setText("<center><b>Please make sure this configuration is correct.<br>When you are ready, click finish to complete the setup proccess.</b></center>");
+		panel.add(reviewDesc);
+		
+		updateReviewPanel();
+		
 		return panel;
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public boolean validatePanelInput(int panelIndex)
 	{
@@ -453,6 +508,8 @@ public class ConfigSetupPanel extends SetupPanel
 		}
 		return true;
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public boolean savePanelInput()
 	{
@@ -483,6 +540,27 @@ public class ConfigSetupPanel extends SetupPanel
 				break;
 		}
 		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	
+	public void updateReviewPanel()
+	{
+		IConfig servletConfig = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
+		IConfig databaseConfig = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+		
+		if( reviewServletImage != null )
+			reviewServletImage.setIcon(
+					new ImageIcon(ImageUtils.scale(
+									servletConfig.getImage(),
+									reviewServletImage.getWidth(),
+									ImageUtils.SCALE_WIDTH)));
+		if( reviewDatabaseImage != null )
+			reviewDatabaseImage.setIcon(
+					new ImageIcon(ImageUtils.scale(
+									databaseConfig.getImage(),
+									reviewDatabaseImage.getWidth(),
+									ImageUtils.SCALE_WIDTH)));
 	}
 	
 	private void updateServletInfo(IConfig servlet)
@@ -535,4 +613,6 @@ public class ConfigSetupPanel extends SetupPanel
 		databasePortLabel.setVisible(visible);
 		databasePortInput.setVisible(visible);
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
 }

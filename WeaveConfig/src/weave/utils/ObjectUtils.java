@@ -41,11 +41,34 @@ public class ObjectUtils
 	 * Shorthand ternary operation to simplify testing null cases.
 	 * 
 	 * You can specify a function to apply to the null object if the test
+	 * of the object is not null. By default, no arguments can be supplied 
+	 * to the function.
+	 * 
+	 * @param testNotNull The test to see if it is <code>null</code>
+	 * @param functionName The name of the function to apply to the non-null test case
+	 * @param failDefault The fail-safe default value
+	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
+	 * 
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	public static Object ternary(Object testNotNull, String functionName, Object failDefault) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		return ternary(testNotNull, functionName, failDefault, new Class<?>[]{}, new Object[]{});
+	}
+	
+	/**
+	 * Shorthand ternary operation to simplify testing null cases.
+	 * 
+	 * You can specify a function to apply to the null object if the test
 	 * of the object is not null.
 	 * 
 	 * @param testNotNull The test to see if it is <code>null</code>
-	 * @param failDefault The fail-safe default value
 	 * @param functionName The name of the function to apply to the non-null test case
+	 * @param failDefault The fail-safe default value
 	 * @param argClassList The function argument signature
 	 * @param args The function arguments
 	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
@@ -56,7 +79,7 @@ public class ObjectUtils
 	 * @throws IllegalArgumentException
 	 * @throws InvocationTargetException
 	 */
-	public static Object ternary(Object testNotNull, Object failDefault, String functionName, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static Object ternary(Object testNotNull, String functionName, Object failDefault, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		if( testNotNull == null )
 			return failDefault;

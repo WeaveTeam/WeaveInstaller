@@ -115,8 +115,8 @@ public class UpdateUtils
 			return NO_UPDATE_AVAILABLE;
 		
 		String search = "filename=";
-		String header = RemoteUtils.getContentHeader(
-							RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL), 
+		String header = URLRequestUtils.getContentHeader(
+							RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL),
 							"Content-Disposition");
 		int index = ((header != null) ? header.indexOf(search) : -1);
 		

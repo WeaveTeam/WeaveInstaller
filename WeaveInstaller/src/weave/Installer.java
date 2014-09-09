@@ -354,9 +354,9 @@ public class Installer extends JFrame
 		if( setupPanels.containsKey(PRE_SETUP) )
 		{
 			hideAllPanels();
-			setupPanels.get(PRE_SETUP).setVisible(true);
-			setupPanels.get(PRE_SETUP).showPanel();
-			
+			SP_welcome.setVisible(true);
+			SP_welcome.showFirstPanel();
+
 			backButton.setEnabled(false);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
 			backButton.setText("< Back");	nextButton.setText("Next >");
@@ -420,7 +420,7 @@ public class Installer extends JFrame
 		{
 			hideAllPanels();
 			SP_config.setVisible(true);
-			SP_config.showPanel();
+			SP_config.showFirstPanel();
 
 			backButton.setEnabled(true);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
@@ -444,8 +444,10 @@ public class Installer extends JFrame
 						SP_config.savePanelInput(SP_config.getCurrentPanelIndex());
 						SP_config.nextPanel();
 						
-						if( SP_config.isLastPanel() )
+						if( SP_config.isLastPanel() ) {
 							nextButton.setText("Finish");
+							SP_config.updateReviewPanel();
+						}
 					}
 				}
 			});
@@ -499,7 +501,7 @@ public class Installer extends JFrame
 		{
 			hideAllPanels();
 			SP_home.setVisible(true);
-			SP_home.showPanel();
+			SP_home.showFirstPanel();
 
 			backButton.setEnabled(false);	backButton.setVisible(false);
 			nextButton.setEnabled(false);	nextButton.setVisible(false);

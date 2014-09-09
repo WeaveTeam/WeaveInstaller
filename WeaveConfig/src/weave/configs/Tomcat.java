@@ -56,11 +56,11 @@ public class Tomcat extends Config
 			
 			setWebappsDirectory((String)ObjectUtils.ternary(
 					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"", "get", argClasses, argsWebapps));
+					"get", "", argClasses, argsWebapps));
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
 					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"8080", "get", argClasses, argsPort)));
+					"get", "8080", argClasses, argsPort)));
 
 			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
 							"that provides a pure Java HTTP web server environment for " +

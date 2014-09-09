@@ -154,43 +154,4 @@ public class RemoteUtils
 		}
 		return null;
 	}
-	
-	public static String getContentHeader(final String url, final String field) throws InterruptedException
-	{
-		if( Settings.isOfflineMode() )
-			return null;
-		
-		final RemoteInternals ri = new RemoteInternals();
-		ri.str = "";
-		
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL urlObj = null;
-				HttpURLConnection conn = null;
-				try {
-					urlObj = new URL(url);
-					conn = (HttpURLConnection) urlObj.openConnection();
-					conn.setInstanceFollowRedirects(true);
-					conn.setRequestMethod("GET");
-					conn.connect();
-					
-					ri.str = conn.getHeaderField(field);
-
-				} catch (MalformedURLException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				}
-			}
-		});
-		t.start();
-		t.join();
-		return ri.str;
-	}
-}
-
-class RemoteInternals
-{
-	public String str;
 }

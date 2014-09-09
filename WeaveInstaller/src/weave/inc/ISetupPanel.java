@@ -66,7 +66,7 @@ public interface ISetupPanel
 	/**
 	 * Shows only the first panel of a SetupPanel group
 	 */
-	public void showPanel();
+	public void showFirstPanel();
 	
 	/**
 	 * Hides all panels within the SetupPanel group

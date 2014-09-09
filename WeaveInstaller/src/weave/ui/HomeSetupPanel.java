@@ -363,14 +363,14 @@ public class HomeSetupPanel extends SetupPanel
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
-				IConfig containerConfig = ConfigManager.getConfigManager().getContainer();
+				IConfig activeContainer = ConfigManager.getConfigManager().getActiveContainer();
 				
-				if( containerConfig != null )
+				if( activeContainer != null )
 				{
 					try {
 						Desktop.getDesktop().browse(new URI(
 								"http://" + Settings.LOCALHOST + ":" + 
-								containerConfig.getPort() + "/" + 
+								activeContainer.getPort() + "/" + 
 								"AdminConsole.html"));
 					} catch (IOException e) {
 						TraceUtils.trace(TraceUtils.STDERR, e);
@@ -562,7 +562,7 @@ public class HomeSetupPanel extends SetupPanel
 	private void installBinaries(File zipFile)
 	{
 		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_FOLDERNAME_);
-		File configWEBAPPS = ConfigManager.getConfigManager().getContainer().getWebappsDirectory();
+		File configWEBAPPS = ConfigManager.getConfigManager().getActiveContainer().getWebappsDirectory();
 		
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
 		

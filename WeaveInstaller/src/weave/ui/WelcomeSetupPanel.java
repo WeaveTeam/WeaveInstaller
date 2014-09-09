@@ -22,10 +22,11 @@ package weave.ui;
 import java.awt.Color;
 import java.awt.Font;
 
-import javax.swing.JLabel;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.text.html.HTMLDocument;
 
+import weave.Settings;
 import weave.inc.SetupPanel;
 
 @SuppressWarnings("serial")
@@ -54,22 +55,29 @@ public class WelcomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 500 - 150, 325);
+		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
 
-		JLabel welcome = new JLabel("Welcome to Weave Setup Wizard");
-		welcome.setFont(new Font("Corbel", Font.BOLD, 17));
+		JEditorPane welcome = new JEditorPane();
 		welcome.setBounds(30, 30, 290, 50);
+		welcome.setEditable(false);
+		welcome.setContentType("text/html");
+		welcome.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		String welcomeStyle =	"body { font-family: " + welcome.getFont().getFamily() + "; " + 
+								"font-size: " + welcome.getFont().getSize() + "px; }";
+		((HTMLDocument)welcome.getDocument()).getStyleSheet().addRule(welcomeStyle);
+		welcome.setText("<b>Welcome to Weave Setup Wizard</b>");
 
-		JTextArea info = new JTextArea(10, 8);
-		info.setEditable(false);
-		info.setLineWrap(true);
-		info.setText("The Setup Wizard will help install Weave" + "\n" +
-					"on your computer. " + "\n\n" +
-					"Click Next to continue or Cancel to exit" + "\n" +
-					"the Setup Wizard.");
-		info.setFont(new Font("Corbel", Font.PLAIN, 14));
+		JEditorPane info = new JEditorPane();
 		info.setBounds(30, 100, 290, 150);
+		info.setEditable(false);
+		info.setContentType("text/html");
+		info.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
+		String infoStyle =	"body { font-family: " + info.getFont().getFamily() + "; " + 
+							"font-size: " + info.getFont().getSize() + "px; }";
+		((HTMLDocument)info.getDocument()).getStyleSheet().addRule(infoStyle);
+		info.setText(	"The Setup Wizard will help install Weave on your computer. <br><br>" +
+						"Click Next to continue or Cancel to exit the Setup Wizard.");
 
 		panel.add(welcome);
 		panel.add(info);

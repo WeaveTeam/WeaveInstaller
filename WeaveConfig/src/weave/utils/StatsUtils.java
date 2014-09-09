@@ -20,6 +20,7 @@
 package weave.utils;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import weave.Settings;
 import weave.managers.ConfigManager;
@@ -46,6 +47,9 @@ public class StatsUtils
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 	}
 
@@ -54,15 +58,34 @@ public class StatsUtils
 		if( Settings.isOfflineMode() || !Settings.isConnectedToInternet() )
 			return;
 		
-		URLRequestParams params = new URLRequestParams();
-		params.add("uniqueID", 	Settings.UNIQUE_ID);
-		params.add("os", 		Settings.getExactOS());
-		params.add("server", 	( ConfigManager.getConfigManager().getContainer() != null ? ConfigManager.getConfigManager().getContainer().getConfigName() : "NONE"));
-		params.add("database", 	( ConfigManager.getConfigManager().getDatabase() != null ?	ConfigManager.getConfigManager().getDatabase().getConfigName() 	: "NONE"));
-		
 		try {
+			URLRequestParams params = new URLRequestParams();
+			params.add("uniqueID", 	Settings.UNIQUE_ID);
+			params.add("os", 		Settings.getExactOS());
+			params.add("server", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getConfigName", "NONE"));
+			params.add("database", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveDatabase(), "getConfigName", "NONE"));
+			
 			URLRequestUtils.request(URLRequestUtils.GET, Settings.API_STATS_LIVE, params);
+			
 		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

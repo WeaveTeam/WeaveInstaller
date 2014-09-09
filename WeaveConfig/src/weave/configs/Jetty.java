@@ -63,7 +63,7 @@ public class Jetty extends Config
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
 					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()), 
-					"8084", "get", argClasses, args)));
+					"get", "8084", argClasses, args)));
 			
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
