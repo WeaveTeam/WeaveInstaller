@@ -304,13 +304,13 @@ public class Settings
 	@SuppressWarnings("unchecked")
 	public static boolean load()
 	{
+		if( !settingsFileExists() ) return false;
+		
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e); 
 		}
-		
-		if( !settingsFileExists() ) return false;
 		
 		try {
 			TraceUtils.trace(TraceUtils.STDOUT, "-> Loading settings file..........");
@@ -400,7 +400,7 @@ public class Settings
 		UNZIP_DIRECTORY 			= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "unzip" 				+ F_S);
 		DESKTOP_DIRECTORY 			= new File(USER_HOME, 				F_S + "Desktop" 			+ F_S);
 		
-		/* If the settings and zip directory do not already exist, create them. */
+		/* If the folders do not already exist, create them. */
 		if( !WEAVE_ROOT_DIRECTORY.exists() ) 		WEAVE_ROOT_DIRECTORY.mkdirs();
 		if( !BIN_DIRECTORY.exists() )				BIN_DIRECTORY.mkdirs();
 		if( !LOGS_DIRECTORY.exists() )				LOGS_DIRECTORY.mkdirs();

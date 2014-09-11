@@ -21,6 +21,7 @@ package weave.utils;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,7 +33,12 @@ import weave.managers.ConfigManager;
 
 public class LaunchUtils
 {
-	public static Boolean launch(String path, int delay) throws IOException, URISyntaxException, InterruptedException
+	public static Boolean browse(String path) throws IOException, URISyntaxException, InterruptedException
+	{
+		return browse(path, 100);
+	}
+	
+	public static Boolean browse(String path, int delay) throws IOException, URISyntaxException, InterruptedException
 	{
 		if( Desktop.isDesktopSupported() )
 		{
@@ -73,14 +79,16 @@ public class LaunchUtils
 	}
 	public static Boolean launchWeaveUpdater(int delay) throws IOException, InterruptedException
 	{
-		File updater= null;
-		File WU		= new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
-		File WUN	= new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
+		File updater = null;
+		File WU		 = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
+		File WUN	 = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
 		
 		if( WU.exists() )
 			updater = WU;
 		else if( WUN.exists() )
 			updater = WUN;
+		else
+			throw new FileNotFoundException("Updater file not found");
 		
 		return launch(updater, delay);
 	}
@@ -107,7 +115,7 @@ public class LaunchUtils
 					"Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		return launch("http://" + 
+		return browse("http://" + 
 				Settings.LOCALHOST + ":" + 
 				ConfigManager.getConfigManager().getActiveContainer().getPort(),
 				delay);

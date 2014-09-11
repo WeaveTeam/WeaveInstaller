@@ -244,7 +244,7 @@ public class TrayManager
 			public void actionPerformed(ActionEvent e) {
 				
 				try {
-					LaunchUtils.launch(Settings.WIKI_HELP_PAGE, 100);
+					LaunchUtils.browse(Settings.WIKI_HELP_PAGE, 100);
 				} catch (IOException e2) {				TraceUtils.trace(TraceUtils.STDERR, e2);
 				} catch (URISyntaxException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);
 				} catch (InterruptedException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);		

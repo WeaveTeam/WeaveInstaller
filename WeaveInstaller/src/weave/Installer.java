@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Timer;
@@ -208,12 +209,17 @@ public class Installer extends JFrame
 			@Override public void mouseExited(MouseEvent e) {}
 			@Override public void mouseEntered(MouseEvent e) {}
 			@Override public void mouseClicked(MouseEvent e) {
-				if (Desktop.isDesktopSupported()) {
-					try {
-						Desktop.getDesktop().browse(new URI(Settings.OICWEAVE_URL));
-					} catch (Exception e1) {
-						TraceUtils.trace(TraceUtils.STDERR, e1);
-					}
+				try {
+					LaunchUtils.browse(Settings.OICWEAVE_URL);
+				} catch (IOException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (URISyntaxException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (InterruptedException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
 				}
 			}
 		});
@@ -368,7 +374,7 @@ public class Installer extends JFrame
 				public void actionPerformed(ActionEvent e) {
 					if( SP_welcome.isLastPanel() )
 					{
-						if( !Settings.settingsFileExists() )
+						if( !Settings.CONFIGURED )
 							switchToConfigSetupPanel();
 						else
 							switchToHomeSetupPanel();
