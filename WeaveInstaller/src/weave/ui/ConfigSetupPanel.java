@@ -20,7 +20,6 @@
 package weave.ui;
 
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -52,6 +51,7 @@ import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
 import weave.utils.ImageUtils;
+import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
@@ -63,10 +63,11 @@ public class ConfigSetupPanel extends SetupPanel
 	public JEditorPane			servletDesc, 		databaseDesc,		reviewDesc;
 	public JEditorPane			servletWarning,		databaseWarning;
 
-	public JLabel				servletWebappsLabel,	servletPortLabel,	databasePortLabel;
-	public JLabel				reviewServletPortLabel,	reviewServletWebappsLabel, reviewDatabasePortLabel;
-	public JTextField			servletBrowserPath,		servletPortInput,	databasePortInput;
-	public JTextField			reviewServletPortInput, reviewServletWebappsInput, reviewDatabasePortInput;
+	public JLabel				servletWebappsLabel,	servletPortLabel,			databasePortLabel;
+	public JLabel				reviewServletTitleLabel, reviewDatabaseTitleLabel;
+	public JLabel				reviewServletPortLabel,	reviewServletWebappsLabel, 	reviewDatabasePortLabel;
+	public JTextField			servletBrowserPath,		servletPortInput,			databasePortInput;
+	public JTextField			reviewServletPortInput, reviewServletWebappsInput, 	reviewDatabasePortInput;
 	public JFileChooser			servletFileChooser;
 	public JButton				servletBrowserButton;
 
@@ -152,8 +153,11 @@ public class ConfigSetupPanel extends SetupPanel
 				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
 				{
 					try {
-						Desktop.getDesktop().browse(e.getURL().toURI());
+						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
 						TraceUtils.trace(TraceUtils.STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
@@ -181,8 +185,11 @@ public class ConfigSetupPanel extends SetupPanel
 				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
 				{
 					try {
-						Desktop.getDesktop().browse(e.getURL().toURI());
+						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
 						TraceUtils.trace(TraceUtils.STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
@@ -330,8 +337,11 @@ public class ConfigSetupPanel extends SetupPanel
 				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
 				{
 					try {
-						Desktop.getDesktop().browse(e.getURL().toURI());
+						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
 						TraceUtils.trace(TraceUtils.STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
@@ -359,8 +369,11 @@ public class ConfigSetupPanel extends SetupPanel
 				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
 				{
 					try {
-						Desktop.getDesktop().browse(e.getURL().toURI());
+						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
 						TraceUtils.trace(TraceUtils.STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
@@ -407,32 +420,69 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		
 		JLabel title = new JLabel("Review Configuration");
-		title.setFont(new Font(Settings.FONT, Font.BOLD, 15));
-		title.setBounds(20, 20, 140, 30);
+		title.setFont(new Font(Settings.FONT, Font.BOLD, 16));
+		title.setBounds(20, 10, 310, 30);
 		panel.add(title);
 		
+		reviewServletTitleLabel = new JLabel();
+		reviewServletTitleLabel.setBounds(20, 50, 80, 25);
+		reviewServletTitleLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		reviewServletTitleLabel.setVisible(true);
+		panel.add(reviewServletTitleLabel);
+		
 		reviewServletImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		reviewServletImage.setBounds(20, 60, 80, 80);
+		reviewServletImage.setBounds(250, 50, 60, 60);
 		reviewServletImage.setVerticalAlignment(JLabel.TOP);
 		reviewServletImage.setVisible(true);
 		panel.add(reviewServletImage);
 		
-		reviewDatabaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		reviewDatabaseImage.setBounds(20, 160, 80, 80);
-		reviewDatabaseImage.setVerticalAlignment(JLabel.TOP);
-		reviewDatabaseImage.setVisible(true);
-		panel.add(reviewDatabaseImage);
-		
 		reviewServletPortLabel = new JLabel("Port: ");
-		reviewServletPortLabel.setBounds(120, 60, 80, 25);
+		reviewServletPortLabel.setBounds(20, 90, 80, 25);
+		reviewServletPortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewServletPortLabel.setVisible(true);
 		panel.add(reviewServletPortLabel);
 		
 		reviewServletPortInput = new JTextField();
-		reviewServletPortInput.setBounds(200, 60, 100, 25);
+		reviewServletPortInput.setBounds(100, 90, 100, 25);
 		reviewServletPortInput.setVisible(true);
-		reviewServletPortInput.setEnabled(false);
+		reviewServletPortInput.setEditable(false);
 		panel.add(reviewServletPortInput);
+
+		reviewServletWebappsLabel = new JLabel("Webapps: ");
+		reviewServletWebappsLabel.setBounds(20, 120, 80, 25);
+		reviewServletWebappsLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		reviewServletWebappsLabel.setVisible(true);
+		panel.add(reviewServletWebappsLabel);
+		
+		reviewServletWebappsInput = new JTextField();
+		reviewServletWebappsInput.setBounds(100, 120, 230, 25);
+		reviewServletWebappsInput.setVisible(true);
+		reviewServletWebappsInput.setEditable(false);
+		panel.add(reviewServletWebappsInput);
+		
+		reviewDatabaseTitleLabel = new JLabel();
+		reviewDatabaseTitleLabel.setBounds(20, 170, 80, 25);
+		reviewDatabaseTitleLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		reviewDatabaseTitleLabel.setVisible(true);
+		panel.add(reviewDatabaseTitleLabel);
+		
+		reviewDatabaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
+		reviewDatabaseImage.setBounds(250, 170, 60, 60);
+		reviewDatabaseImage.setVerticalAlignment(JLabel.TOP);
+		reviewDatabaseImage.setVisible(true);
+		panel.add(reviewDatabaseImage);
+		
+		reviewDatabasePortLabel = new JLabel("Port: ");
+		reviewDatabasePortLabel.setBounds(20, 200, 80, 25);
+		reviewDatabasePortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		reviewDatabasePortLabel.setVisible(true);
+		panel.add(reviewDatabasePortLabel);
+		
+		reviewDatabasePortInput = new JTextField();
+		reviewDatabasePortInput.setBounds(100, 200, 100, 25);
+		reviewDatabasePortInput.setVisible(true);
+		reviewDatabasePortInput.setEditable(false);
+		panel.add(reviewDatabasePortInput);
 		
 		reviewDesc = new JEditorPane();
 		reviewDesc.setBounds(20, 250, 310, 60);
@@ -549,18 +599,42 @@ public class ConfigSetupPanel extends SetupPanel
 		IConfig servletConfig = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
 		IConfig databaseConfig = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
 		
-		if( reviewServletImage != null )
-			reviewServletImage.setIcon(
-					new ImageIcon(ImageUtils.scale(
-									servletConfig.getImage(),
-									reviewServletImage.getWidth(),
-									ImageUtils.SCALE_WIDTH)));
-		if( reviewDatabaseImage != null )
-			reviewDatabaseImage.setIcon(
-					new ImageIcon(ImageUtils.scale(
-									databaseConfig.getImage(),
-									reviewDatabaseImage.getWidth(),
-									ImageUtils.SCALE_WIDTH)));
+		try {
+			// SERVLET
+			if( reviewServletTitleLabel != null )
+				reviewServletTitleLabel.setText(servletConfig.getConfigName());
+			if( reviewServletImage != null )
+				reviewServletImage.setIcon(
+						new ImageIcon(ImageUtils.scale(
+										servletConfig.getImage(),
+										reviewServletImage.getWidth(),
+										ImageUtils.SCALE_WIDTH)));
+			if( reviewServletPortInput != null )
+				reviewServletPortInput.setText("" + servletConfig.getPort());
+			if( reviewServletWebappsInput != null ) {
+				reviewServletWebappsLabel.setVisible(servletBrowserPath.isVisible());
+				reviewServletWebappsInput.setVisible(servletBrowserPath.isVisible());
+				reviewServletWebappsInput.setText(servletConfig.getWebappsDirectory().getCanonicalPath());
+			}
+		
+			// DATABASE
+			if( reviewDatabaseTitleLabel != null )
+				reviewDatabaseTitleLabel.setText(databaseConfig.getConfigName());
+			if( reviewDatabaseImage != null )
+				reviewDatabaseImage.setIcon(
+						new ImageIcon(ImageUtils.scale(
+										databaseConfig.getImage(),
+										reviewDatabaseImage.getWidth(),
+										ImageUtils.SCALE_WIDTH)));
+			if( reviewDatabasePortInput != null ) {
+				reviewDatabasePortLabel.setVisible(databasePortInput.isVisible());
+				reviewDatabasePortInput.setVisible(databasePortInput.isVisible());
+				reviewDatabasePortInput.setText("" + databaseConfig.getPort());
+			}
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
 	}
 	
 	private void updateServletInfo(IConfig servlet)

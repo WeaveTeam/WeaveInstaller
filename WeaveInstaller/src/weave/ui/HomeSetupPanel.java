@@ -20,12 +20,10 @@
 package weave.ui;
 
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Timer;
@@ -55,6 +53,7 @@ import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
+import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TraceUtils;
@@ -158,8 +157,11 @@ public class HomeSetupPanel extends SetupPanel
 								if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
 								{
 									try {
-										Desktop.getDesktop().browse(e.getURL().toURI());
+										LaunchUtils.browse(e.getURL().toURI());
 									} catch (IOException ex) {
+										TraceUtils.trace(TraceUtils.STDERR, ex);
+										BugReportUtils.showBugReportDialog(ex);
+									} catch (InterruptedException ex) {
 										TraceUtils.trace(TraceUtils.STDERR, ex);
 										BugReportUtils.showBugReportDialog(ex);
 									} catch (URISyntaxException ex) {
@@ -368,14 +370,13 @@ public class HomeSetupPanel extends SetupPanel
 				if( activeContainer != null )
 				{
 					try {
-						Desktop.getDesktop().browse(new URI(
-								"http://" + Settings.LOCALHOST + ":" + 
-								activeContainer.getPort() + "/" + 
-								"AdminConsole.html"));
-					} catch (IOException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-					} catch (URISyntaxException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						LaunchUtils.browse("http://" + Settings.LOCALHOST + ":" + activeContainer.getPort() + "/AdminConsole.html");
+					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+					} catch (URISyntaxException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+					} catch (InterruptedException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
 					}
 				} else
 					JOptionPane.showMessageDialog(null, "No servlet container loaded.", "Error", JOptionPane.ERROR_MESSAGE);

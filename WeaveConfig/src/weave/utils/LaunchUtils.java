@@ -37,13 +37,20 @@ public class LaunchUtils
 	{
 		return browse(path, 100);
 	}
-	
+	public static Boolean browse(URI path) throws IOException, InterruptedException
+	{
+		return browse(path, 100);
+	}
 	public static Boolean browse(String path, int delay) throws IOException, URISyntaxException, InterruptedException
+	{
+		return browse(new URI(path), delay);
+	}
+	public static Boolean browse(URI path, int delay) throws IOException, InterruptedException
 	{
 		if( Desktop.isDesktopSupported() )
 		{
 			Thread.sleep(delay);
-			Desktop.getDesktop().browse(new URI(path));
+			Desktop.getDesktop().browse(path);
 			return true;
 		}
 		return false;

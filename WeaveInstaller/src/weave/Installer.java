@@ -34,7 +34,6 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -258,14 +257,18 @@ public class Installer extends JFrame
 		helpButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if( Desktop.isDesktopSupported() ) {
-					try {
-						Desktop.getDesktop().browse(new URI(Settings.WIKI_HELP_PAGE));
-					} catch (Exception e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-					}
-				} else
-					JOptionPane.showMessageDialog(null, "This feature is not supported by the \nversion of Java you are running.", "Error", JOptionPane.ERROR_MESSAGE);
+				try {
+					LaunchUtils.browse(Settings.WIKI_HELP_PAGE);
+				} catch (IOException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (InterruptedException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (URISyntaxException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				}
 			}
 		});
 		helpButton.setVisible(true);
