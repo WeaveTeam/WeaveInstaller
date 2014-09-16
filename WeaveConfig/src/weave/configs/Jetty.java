@@ -22,6 +22,7 @@ package weave.configs;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -57,20 +58,25 @@ public class Jetty extends Config
 		super.initConfig();
 		
 		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
+		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
 		try {
 			Class<?>[] argClasses = { Object.class };
 			Object[] args = { "PORT" };
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()), 
-					"get", "8084", argClasses, args)));
+					savedCFG, "get", "8084", argClasses, args)));
 			
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
-			setDescription("Jetty is a free and open-source project as part of the Eclipse Foundation.");
-			setWarning(	"<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.<br>" + 
+			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation.");
+			setWarning(	"<center><b>" + getConfigName() + " is a plugin that will run inside the tool and does not require external configuration.<br>" + 
 						"This is the appropriate choice for new users.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
+			
+			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
+					new Class<?>[] { Object.class }, 
+					new Object[] { "ACTIVE" }) )
+				loadConfig();
 			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -93,21 +99,24 @@ public class Jetty extends Config
 		}
 	}
 	
-	@Override public void loadConfig() 
+	@Override public boolean loadConfig() 
 	{
-		if( ConfigManager.getConfigManager().setContainer(_instance) )
+		boolean result = ConfigManager.getConfigManager().setContainer(_instance);
+		if( result )
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
 					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
+		return result;
 	}
 
-	@Override public void unloadConfig() 
+	@Override public boolean unloadConfig() 
 	{
-		ConfigManager.getConfigManager().setContainer(null);
+		boolean result = ConfigManager.getConfigManager().setContainer(null);
 		super.unloadConfig();
+		return result;
 	}
 	
 	

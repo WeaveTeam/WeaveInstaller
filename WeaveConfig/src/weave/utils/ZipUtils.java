@@ -23,17 +23,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
 public class ZipUtils implements IUtils
 {
 	private IUtilsInfo _func = null;
+	private List<ICallback> callbacks = null;
 	
 	private static ZipUtils _instance = null;
 	private static ZipUtils instance()
@@ -41,6 +46,11 @@ public class ZipUtils implements IUtils
 		if( _instance == null )
 			_instance = new ZipUtils();
 		return _instance;
+	}
+	
+	public ZipUtils()
+	{
+		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
 	}
 	
 	@Override
@@ -95,7 +105,7 @@ public class ZipUtils implements IUtils
 						{
 							if( !outputFile.exists() )	outputFile.mkdirs();
 							if( _func != null )			updateInfo(1, _func.info.max);
-							Thread.sleep(100);
+							Thread.sleep(50);
 							continue;
 						}
 
@@ -105,9 +115,17 @@ public class ZipUtils implements IUtils
 						
 						if( _func != null )	updateInfo(1, _func.info.max);
 						
-						Thread.sleep(100);
+						Thread.sleep(50);
 					}
 					zip.close();
+					
+					if( callbacks != null ) {
+						synchronized (callbacks) {
+							for( int i = 0; i < callbacks.size(); i++ )
+								callbacks.get(i).runCallback(null);
+						}
+					}
+					
 				} catch (ZipException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -120,7 +138,6 @@ public class ZipUtils implements IUtils
 			}
 		});
 		t.start();
-		t.join();
 	}
 	
 	
@@ -129,12 +146,11 @@ public class ZipUtils implements IUtils
 	 * 
 	 * Get the number of entries in the zip file.
 	 */
-	@SuppressWarnings("unused")
-	private static int getNumberOfEntriesInZip( String zip )
+	public static int getNumberOfEntriesInZip( String zip )
 	{
 		return getNumberOfEntriesInZip(new File(zip));
 	}
-	private static int getNumberOfEntriesInZip( File zip )
+	public static int getNumberOfEntriesInZip( File zip )
 	{
 		if( !zip.exists() )	return 0;
 		if( !zip.isFile() )	return 0;
@@ -151,6 +167,19 @@ public class ZipUtils implements IUtils
 		}
 		
 		return 0;
+	}
+	
+	public boolean addCallback(ICallback c)
+	{
+		return callbacks.add(c);
+	}
+	public boolean removeCallback(ICallback c)
+	{
+		return callbacks.remove(c);
+	}
+	public void removeAllCallbacks()
+	{
+		callbacks.clear();
 	}
 	
 	public void addStatusListener(IUtils parent, IUtilsInfo func, String zip)

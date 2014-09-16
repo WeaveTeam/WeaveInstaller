@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import weave.Settings;
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 
 public class TraceUtils implements IUtils 
@@ -145,5 +146,17 @@ public class TraceUtils implements IUtils
 	public static File getLogFile( int pipe )
 	{
 		return new File(Settings.LOGS_DIRECTORY, pipes.get(pipe) + "." + df.format(d) + ".log" );
+	}
+
+	@Override
+	public boolean addCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public boolean removeCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public void removeAllCallbacks() {
 	}
 }

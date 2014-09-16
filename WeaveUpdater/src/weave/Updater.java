@@ -42,6 +42,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.Settings.UPDATE_TYPE;
+import weave.callbacks.ICallback;
+import weave.callbacks.ICallbackResult;
 import weave.dll.DLLInterface;
 import weave.includes.IUtilsInfo;
 import weave.managers.TrayManager;
@@ -71,7 +73,6 @@ public class Updater extends JFrame
 	private boolean			shouldUpdate	= false;
 	
 	private final String _TMP_UPDATE_ZIPFILE_NAME = "updates.zip";
-	private final String _TMP_UPDATE_FOLDER_NAME = Settings.F_S + "updates" + Settings.F_S;
 	
 	public static void main( String[] args ) 
 	{
@@ -242,75 +243,23 @@ public class Updater extends JFrame
 			Settings.UPDATE_OVERRIDE = false;
 			Settings.save();
 
-			int status = downloadUpdate();
-
-			switch( status ) {
-			
-				case DownloadUtils.COMPLETE:
-					StatsUtils.logUpdate();
-					installUpdate();
-					break;
-					
-				case DownloadUtils.CANCELLED:
-					if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, "Would you like to launch anyway?", "Download Cancelled", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
-						Settings.shutdown();
-					}
-					break;
-					
-				case DownloadUtils.FAILED:
-					break;
-					
-				case DownloadUtils.OFFLINE:
-					JOptionPane.showConfirmDialog(null, 
-						"A connection to the internet could not be established.\n\n" +
-						"Please connect to the internet and try again.", 
-						"No Connection", 
-						JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-					Settings.shutdown(JFrame.ERROR);
-					break;
-			}
-		}
-
-		StatsUtils.noop();
-		
-		cleanUp();
-		upgradeOldStuff();
-		
-		String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
-		if( ver != null )
-			createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
-		Thread.sleep(1000);
-		
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
-		statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
-
-		while( !Settings.canQuit ) Thread.sleep(1000);
-
-		LaunchUtils.launchWeaveInstaller(1000);
-
-		StatsUtils.noop();
-		Thread.sleep(50);
-		Settings.shutdown();
-	}
-	
-	private int downloadUpdate()
-	{
-		int status = 0;
-		
-		try {
+			// Get update URL
 			String link = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
-			if( link == null )
-				return DownloadUtils.OFFLINE;
+			if( link == null ) {
+				JOptionPane.showConfirmDialog(null, 
+					"A connection to the internet could not be established.\n\n" +
+					"Please connect to the internet and try again.", 
+					"No Connection", 
+					JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+				Settings.shutdown(JFrame.ERROR);
+			}
 			
-			
-			File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
-
+			final File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
 			if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() ) 
 				Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
 			
 			if( destination.exists() ) 
 				destination.delete();
-			
 			destination.createNewFile();
 			
 			TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
@@ -318,6 +267,8 @@ public class Updater extends JFrame
 			statusProgress.setIndeterminate(false);
 			statusProgress.setValue(0);
 
+
+			final DownloadUtils du = new DownloadUtils();
 			IUtilsInfo downloadInfo = new IUtilsInfo() {
 				@Override
 				public void onProgressUpdate() {
@@ -337,119 +288,123 @@ public class Updater extends JFrame
 					});
 				}
 			};
+			ICallback downloadCallback = new ICallback() {
+				@Override
+				public void runCallback(ICallbackResult res) {
+					int resultCode = res.getCode();
+
+					Settings.downloadCanceled = false;
+					Settings.downloadLocked = false;
+					
+					try {
+						du.removeStatusListener();
+						du.removeAllCallbacks();
+						System.gc();
+						Thread.sleep(2000);
+						
+						if( resultCode == DownloadUtils.COMPLETE )
+						{
+							TraceUtils.put(TraceUtils.STDOUT, "DONE");
+							statusLabel.setText("Download complete....");
+							
+							StatsUtils.logUpdate();
+							
+							final ZipUtils zu = new ZipUtils();
+							IUtilsInfo zipInfo = new IUtilsInfo() {
+								@Override
+								public void onProgressUpdate() {
+									SwingUtilities.invokeLater(new Runnable() {
+										@Override
+										public void run() {
+											statusProgress.setValue( info.progress );
+											statusLabel.setText( String.format("Installing update....%d%%", info.progress ) );
+										}
+									});
+								}
+							};
+							ICallback zipCallback = new ICallback() {
+								@Override
+								public void runCallback(ICallbackResult res) {
+									try {
+
+										System.gc();
+										statusLabel.setText("Install complete....");
+										TraceUtils.put(TraceUtils.STDOUT, "DONE");
+										
+										Settings.canQuit = true;
+
+										zu.removeAllCallbacks();
+										zu.removeStatusListener();
+										
+										Thread.sleep(2000);
+										
+										StatsUtils.noop();
+										
+										cleanUp();
+										upgradeOldStuff();
+										
+										String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
+										if( ver != null )
+											createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
+										Thread.sleep(1000);
+										
+										TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
+										statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
+				
+										while( !Settings.canQuit ) Thread.sleep(1000);
+				
+										LaunchUtils.launchWeaveInstaller(1000);
+				
+										StatsUtils.noop();
+										Settings.shutdown();
+										Thread.sleep(50);
+									} catch (InterruptedException e) {
+										TraceUtils.trace(TraceUtils.STDERR, e);
+										BugReportUtils.showBugReportDialog(e);
+									} catch (IOException e) {
+										TraceUtils.trace(TraceUtils.STDERR, e);
+										BugReportUtils.showBugReportDialog(e);
+									}
+								}
+							};
+							
+							Settings.canQuit = false;
+							
+							statusProgress.setIndeterminate(false);
+							
+							zu.addCallback(zipCallback);
+							zu.addStatusListener(null, zipInfo, destination);
+							zu.extractZipWithInfo(destination, Settings.WEAVE_ROOT_DIRECTORY);
+						}
+						else if( resultCode == DownloadUtils.CANCELLED )
+						{
+							TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+							statusLabel.setText("Cancelling download...");
+							if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, 
+									"Would you like to launch anyway?", "Download Cancelled", 
+									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+								Settings.shutdown();
+							}
+						}
+						else if( resultCode == DownloadUtils.FAILED )
+						{
+							TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+							statusLabel.setForeground(Color.RED);
+							statusLabel.setText("Download Failed....");
+						}
+					} catch (InterruptedException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
+				}
+			};
 			
 			Settings.downloadLocked = true;
 			Settings.downloadCanceled = false;
 			
-			DownloadUtils d = new DownloadUtils();
-			d.addStatusListener(null, downloadInfo);
-			status = d.downloadWithInfo(link, destination, 500 * DownloadUtils.KB);
-			
-			Settings.downloadCanceled = false;
-			Settings.downloadLocked = false;
-			
-			switch( status ) {
-				case DownloadUtils.FAILED:
-					TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-					statusLabel.setForeground(Color.RED);
-					statusLabel.setText("Download Failed....");
-					break;
-					
-				case DownloadUtils.CANCELLED:
-					TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
-					statusLabel.setText("Cancelling download...");
-					break;
-				
-				case DownloadUtils.COMPLETE:
-					TraceUtils.put(TraceUtils.STDOUT, "DONE");
-					statusLabel.setText("Download complete....");
-					break;
-			}
-			
-			d.removeStatusListener();
-			System.gc();
-			Thread.sleep(2000);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
-		return status;
-	}
-	private void installUpdate()
-	{
-		File zipFile = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
-		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_UPDATE_FOLDER_NAME);
-		
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
-		
-		try {
-			
-			IUtilsInfo zipListener = new IUtilsInfo() {
-				@Override
-				public void onProgressUpdate() {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							statusProgress.setValue( info.progress / 2 );
-							statusLabel.setText( String.format("Extracting update....%d%%", info.progress / 2 ) );
-						}
-					});
-				}
-			};
-			IUtilsInfo fileListener = new IUtilsInfo() {
-				@Override
-				public void onProgressUpdate() {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							statusProgress.setValue(50 + info.progress / 2 );
-							statusLabel.setText( String.format("Installing update....%d%%", 50 + info.progress / 2 ));
-						}
-					});
-				}
-			};
-
-			Settings.canQuit = false;
-			
-			statusLabel.setText("Extracting update....");
-			statusProgress.setIndeterminate(false);
-			Thread.sleep(500);
-			
-			statusProgress.setValue(0);
-			statusLabel.setText("Extracting update....0%" );
-			Thread.sleep(800);
-			
-			ZipUtils zu = new ZipUtils();
-			zu.addStatusListener(null, zipListener, zipFile);
-			zu.extractZipWithInfo(zipFile, unzippedFile);
-			
-			statusProgress.setValue( 50 );
-			statusLabel.setText( "Installing update....50%" );
-			Thread.sleep(800);
-			
-			FileUtils fu = new FileUtils();
-			fu.addStatusListener(null, fileListener, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
-			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
-			
-			statusProgress.setValue( 100 );
-			statusLabel.setText( "Installing update....100%" );
-			Thread.sleep(800);
-			
-			System.gc();
-			statusLabel.setText("Install complete....");
-			TraceUtils.put(TraceUtils.STDOUT, "DONE");
-			
-			Settings.canQuit = true;
-			
-			zu.removeStatusListener();
-			fu.removeStatusListener();
-			
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			du.addCallback(downloadCallback);
+			du.addStatusListener(null, downloadInfo);
+			du.downloadWithInfo(link, destination, 500 * DownloadUtils.KB);
 		}
 	}
 	

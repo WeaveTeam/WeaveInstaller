@@ -27,9 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
@@ -45,6 +48,7 @@ public class FileUtils implements IUtils
 	public static final int CANCELLED				= 2;
 	
 	private IUtilsInfo _func = null;
+	private List<ICallback> callbacks = null;
 	
 	private static FileUtils _instance = null;
 	private static FileUtils instance()
@@ -52,6 +56,11 @@ public class FileUtils implements IUtils
 		if( _instance == null )
 			_instance = new FileUtils();
 		return _instance;
+	}
+	
+	public FileUtils()
+	{
+		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
 	}
 	
 	@Override
@@ -345,6 +354,14 @@ public class FileUtils implements IUtils
 					}
 
 					if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) )		setInfo(_func.info.max, _func.info.max);
+					
+					if( callbacks != null && ((flags & OPTION_SINGLE_FILE) != 0) )
+					{
+						synchronized (callbacks) {
+							for( int i = 0; i < callbacks.size(); i++ )
+								callbacks.get(i).runCallback(null);
+						}
+					}
 				} catch(IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					fiu.status = FAILED;
@@ -363,7 +380,18 @@ public class FileUtils implements IUtils
 		return fiu.status;
 	}
 	
-
+	public boolean addCallback(ICallback c)
+	{
+		return callbacks.add(c);
+	}
+	public boolean removeCallback(ICallback c)
+	{
+		return callbacks.remove(c);
+	}
+	public void removeAllCallbacks()
+	{
+		callbacks.clear();
+	}
 	
 	public void addStatusListener(IUtils parent, IUtilsInfo func, String source, int flags)
 	{

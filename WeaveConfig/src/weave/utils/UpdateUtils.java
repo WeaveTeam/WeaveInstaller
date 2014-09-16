@@ -37,7 +37,8 @@ public class UpdateUtils
 	
 	public static final int NO_UPDATE_AVAILABLE = 0;
 	public static final int UPDATE_AVAILABLE = 1;
-	public static final int UPDATE_ERROR = 2;
+	public static final int UPDATE_OFFLINE = 2;
+	public static final int UPDATE_ERROR = 3;
 	
 	public static List<String> entriesToCheck	= null;
 	public static List<String> lookupEntries	= null;
@@ -109,18 +110,30 @@ public class UpdateUtils
 		}
 	}
 	
-	public static int isWeaveUpdateAvailable(final boolean save) throws InterruptedException
+	public static String getWeaveUpdateFileName() throws InterruptedException
 	{
 		if( Settings.isOfflineMode() )
-			return NO_UPDATE_AVAILABLE;
+			return null;
 		
 		String search = "filename=";
 		String header = URLRequestUtils.getContentHeader(
 							RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL),
 							"Content-Disposition");
-		int index = ((header != null) ? header.indexOf(search) : -1);
+		int index = ((header != null ) ? header.indexOf(search) : -1 );
+		if( index == -1 )
+			return null;
 		
-		if( index == -1 )	
+		return header.substring(index + search.length());
+	}
+	
+	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException
+	{
+		if( Settings.isOfflineMode() )
+			return UPDATE_OFFLINE;
+		
+		String fileName = getWeaveUpdateFileName();
+		
+		if( fileName == null )
 			return UPDATE_ERROR;
 		
 		if( save ) {
@@ -128,7 +141,7 @@ public class UpdateUtils
 			Settings.save();
 		}
 		
-		File f = new File(Settings.REVISIONS_DIRECTORY, header.substring(index+search.length()));
-		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE ); 
+		File f = new File(Settings.REVISIONS_DIRECTORY, fileName);
+		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
 	}
 }

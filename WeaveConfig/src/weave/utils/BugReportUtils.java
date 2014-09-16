@@ -38,6 +38,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
 import weave.Settings;
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 import weave.ui.BugReportWindow;
 
@@ -136,5 +137,16 @@ public class BugReportUtils implements IUtils
 		}
 		
 		TraceUtils.put(TraceUtils.STDOUT, "SENT");
+	}
+	@Override
+	public boolean addCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public boolean removeCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public void removeAllCallbacks() {
 	}
 }

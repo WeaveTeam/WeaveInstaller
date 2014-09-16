@@ -98,8 +98,8 @@ public class Revisions
 		return ret;
 	}
 	
-	public static String getRevisionName(String n)
+	public static String getRevisionName(String s)
 	{
-		return n.substring(n.lastIndexOf('-')+1, n.lastIndexOf('.')).toUpperCase();
+		return s.substring(s.lastIndexOf('-')+1, s.lastIndexOf('.')).toUpperCase();
 	}
 }

@@ -27,10 +27,14 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import weave.Settings;
+import weave.callbacks.ICallback;
+import weave.callbacks.ICallbackResult;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
@@ -47,6 +51,7 @@ public class DownloadUtils implements IUtils
 	public static final int GB			= MB * 1024;
 	
 	private IUtilsInfo _func = null;
+	private List<ICallback> callbacks = null;
 	
 	private static DownloadUtils _instance = null;
 	private static DownloadUtils instance()
@@ -58,7 +63,7 @@ public class DownloadUtils implements IUtils
 	
 	public DownloadUtils()
 	{
-		
+		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
 	}
 	
 	@Override
@@ -82,8 +87,8 @@ public class DownloadUtils implements IUtils
 		int i = 0; 
 		List<String> s = Arrays.asList("B/s", "KB/s", "MB/s", "GB/s", "TB/s");
 		
-		while( (speed/1024) > 1 ) {
-			speed = speed / 1024;
+		while( (speed/KB) > 1 ) {
+			speed = speed / KB;
 			i++;
 		}
 		return String.format("%." + i + "f %s", speed, s.get(i));
@@ -96,13 +101,13 @@ public class DownloadUtils implements IUtils
 	 * This will open an input stream to the URL and download the contents to the destination.
 	 * No stats will be supplied with this download.
 	 */
-	public static int download( String url, String destination ) throws IOException, InterruptedException
+	public static void download( String url, String destination ) throws IOException, InterruptedException
 	{
-		return instance().downloadWithInfo(url, destination);
+		instance().downloadWithInfo(url, destination);
 	}
-	public static int download( URL url, File destination ) throws IOException, InterruptedException
+	public static void download( URL url, File destination ) throws IOException, InterruptedException
 	{
-		return instance().downloadWithInfo(url, destination);
+		instance().downloadWithInfo(url, destination);
 	}
 	
 	
@@ -112,29 +117,29 @@ public class DownloadUtils implements IUtils
 	 * This will open an input stream to the URL and download the contents to the destination.
 	 * Stats can be tracked through the `info` object.
 	 */
-	public int downloadWithInfo( String url, String destination ) throws MalformedURLException, InterruptedException
+	public void downloadWithInfo( String url, String destination ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(url, destination, 0);
+		downloadWithInfo(url, destination, 0);
 	}
-	public int downloadWithInfo( String url, String destination, long downloadLimit ) throws MalformedURLException, InterruptedException
+	public void downloadWithInfo( String url, String destination, long downloadLimit ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(new URL(url), new File(destination), downloadLimit);
+		downloadWithInfo(new URL(url), new File(destination), downloadLimit);
 	}
 	
-	public int downloadWithInfo( String url, File destination ) throws MalformedURLException, InterruptedException
+	public void downloadWithInfo( String url, File destination ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(url, destination, 0);
+		downloadWithInfo(url, destination, 0);
 	}
-	public int downloadWithInfo( String url, File destination, long downloadLimit ) throws MalformedURLException, InterruptedException
+	public void downloadWithInfo( String url, File destination, long downloadLimit ) throws MalformedURLException, InterruptedException
 	{
-		return downloadWithInfo(new URL(url), destination, downloadLimit);
+		downloadWithInfo(new URL(url), destination, downloadLimit);
 	}
 
-	public int downloadWithInfo( URL url, File destination ) throws InterruptedException
+	public void downloadWithInfo( URL url, File destination ) throws InterruptedException
 	{
-		return downloadWithInfo(url, destination, 0);
+		downloadWithInfo(url, destination, 0);
 	}
-	public int downloadWithInfo( final URL url, final File destination, final long downloadLimit ) throws InterruptedException
+	public void downloadWithInfo( final URL url, final File destination, final long downloadLimit ) throws InterruptedException
 	{
 		final DownloadInternalUtils diu = new DownloadInternalUtils();
 		diu.status = COMPLETE;
@@ -170,7 +175,7 @@ public class DownloadUtils implements IUtils
 						out.write(buffer, 0, length);
 						
 						cur += length;
-						kbps += ( length / 1024 );
+						kbps += length;
 						speedLongNew = System.currentTimeMillis();
 						cancelLongNew = System.currentTimeMillis();
 						
@@ -180,7 +185,7 @@ public class DownloadUtils implements IUtils
 							kbps = 0;
 							seconds++;
 							speedLongOld = speedLongNew;
-							aveDownSpeed = (cur/1024)/seconds;
+							aveDownSpeed = (cur/KB)/seconds;
 						}
 						
 						// Throttle the check to see if the user has clicked the
@@ -196,7 +201,7 @@ public class DownloadUtils implements IUtils
 								return;
 							}
 						}
-						timeleft = (int) ((sizeOfDownload - cur) / aveDownSpeed / 1024);
+						timeleft = (int) ((sizeOfDownload - cur) / aveDownSpeed / KB);
 						updateInfo(length, sizeOfDownload, timeleft);
 						
 						if( downloadLimit > 0 ) 
@@ -211,6 +216,7 @@ public class DownloadUtils implements IUtils
 						}
 					}
 					out.flush();
+					
 					if( _func != null ) setInfo(sizeOfDownload, sizeOfDownload, 0);
 					
 				} catch ( IOException e ) {
@@ -231,6 +237,27 @@ public class DownloadUtils implements IUtils
 						if( conn != null ) {
 							conn.disconnect();
 						}
+
+						if( callbacks != null )
+						{
+							synchronized (callbacks) {
+								for( int i = 0; i < callbacks.size(); i++ )
+								{
+									ICallbackResult res = new ICallbackResult() {
+										@Override public Object getResult() {
+											return null;
+										}
+										@Override public String getMessage() {
+											return "";
+										}
+										@Override public int getCode() {
+											return diu.status;
+										}
+									};
+									callbacks.get(i).runCallback(res);
+								}
+							}
+						}
 					} catch (IOException e) {
 						TraceUtils.trace(TraceUtils.STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
@@ -239,10 +266,20 @@ public class DownloadUtils implements IUtils
 			}
 		});
 		t.start();
-		t.join();
-		return diu.status;
 	}
 	
+	public boolean addCallback(ICallback c)
+	{
+		return callbacks.add(c);
+	}
+	public boolean removeCallback(ICallback c)
+	{
+		return callbacks.remove(c);
+	}
+	public void removeAllCallbacks()
+	{
+		callbacks.clear();
+	}
 	
 	public void addStatusListener( IUtils parent, IUtilsInfo func ) throws IOException
 	{

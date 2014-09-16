@@ -2,7 +2,9 @@ package weave.configs;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
+import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class Config implements IConfig
@@ -38,13 +40,15 @@ public class Config implements IConfig
 	}
 
 	@Override
-	public void loadConfig() {
+	public boolean loadConfig() {
 		LOADED = true;
+		return true;
 	}
 
 	@Override
-	public void unloadConfig() {
+	public boolean unloadConfig() {
 		LOADED = false;
+		return true;
 	}
 
 	@Override public String getConfigName() 			{ return 	CONFIG_NAME; }
@@ -81,5 +85,25 @@ public class Config implements IConfig
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
 		setPort(i);
+	}
+	
+	@Override public String toString() {
+		String ret = "\nIConfig: " + getConfigName() + "\n";
+		try {
+			ret += ("\tWebapps: " + (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "Not Set") + "\n");
+			ret += ("\tPort: " + getPort() + "\n");
+			ret += ("\tLoaded: " + ( isConfigLoaded() ? "TRUE" : "FALSE") + "\n");
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		return ret;
 	}
 }

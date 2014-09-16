@@ -21,6 +21,7 @@ package weave.configs;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -49,18 +50,24 @@ public class MySQL extends Config
 	@Override public void initConfig()
 	{
 		super.initConfig();
+		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
+		
 		try {
 			Class<?>[] argClasses = { Object.class };
 			Object[] args = { "PORT" };
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"get", "3306", argClasses, args)));
+					savedCFG, "get", "3306", argClasses, args)));
 			
 			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
+
+			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
+					new Class<?>[] { Object.class }, 
+					new Object[] { "ACTIVE" }) )
+				loadConfig();
 			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -85,20 +92,23 @@ public class MySQL extends Config
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}
-	@Override public void loadConfig() 
+	@Override public boolean loadConfig() 
 	{
-		if( ConfigManager.getConfigManager().setDatabase(_instance) )
+		boolean result = ConfigManager.getConfigManager().setDatabase(_instance); 
+		if( result )
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
 					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
+		return result;
 	}
 
-	@Override public void unloadConfig()
+	@Override public boolean unloadConfig()
 	{
-		ConfigManager.getConfigManager().setDatabase(null);
+		boolean result = ConfigManager.getConfigManager().setDatabase(null);
 		super.unloadConfig();
+		return result;
 	}
 }

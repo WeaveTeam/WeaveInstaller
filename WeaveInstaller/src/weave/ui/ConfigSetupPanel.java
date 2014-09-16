@@ -38,21 +38,29 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 
 import weave.Settings;
+import weave.callbacks.ICallback;
+import weave.callbacks.ICallbackResult;
 import weave.configs.IConfig;
 import weave.configs.Jetty;
 import weave.configs.SQLite;
 import weave.inc.SetupPanel;
+import weave.includes.IUtilsInfo;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
+import weave.utils.DownloadUtils;
+import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
+import weave.utils.ZipUtils;
 
 @SuppressWarnings("serial")
 public class ConfigSetupPanel extends SetupPanel
@@ -66,6 +74,7 @@ public class ConfigSetupPanel extends SetupPanel
 	public JLabel				servletWebappsLabel,	servletPortLabel,			databasePortLabel;
 	public JLabel				reviewServletTitleLabel, reviewDatabaseTitleLabel;
 	public JLabel				reviewServletPortLabel,	reviewServletWebappsLabel, 	reviewDatabasePortLabel;
+	public JProgressBar			servletProgressBar;
 	public JTextField			servletBrowserPath,		servletPortInput,			databasePortInput;
 	public JTextField			reviewServletPortInput, reviewServletWebappsInput, 	reviewDatabasePortInput;
 	public JFileChooser			servletFileChooser;
@@ -102,6 +111,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
 		
+		int activeServletIndex = 0;
 		
 		// Title
 		JLabel title = new JLabel("Select Servlet");
@@ -117,8 +127,12 @@ public class ConfigSetupPanel extends SetupPanel
 		servletCombo.setEnabled(true);
 		servletCombo.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		
-		for( int i = 0; i < servlets.size(); i++ ) 
-			servletCombo.addItem(servlets.get(i).getConfigName());
+		for( int i = 0; i < servlets.size(); i++ ) {
+			IConfig cfg = servlets.get(i);
+			servletCombo.addItem(cfg.getConfigName());
+			if( cfg.isConfigLoaded() )
+				activeServletIndex = i;
+		}
 		
 		servletCombo.addActionListener(new ActionListener() {
 			@Override
@@ -140,7 +154,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Description
 		servletDesc = new JEditorPane();
-		servletDesc.setBounds(110, 60, 210, 100);
+		servletDesc.setBounds(110, 60, 210, 85);
 		servletDesc.setEditable(false);
 		servletDesc.setContentType("text/html");
 		servletDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -169,10 +183,21 @@ public class ConfigSetupPanel extends SetupPanel
 		});
 		panel.add(servletDesc);
 
+		// Progress bar
+		servletProgressBar = new JProgressBar();
+		servletProgressBar.setBounds(20, 150, 310, 20);
+		servletProgressBar.setMinimum(0);
+		servletProgressBar.setMaximum(100);
+		servletProgressBar.setValue(0);
+		servletProgressBar.setStringPainted(true);
+		servletProgressBar.setString("");
+		servletProgressBar.setIndeterminate(true);
+		servletProgressBar.setVisible(false);
+		panel.add(servletProgressBar);
 		
 		// Warning
 		servletWarning = new JEditorPane();
-		servletWarning.setBounds(20, 160, 310, 60);
+		servletWarning.setBounds(20, 180, 310, 60);
 		servletWarning.setEditable(false);
 		servletWarning.setContentType("text/html");
 		servletWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -272,8 +297,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		
 		// Apply default values
-		servletCombo.setSelectedIndex(0);
-		
+		servletCombo.setSelectedIndex(activeServletIndex);
 		
 		return panel;
 	}
@@ -286,6 +310,8 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.setLayout(null);
 		panel.setBounds(0, 0, 350, 325);
 		panel.setBackground(new Color(0xFFFFFF));
+		
+		int activeDatabaseIndex = 0;
 		
 		// Title
 		JLabel title = new JLabel("Select Database");
@@ -301,8 +327,12 @@ public class ConfigSetupPanel extends SetupPanel
 		databaseCombo.setEnabled(true);
 		databaseCombo.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		
-		for( int i = 0; i < databases.size(); i++ )
-			databaseCombo.addItem(databases.get(i).getConfigName());
+		for( int i = 0; i < databases.size(); i++ ) {
+			IConfig cfg = databases.get(i);
+			databaseCombo.addItem(cfg.getConfigName());
+			if( cfg.isConfigLoaded() )
+				activeDatabaseIndex = i;
+		}
 		
 		databaseCombo.addActionListener(new ActionListener() {
 			@Override
@@ -356,7 +386,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Warning
 		databaseWarning = new JEditorPane();
-		databaseWarning.setBounds(20, 160, 310, 60);
+		databaseWarning.setBounds(20, 180, 310, 60);
 		databaseWarning.setEditable(false);
 		databaseWarning.setContentType("text/html");
 		databaseWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -403,8 +433,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(databasePortInput);
 		
 		// Apply default values
-		databaseCombo.setSelectedIndex(0);
-		
+		databaseCombo.setSelectedIndex(activeDatabaseIndex);
 		
 		return panel;
 	}
@@ -437,25 +466,25 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewServletImage);
 		
 		reviewServletPortLabel = new JLabel("Port: ");
-		reviewServletPortLabel.setBounds(20, 90, 80, 25);
+		reviewServletPortLabel.setBounds(20, 90, 70, 25);
 		reviewServletPortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewServletPortLabel.setVisible(true);
 		panel.add(reviewServletPortLabel);
 		
 		reviewServletPortInput = new JTextField();
-		reviewServletPortInput.setBounds(100, 90, 100, 25);
+		reviewServletPortInput.setBounds(90, 90, 100, 25);
 		reviewServletPortInput.setVisible(true);
 		reviewServletPortInput.setEditable(false);
 		panel.add(reviewServletPortInput);
 
 		reviewServletWebappsLabel = new JLabel("Webapps: ");
-		reviewServletWebappsLabel.setBounds(20, 120, 80, 25);
+		reviewServletWebappsLabel.setBounds(20, 120, 70, 25);
 		reviewServletWebappsLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewServletWebappsLabel.setVisible(true);
 		panel.add(reviewServletWebappsLabel);
 		
 		reviewServletWebappsInput = new JTextField();
-		reviewServletWebappsInput.setBounds(100, 120, 230, 25);
+		reviewServletWebappsInput.setBounds(90, 120, 240, 25);
 		reviewServletWebappsInput.setVisible(true);
 		reviewServletWebappsInput.setEditable(false);
 		panel.add(reviewServletWebappsInput);
@@ -473,13 +502,13 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewDatabaseImage);
 		
 		reviewDatabasePortLabel = new JLabel("Port: ");
-		reviewDatabasePortLabel.setBounds(20, 200, 80, 25);
+		reviewDatabasePortLabel.setBounds(20, 200, 70, 25);
 		reviewDatabasePortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewDatabasePortLabel.setVisible(true);
 		panel.add(reviewDatabasePortLabel);
 		
 		reviewDatabasePortInput = new JTextField();
-		reviewDatabasePortInput.setBounds(100, 200, 100, 25);
+		reviewDatabasePortInput.setBounds(90, 200, 100, 25);
 		reviewDatabasePortInput.setVisible(true);
 		reviewDatabasePortInput.setEditable(false);
 		panel.add(reviewDatabasePortInput);
@@ -563,24 +592,199 @@ public class ConfigSetupPanel extends SetupPanel
 	
 	public boolean savePanelInput()
 	{
+		IConfig servletConfig = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
+		IConfig databaseConfig = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+		
+		ConfigManager.getConfigManager().unloadAllConfigs();
+		servletConfig.loadConfig();
+		databaseConfig.loadConfig();
+		
 		return ConfigManager.getConfigManager().save();
 	}
 	public boolean savePanelInput(int panelIndex)
 	{
-		IConfig config = null;
+		final ConfigInternals ci = new ConfigInternals();
+		ci.config = null;
+		boolean result = true;
 		
 		switch (panelIndex) {
 			case 0:
-				config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
-				config.setPort(servletPortInput.getText());
+				ci.config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
+				ci.config.setPort(servletPortInput.getText());
 				if( servletBrowserPath.isVisible() )
-					config.setWebappsDirectory(servletBrowserPath.getText());
+					ci.config.setWebappsDirectory(servletBrowserPath.getText());
+				
+				// Special Jetty case
+				if( ci.config.getConfigName().equals(Jetty.NAME) )
+				{
+					if( !ci.config.getWebappsDirectory().exists() )
+					{
+						result = false;
+						if( Settings.isOfflineMode() )
+						{
+							JOptionPane.showMessageDialog(null, 
+									ci.config.getConfigName() + " is not currently installed.\n\n" + 
+									"Please make sure the provided " + ci.config.getConfigName() + ".zip exists on your desktop\n" + 
+									"so it can be properly installed. Press OK to continue.", "Install Plugin", JOptionPane.INFORMATION_MESSAGE);
+							final File source = new File(Settings.DESKTOP_DIRECTORY, ci.config.getConfigName() + ".zip");
+							final File destination = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, ci.config.getConfigName());
+							
+							if( !source.exists() )
+							{
+								JOptionPane.showMessageDialog(null, "Could not find " + ci.config.getConfigName() + ".zip on the desktop.", "Missing File", JOptionPane.ERROR_MESSAGE);
+								return false;
+							}
+							else
+							{
+								// Only way to get here is if the previous install failed
+								// So we should delete the directory anyway
+								FileUtils.recursiveDelete(destination);
+								destination.mkdirs();
+							
+								IUtilsInfo zipInfo = new IUtilsInfo() {
+									@Override
+									public void onProgressUpdate() {
+										SwingUtilities.invokeLater(new Runnable() {
+											@Override
+											public void run() {
+												servletProgressBar.setValue(info.progress);
+											}
+										});
+									}
+								};
+								ICallback callback = new ICallback() {
+									@Override
+									public void runCallback(ICallbackResult res) {
+										if( ci.config.getWebappsDirectory().exists() )
+											JOptionPane.showMessageDialog(null, 
+													ci.config.getConfigName() + " has been installed successfully.\n\n" +
+													"Click Next to continue.",
+													"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
+										else
+											JOptionPane.showMessageDialog(null, 
+													ci.config.getConfigName() + " install failed.\n\n" +
+													"Reason: Bad Zip File",
+													"Install Failed", JOptionPane.ERROR_MESSAGE);
+										
+										servletProgressBar.setVisible(false);
+										servletProgressBar.setIndeterminate(true);
+									}
+								};
+								
+								try {
+									servletProgressBar.setString("Installing...");
+									servletProgressBar.setVisible(true);
+									Thread.sleep(1000);
+									servletProgressBar.setIndeterminate(false);
+									
+									ZipUtils z = new ZipUtils();
+									z.addCallback(callback);
+									z.addStatusListener(null, zipInfo, source);
+									z.extractZipWithInfo(source, destination);
+									
+								} catch (InterruptedException e) {
+									TraceUtils.trace(TraceUtils.STDERR, e);
+									BugReportUtils.showBugReportDialog(e);
+								}
+							}
+						}
+						else
+						{
+							int choice = JOptionPane.showConfirmDialog(null, 
+									ci.config.getConfigName() + " is not currently installed.\n\n" +
+									"Would you like to download it now?", 
+									"Download Plugin", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
+							if( choice == JOptionPane.YES_OPTION )
+							{
+								String jettyURL = ci.config.getURL();
+								final File zipDest = new File(Settings.DOWNLOADS_DIRECTORY, ci.config.getConfigName() + ".zip");
+								final File extractDest = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, ci.config.getConfigName());
+							
+								final DownloadUtils du = new DownloadUtils();
+								IUtilsInfo downloadInfo = new IUtilsInfo() {
+									@Override
+									public void onProgressUpdate() {
+										servletProgressBar.setValue(info.progress);
+									}
+								};
+								ICallback downloadCallback = new ICallback() {
+									@Override
+									public void runCallback(ICallbackResult res) {
+										int resultCode = res.getCode();
+										
+										du.removeAllCallbacks();
+										du.removeStatusListener();
+										
+										if( resultCode == DownloadUtils.COMPLETE )
+										{
+											final ZipUtils zu = new ZipUtils();
+											IUtilsInfo zipInfo = new IUtilsInfo() {
+												@Override
+												public void onProgressUpdate() {
+													servletProgressBar.setValue(info.progress);
+												}
+											};
+											ICallback zipCallback = new ICallback() {
+												@Override
+												public void runCallback(ICallbackResult res) {
+													zu.removeAllCallbacks();
+													zu.removeStatusListener();
+													
+													servletProgressBar.setVisible(false);
+													servletProgressBar.setIndeterminate(false);
+
+													if( ci.config.getWebappsDirectory().exists() )
+														JOptionPane.showMessageDialog(null, 
+																ci.config.getConfigName() + " has been installed successfully.",
+																"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
+													else
+														JOptionPane.showMessageDialog(null, 
+																ci.config.getConfigName() + " install failed.\n\n" +
+																"Reason: Bad Zip File",
+																"Install Failed", JOptionPane.ERROR_MESSAGE);
+												}
+											};
+											try {
+												servletProgressBar.setString("Installing...");
+												
+												zu.addCallback(zipCallback);
+												zu.addStatusListener(null, zipInfo, zipDest);
+												zu.extractZipWithInfo(zipDest, extractDest);
+											} catch (InterruptedException e) {
+												TraceUtils.trace(TraceUtils.STDERR, e);
+												BugReportUtils.showBugReportDialog(e);
+											}
+										}
+									}
+								};
+								try {
+									servletProgressBar.setString("Downloading...");
+									servletProgressBar.setVisible(true);
+									Thread.sleep(1000);
+									servletProgressBar.setIndeterminate(false);
+									servletProgressBar.setValue(0);
+									
+									du.addCallback(downloadCallback);
+									du.addStatusListener(null, downloadInfo);
+									du.downloadWithInfo(jettyURL, zipDest);
+								} catch (IOException e) {
+									TraceUtils.trace(TraceUtils.STDERR, e);
+									BugReportUtils.showBugReportDialog(e);
+								} catch (InterruptedException e) {
+									TraceUtils.trace(TraceUtils.STDERR, e);
+									BugReportUtils.showBugReportDialog(e);
+								}
+							}
+						}
+					}
+				}
 				break;
 	
 			case 1:
-				config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+				ci.config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
 				if( databasePortInput.isVisible() )
-					config.setPort(databasePortInput.getText());
+					ci.config.setPort(databasePortInput.getText());
 				break;
 	
 			case 2:
@@ -589,7 +793,7 @@ public class ConfigSetupPanel extends SetupPanel
 			default:
 				break;
 		}
-		return true;
+		return result;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -689,4 +893,9 @@ public class ConfigSetupPanel extends SetupPanel
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
+	
+	class ConfigInternals
+	{
+		IConfig config;
+	}
 }

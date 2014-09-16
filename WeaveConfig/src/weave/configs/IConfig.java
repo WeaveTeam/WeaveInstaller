@@ -25,8 +25,8 @@ import java.io.File;
 public interface IConfig 
 {
 	public void initConfig();
-	public void loadConfig();
-	public void unloadConfig();
+	public boolean loadConfig();
+	public boolean unloadConfig();
 	public boolean isConfigLoaded();
 	
 	public String getConfigName();

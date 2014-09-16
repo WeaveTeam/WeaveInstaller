@@ -69,12 +69,14 @@ public class WeaveStats extends JPanel
 	 */
 	public void refresh(int _status)
 	{
-		if( _status == UpdateUtils.UPDATE_AVAILABLE )
-		{
+		if( _status == UpdateUtils.UPDATE_AVAILABLE ) {
 			status.setText("Update Available");
 			status.setForeground(new Color(0x004F00));
-		} else if( _status == UpdateUtils.NO_UPDATE_AVAILABLE ){
+		} else if( _status == UpdateUtils.NO_UPDATE_AVAILABLE ) {
 			status.setText("Up to Date");
+			status.setForeground(Color.BLACK);
+		} else if( _status == UpdateUtils.UPDATE_OFFLINE ) {
+			status.setText("Offline...");
 			status.setForeground(Color.BLACK);
 		} else {
 			status.setText("Updating Error");

@@ -443,14 +443,19 @@ public class Installer extends JFrame
 					if( SP_config.isLastPanel() )
 					{
 						SP_config.savePanelInput();
+						if( !Settings.CONFIGURED ) {
+							Settings.CONFIGURED = true;
+							Settings.save();
+						}
 						switchToHomeSetupPanel();
 					}
 					else
 					{
 						if( !SP_config.validatePanelInput(SP_config.getCurrentPanelIndex()) )
 							return;
+						if( !SP_config.savePanelInput(SP_config.getCurrentPanelIndex()) )
+							return;
 						
-						SP_config.savePanelInput(SP_config.getCurrentPanelIndex());
 						SP_config.nextPanel();
 						
 						if( SP_config.isLastPanel() ) {

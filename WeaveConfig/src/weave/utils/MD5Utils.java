@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 
 public class MD5Utils implements IUtils
@@ -42,5 +43,17 @@ public class MD5Utils implements IUtils
 		while( ret.length() < 32 )
 			ret = "0" + ret;
 		return ret;
+	}
+	
+	@Override
+	public boolean addCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public boolean removeCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public void removeAllCallbacks() {
 	}
 }

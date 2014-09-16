@@ -19,7 +19,12 @@
 
 package weave.includes;
 
+import weave.callbacks.ICallback;
+
 public interface IUtils 
 {
 	public String getID();
+	public boolean addCallback(ICallback c);
+	public boolean removeCallback(ICallback c);
+	public void removeAllCallbacks();
 }

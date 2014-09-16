@@ -21,6 +21,7 @@ package weave.configs;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -49,18 +50,18 @@ public class Tomcat extends Config
 	@Override public void initConfig()
 	{
 		super.initConfig();
+		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
+		
 		try {
 			Class<?>[] argClasses = { Object.class };
 			Object[] argsWebapps = { "WEBAPPS" };
 			Object[] argsPort = { "PORT" };
 			
 			setWebappsDirectory((String)ObjectUtils.ternary(
-					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"get", "", argClasses, argsWebapps));
+					savedCFG, "get", "", argClasses, argsWebapps));
 			
 			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName()),
-					"get", "8080", argClasses, argsPort)));
+					savedCFG, "get", "8080", argClasses, argsPort)));
 
 			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
 							"that provides a pure Java HTTP web server environment for " +
@@ -68,6 +69,12 @@ public class Tomcat extends Config
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application " +
 						"found <a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
+
+			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
+					new Class<?>[] { Object.class }, 
+					new Object[] { "ACTIVE" }) )
+				loadConfig();
+			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -89,20 +96,23 @@ public class Tomcat extends Config
 		}
 	}
 
-	@Override public void loadConfig() 
+	@Override public boolean loadConfig() 
 	{
-		if( ConfigManager.getConfigManager().setContainer(_instance) )
+		boolean result = ConfigManager.getConfigManager().setContainer(_instance); 
+		if( result )
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
 					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
+		return result;
 	}
 
-	@Override public void unloadConfig() 
+	@Override public boolean unloadConfig() 
 	{
-		ConfigManager.getConfigManager().setContainer(null);
+		boolean result = ConfigManager.getConfigManager().setContainer(null);
 		super.unloadConfig();
+		return result;
 	}
 }

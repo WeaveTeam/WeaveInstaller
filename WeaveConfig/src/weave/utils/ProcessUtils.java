@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import weave.callbacks.ICallback;
 import weave.includes.IUtils;
 
 public class ProcessUtils implements IUtils
@@ -72,6 +73,18 @@ public class ProcessUtils implements IUtils
 			currentThread.interrupt();
 			currentThread = null;
 		}
+	}
+
+	@Override
+	public boolean addCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public boolean removeCallback(ICallback c) {
+		return false;
+	}
+	@Override
+	public void removeAllCallbacks() {
 	}
 }
 
