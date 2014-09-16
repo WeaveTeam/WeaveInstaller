@@ -31,14 +31,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import weave.callbacks.ICallback;
+import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
 public class ZipUtils implements IUtils
 {
 	private IUtilsInfo _func = null;
-	private List<ICallback> callbacks = null;
+	private List<IAsyncCallback> callbacks = null;
 	
 	private static ZipUtils _instance = null;
 	private static ZipUtils instance()
@@ -50,7 +50,7 @@ public class ZipUtils implements IUtils
 	
 	public ZipUtils()
 	{
-		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
+		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
 	}
 	
 	@Override
@@ -122,7 +122,7 @@ public class ZipUtils implements IUtils
 					if( callbacks != null ) {
 						synchronized (callbacks) {
 							for( int i = 0; i < callbacks.size(); i++ )
-								callbacks.get(i).runCallback(null);
+								callbacks.get(i).run(null);
 						}
 					}
 					
@@ -169,11 +169,11 @@ public class ZipUtils implements IUtils
 		return 0;
 	}
 	
-	public boolean addCallback(ICallback c)
+	public boolean addCallback(IAsyncCallback c)
 	{
 		return callbacks.add(c);
 	}
-	public boolean removeCallback(ICallback c)
+	public boolean removeCallback(IAsyncCallback c)
 	{
 		return callbacks.remove(c);
 	}

@@ -21,6 +21,7 @@ package weave.utils;
 
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,7 +111,7 @@ public class UpdateUtils
 		}
 	}
 	
-	public static String getWeaveUpdateFileName() throws InterruptedException
+	public static String getWeaveUpdateFileName() throws InterruptedException, MalformedURLException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
@@ -126,7 +127,7 @@ public class UpdateUtils
 		return header.substring(index + search.length());
 	}
 	
-	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException
+	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException, MalformedURLException
 	{
 		if( Settings.isOfflineMode() )
 			return UPDATE_OFFLINE;

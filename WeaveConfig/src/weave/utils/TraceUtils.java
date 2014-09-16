@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import weave.Settings;
-import weave.callbacks.ICallback;
+import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class TraceUtils implements IUtils 
@@ -149,11 +149,11 @@ public class TraceUtils implements IUtils
 	}
 
 	@Override
-	public boolean addCallback(ICallback c) {
+	public boolean addCallback(IAsyncCallback c) {
 		return false;
 	}
 	@Override
-	public boolean removeCallback(ICallback c) {
+	public boolean removeCallback(IAsyncCallback c) {
 		return false;
 	}
 	@Override

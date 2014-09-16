@@ -1,6 +1,6 @@
-package weave.callbacks;
+package weave.async;
 
-public interface ICallbackResult 
+public interface IAsyncCallbackResult 
 {
 	public int getCode();
 	public Object getResult();

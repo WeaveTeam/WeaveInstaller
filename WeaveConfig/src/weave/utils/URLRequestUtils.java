@@ -107,37 +107,27 @@ public class URLRequestUtils
 		return uri._str;
 	}
 	
-	public static String getContentHeader(final String url, final String field) throws InterruptedException
+	public static String getContentHeader(final String url, final String field) throws InterruptedException, MalformedURLException
+	{
+		return getContentHeader(new URL(url), field);
+	}
+	public static String getContentHeader(final URL url, final String field) throws InterruptedException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
 		
-		final URLRequestInternals uri = new URLRequestInternals();
-		
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL urlObj = null;
-				HttpURLConnection conn = null;
-				try {
-					urlObj = new URL(url);
-					conn = (HttpURLConnection) urlObj.openConnection();
-					conn.setInstanceFollowRedirects(true);
-					conn.setRequestMethod("GET");
-					conn.connect();
-					
-					uri._str = conn.getHeaderField(field);
+		try {
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setInstanceFollowRedirects(true);
+			conn.setRequestMethod("GET");
+			conn.connect();
+			
+			return conn.getHeaderField(field);
 
-				} catch (MalformedURLException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				}
-			}
-		});
-		t.start();
-		t.join();
-		return uri._str;
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		return null;
 	}
 	
 	static class URLRequestInternals

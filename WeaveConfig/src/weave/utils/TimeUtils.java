@@ -2,7 +2,7 @@ package weave.utils;
 
 import java.util.concurrent.TimeUnit;
 
-import weave.callbacks.ICallback;
+import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class TimeUtils implements IUtils
@@ -41,11 +41,11 @@ public class TimeUtils implements IUtils
 	}
 
 	@Override
-	public boolean addCallback(ICallback c) {
+	public boolean addCallback(IAsyncCallback c) {
 		return false;
 	}
 	@Override
-	public boolean removeCallback(ICallback c) {
+	public boolean removeCallback(IAsyncCallback c) {
 		return false;
 	}
 	@Override

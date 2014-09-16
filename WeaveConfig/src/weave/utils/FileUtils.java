@@ -22,17 +22,24 @@ package weave.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import weave.callbacks.ICallback;
+import weave.async.AsyncMonitor;
+import weave.async.AsyncObserver;
+import weave.async.AsyncTask;
+import weave.async.IAsyncCallback;
+import weave.async.IAsyncCallbackResult;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
@@ -42,13 +49,14 @@ public class FileUtils implements IUtils
 	public static final int OPTION_SINGLE_FILE 		= ( 1 << 2 );
 	public static final int OPTION_MULTIPLE_FILES 	= ( 1 << 3 );
 	private static final int OPTION_DEFAULT			= OPTION_SINGLE_FILE;
+	private static final int BUFFER_SIZE			= 8 * 1024;
 	
 	public static final int FAILED					= 0;
 	public static final int COMPLETE				= 1;
 	public static final int CANCELLED				= 2;
 	
 	private IUtilsInfo _func = null;
-	private List<ICallback> callbacks = null;
+	private List<IAsyncCallback> callbacks = null;
 	
 	private static FileUtils _instance = null;
 	private static FileUtils instance()
@@ -60,7 +68,7 @@ public class FileUtils implements IUtils
 	
 	public FileUtils()
 	{
-		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
+		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
 	}
 	
 	@Override
@@ -279,7 +287,29 @@ public class FileUtils implements IUtils
 		return ret;
 	}
 
+	
+	public static long copy1(InputStream in, OutputStream out) throws IOException
+	{
+		return copy1(in, out, null);
+	}
+	public static long copy1(InputStream in, OutputStream out, AsyncObserver observer) throws IOException
+	{
+		int n;
+		long size = 0L;
+		byte[] buf = new byte[BUFFER_SIZE];
+		
+		while( (n = in.read(buf)) > 0 ) {
+			out.write(buf, 0, n);
+			size += n;
 
+			if( observer != null ) {
+				observer.info.cur += n;
+				observer.info.percent = (int) (observer.info.cur * 100 / observer.info.max);
+				observer.onUpdate();
+			}
+		}
+		return size;
+	}
 	/*
 	 * FileUtils.copyWithInfo( source, destination, flags )
 	 * 
@@ -292,11 +322,11 @@ public class FileUtils implements IUtils
 	 * IF flags & SINGLE_FILE
 	 * 		stats will be ( bytes moved / total bytes )
 	 */
-	public int copyWithInfo(String source, String destination, int flags) throws IOException, InterruptedException
+	public void copyWithInfo(String source, String destination, int flags) throws IOException, InterruptedException
 	{
-		return copyWithInfo(new File(source), new File(destination), flags);
+		copyWithInfo(new File(source), new File(destination), flags, 0);
 	}
-	public int copyWithInfo(File source, File destination, int flags) throws IOException, InterruptedException
+	public void copyWithInfo(File source, File destination, int flags) throws IOException, InterruptedException
 	{
 		FileInternalUtils fiu = new FileInternalUtils();
 		fiu.status = COMPLETE;
@@ -332,7 +362,56 @@ public class FileUtils implements IUtils
 		}
 		return fiu.status;
 	}
-	public int copyWithInfo(final InputStream in, final OutputStream out, final int flags) throws InterruptedException
+	public void copyWithInfo(File source, File destination, int flags, int level) throws IOException, InterruptedException
+	{
+		FileInternalUtils fiu = new FileInternalUtils();
+		fiu.status = COMPLETE;
+		
+		if( source.isDirectory() )
+		{
+			if( !destination.exists() )
+				destination.mkdirs();
+			
+			String[] files = source.list();
+			for( String file : files )
+				copyWithInfo(new File(source, file), new File(destination, file), flags, ++level);
+		}
+		else
+		{
+			InputStream in = new FileInputStream(source);
+			OutputStream out = new FileOutputStream(destination);
+			
+			if( destination.exists() )
+				if( (flags & OVERWRITE) != 0 )
+					destination.delete();
+				else
+					fiu.status &= FAILED;
+
+			destination.createNewFile();
+			
+			copyWithInfo(in, out, flags);
+		}
+		
+		if( callbacks != null && level == 0 )
+		{
+			for( int i = 0; i < callbacks.size(); i++ )
+			{
+				IAsyncCallbackResult res = new IAsyncCallbackResult() {
+					@Override public Object getResult() {
+						return null;
+					}
+					@Override public String getMessage() {
+						return null;
+					}
+					@Override public int getCode() {
+						return 0;
+					}
+				};
+				callbacks.get(i).run(res);
+			}
+		}
+	}
+	public void copyWithInfo(final InputStream in, final OutputStream out, final int flags) throws InterruptedException
 	{
 		final FileInternalUtils fiu = new FileInternalUtils();
 		fiu.status = COMPLETE;
@@ -341,27 +420,19 @@ public class FileUtils implements IUtils
 			@Override
 			public void run() {
 				try {
-					long length = 0;
-					byte[] buffer = new byte[4*1024*1024];
+					int n = 0;
+					byte[] buffer = new byte[BUFFER_SIZE];
 					
-					while (in.read(buffer) > 0)
+					while ((n = in.read(buffer)) > 0)
 					{
-						length = buffer.length;
-						out.write(buffer);
-						out.flush();
-						
-						if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) ) 	updateInfo(length, _func.info.max);
+						out.write(buffer, 0, n);
+
+						if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) ) 	updateInfo(n, _func.info.max);
 					}
+					out.flush();
 
 					if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) )		setInfo(_func.info.max, _func.info.max);
 					
-					if( callbacks != null && ((flags & OPTION_SINGLE_FILE) != 0) )
-					{
-						synchronized (callbacks) {
-							for( int i = 0; i < callbacks.size(); i++ )
-								callbacks.get(i).runCallback(null);
-						}
-					}
 				} catch(IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					fiu.status = FAILED;
@@ -369,6 +440,26 @@ public class FileUtils implements IUtils
 					try {
 						if( in != null )	in.close();
 						if( out != null )	out.close();
+
+						if( callbacks != null && ((flags & OPTION_SINGLE_FILE) != 0) )
+						{
+							synchronized (callbacks) {
+								for( int i = 0; i < callbacks.size(); i++ ) {
+									IAsyncCallbackResult res = new IAsyncCallbackResult() {
+										@Override public Object getResult() {
+											return null;
+										}
+										@Override public String getMessage() {
+											return null;
+										}
+										@Override public int getCode() {
+											return fiu.status;
+										}
+									};
+									callbacks.get(i).run(res);
+								}
+							}
+						}
 					} catch (IOException e) {
 						TraceUtils.trace(TraceUtils.STDERR, e);
 					}
@@ -376,15 +467,13 @@ public class FileUtils implements IUtils
 			}
 		});
 		t.start();
-		t.join();
-		return fiu.status;
 	}
 	
-	public boolean addCallback(ICallback c)
+	public boolean addCallback(IAsyncCallback c)
 	{
 		return callbacks.add(c);
 	}
-	public boolean removeCallback(ICallback c)
+	public boolean removeCallback(IAsyncCallback c)
 	{
 		return callbacks.remove(c);
 	}

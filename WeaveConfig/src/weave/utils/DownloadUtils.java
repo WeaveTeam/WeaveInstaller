@@ -33,8 +33,9 @@ import java.util.Collections;
 import java.util.List;
 
 import weave.Settings;
-import weave.callbacks.ICallback;
-import weave.callbacks.ICallbackResult;
+import weave.async.AsyncObserver;
+import weave.async.IAsyncCallback;
+import weave.async.IAsyncCallbackResult;
 import weave.includes.IUtils;
 import weave.includes.IUtilsInfo;
 
@@ -51,7 +52,7 @@ public class DownloadUtils implements IUtils
 	public static final int GB			= MB * 1024;
 	
 	private IUtilsInfo _func = null;
-	private List<ICallback> callbacks = null;
+	private List<IAsyncCallback> callbacks = null;
 	
 	private static DownloadUtils _instance = null;
 	private static DownloadUtils instance()
@@ -63,7 +64,7 @@ public class DownloadUtils implements IUtils
 	
 	public DownloadUtils()
 	{
-		callbacks = Collections.synchronizedList(new ArrayList<ICallback>());
+		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
 	}
 	
 	@Override
@@ -110,6 +111,24 @@ public class DownloadUtils implements IUtils
 		instance().downloadWithInfo(url, destination);
 	}
 	
+	
+	public static long download1(URL url, File destination) throws IOException
+	{
+		return download1(url, destination, null);
+	}
+	public static long download1(URL url, File destination, AsyncObserver observer) throws IOException
+	{
+		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+		InputStream in = conn.getInputStream();
+		OutputStream out = new FileOutputStream(destination);
+		
+		long size = FileUtils.copy1(in, out, observer);
+		
+		in.close();
+		out.close();
+		
+		return size;
+	}
 	
 	/*
 	 * DownloadUtils.downloadWithInfo( url, destination )
@@ -243,7 +262,7 @@ public class DownloadUtils implements IUtils
 							synchronized (callbacks) {
 								for( int i = 0; i < callbacks.size(); i++ )
 								{
-									ICallbackResult res = new ICallbackResult() {
+									IAsyncCallbackResult res = new IAsyncCallbackResult() {
 										@Override public Object getResult() {
 											return null;
 										}
@@ -254,7 +273,7 @@ public class DownloadUtils implements IUtils
 											return diu.status;
 										}
 									};
-									callbacks.get(i).runCallback(res);
+									callbacks.get(i).run(res);
 								}
 							}
 						}
@@ -268,11 +287,11 @@ public class DownloadUtils implements IUtils
 		t.start();
 	}
 	
-	public boolean addCallback(ICallback c)
+	public boolean addCallback(IAsyncCallback c)
 	{
 		return callbacks.add(c);
 	}
-	public boolean removeCallback(ICallback c)
+	public boolean removeCallback(IAsyncCallback c)
 	{
 		return callbacks.remove(c);
 	}

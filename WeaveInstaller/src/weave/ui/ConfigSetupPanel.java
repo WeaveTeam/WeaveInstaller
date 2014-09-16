@@ -46,8 +46,8 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 
 import weave.Settings;
-import weave.callbacks.ICallback;
-import weave.callbacks.ICallbackResult;
+import weave.async.IAsyncCallback;
+import weave.async.IAsyncCallbackResult;
 import weave.configs.IConfig;
 import weave.configs.Jetty;
 import weave.configs.SQLite;
@@ -652,9 +652,9 @@ public class ConfigSetupPanel extends SetupPanel
 										});
 									}
 								};
-								ICallback callback = new ICallback() {
+								IAsyncCallback callback = new IAsyncCallback() {
 									@Override
-									public void runCallback(ICallbackResult res) {
+									public void run(Object o) {
 										if( ci.config.getWebappsDirectory().exists() )
 											JOptionPane.showMessageDialog(null, 
 													ci.config.getConfigName() + " has been installed successfully.\n\n" +
@@ -708,10 +708,10 @@ public class ConfigSetupPanel extends SetupPanel
 										servletProgressBar.setValue(info.progress);
 									}
 								};
-								ICallback downloadCallback = new ICallback() {
+								IAsyncCallback downloadCallback = new IAsyncCallback() {
 									@Override
-									public void runCallback(ICallbackResult res) {
-										int resultCode = res.getCode();
+									public void run(Object o) {
+										int resultCode = ((IAsyncCallbackResult)o).getCode();
 										
 										du.removeAllCallbacks();
 										du.removeStatusListener();
@@ -725,9 +725,9 @@ public class ConfigSetupPanel extends SetupPanel
 													servletProgressBar.setValue(info.progress);
 												}
 											};
-											ICallback zipCallback = new ICallback() {
+											IAsyncCallback zipCallback = new IAsyncCallback() {
 												@Override
-												public void runCallback(ICallbackResult res) {
+												public void run(Object o) {
 													zu.removeAllCallbacks();
 													zu.removeStatusListener();
 													

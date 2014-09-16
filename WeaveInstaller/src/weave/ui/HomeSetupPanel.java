@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Timer;
@@ -46,8 +47,8 @@ import javax.swing.event.HyperlinkListener;
 
 import weave.Revisions;
 import weave.Settings;
-import weave.callbacks.ICallback;
-import weave.callbacks.ICallbackResult;
+import weave.async.IAsyncCallback;
+import weave.async.IAsyncCallbackResult;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.includes.IUtilsInfo;
@@ -205,27 +206,10 @@ public class HomeSetupPanel extends SetupPanel
 			public void actionPerformed(ActionEvent a) 
 			{
 				try {
-					TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for new Weave Binaries....");
-
-					Settings.canQuit = false;
-					setButtonsEnabled(false);
-					
-					int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
-					weaveStats.refresh(updateAvailable);
-					refreshProgramatically = false;
-
-					downloadLabel.setText("");
-					progressbar.setIndeterminate(true);
-					progressbar.setString("");
-					progressbar.setValue(0);
-					setButtonsEnabled(true);
-					installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
-					pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-					revisionTable.updateTableData();
-					
-					Settings.canQuit = true;
-					
+					refreshInterface();
 				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (MalformedURLException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 				}
 			}
@@ -244,6 +228,8 @@ public class HomeSetupPanel extends SetupPanel
 					setButtonsEnabled(false);
 					downloadBinaries();
 				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (MalformedURLException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 				}
 			}
@@ -293,7 +279,13 @@ public class HomeSetupPanel extends SetupPanel
 					@Override
 					public void run() {
 						refreshProgramatically = true;
-						refreshButton.doClick();
+						try {
+							refreshInterface();
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (MalformedURLException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						}
 					}
 				}, 1000);
 			}
@@ -322,7 +314,13 @@ public class HomeSetupPanel extends SetupPanel
 					@Override
 					public void run() {
 						refreshProgramatically = true;
-						refreshButton.doClick();
+						try {
+							refreshInterface();
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (MalformedURLException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						}
 					}
 				}, 1000);
 			}
@@ -422,7 +420,7 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 	
-	private void downloadBinaries() throws InterruptedException
+	private void downloadBinaries() throws InterruptedException, MalformedURLException
 	{
 		String url = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
 		if( url == null ) {
@@ -500,10 +498,10 @@ public class HomeSetupPanel extends SetupPanel
 				});
 			}
 		};
-		ICallback downloadCallback = new ICallback() {
+		IAsyncCallback downloadCallback = new IAsyncCallback() {
 			@Override
-			public void runCallback(ICallbackResult res) {
-				int status = res.getCode();
+			public void run(Object o) {
+				int status = ((IAsyncCallbackResult)o).getCode();
 				
 				Settings.downloadCanceled = false;
 				Settings.downloadLocked = false;
@@ -588,9 +586,9 @@ public class HomeSetupPanel extends SetupPanel
 				});
 			}
 		};
-		ICallback zipCallback = new ICallback() {
+		IAsyncCallback zipCallback = new IAsyncCallback() {
 			@Override
-			public void runCallback(ICallbackResult res) {
+			public void run(Object o) {
 
 				zu.removeAllCallbacks();
 				zu.removeStatusListener();
@@ -609,7 +607,7 @@ public class HomeSetupPanel extends SetupPanel
 			
 			Settings.canQuit = false;
 			
-			downloadLabel.setText("Installing update....");
+			downloadLabel.setText("Extracting update....");
 			progressbar.setIndeterminate(false);
 			
 			zu.addCallback(zipCallback);
@@ -640,9 +638,9 @@ public class HomeSetupPanel extends SetupPanel
 				});
 			}
 		};
-		ICallback fileCallback = new ICallback() {
+		IAsyncCallback fileCallback = new IAsyncCallback() {
 			@Override
-			public void runCallback(ICallbackResult res) {
+			public void run(Object o) {
 
 				Settings.canQuit = true;
 				System.gc();
@@ -677,6 +675,30 @@ public class HomeSetupPanel extends SetupPanel
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
+	}
+	private void refreshInterface() throws InterruptedException, MalformedURLException
+	{
+		TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for new Weave Binaries....");
+
+		Settings.canQuit = false;
+		setButtonsEnabled(false);
+		
+		int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
+		weaveStats.refresh(updateAvailable);
+		refreshProgramatically = false;
+
+		Settings.canQuit = true;
+		
+		downloadLabel.setVisible(false);
+		downloadLabel.setText("");
+		progressbar.setVisible(false);
+		progressbar.setIndeterminate(true);
+		progressbar.setString("");
+		progressbar.setValue(0);
+		setButtonsEnabled(true);
+		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
+		pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+		revisionTable.updateTableData();
 	}
 	private void setButtonsEnabled(boolean enabled)
 	{

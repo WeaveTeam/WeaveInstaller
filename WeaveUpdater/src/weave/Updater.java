@@ -42,8 +42,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.Settings.UPDATE_TYPE;
-import weave.callbacks.ICallback;
-import weave.callbacks.ICallbackResult;
+import weave.async.IAsyncCallback;
+import weave.async.IAsyncCallbackResult;
 import weave.dll.DLLInterface;
 import weave.includes.IUtilsInfo;
 import weave.managers.TrayManager;
@@ -288,10 +288,10 @@ public class Updater extends JFrame
 					});
 				}
 			};
-			ICallback downloadCallback = new ICallback() {
+			IAsyncCallback downloadCallback = new IAsyncCallback() {
 				@Override
-				public void runCallback(ICallbackResult res) {
-					int resultCode = res.getCode();
+				public void run(Object o) {
+					int resultCode = ((IAsyncCallbackResult)o).getCode();
 
 					Settings.downloadCanceled = false;
 					Settings.downloadLocked = false;
@@ -322,9 +322,9 @@ public class Updater extends JFrame
 									});
 								}
 							};
-							ICallback zipCallback = new ICallback() {
+							IAsyncCallback zipCallback = new IAsyncCallback() {
 								@Override
-								public void runCallback(ICallbackResult res) {
+								public void run(Object o) {
 									try {
 
 										System.gc();
