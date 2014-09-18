@@ -2,15 +2,10 @@ package weave.utils;
 
 import java.util.concurrent.TimeUnit;
 
-import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class TimeUtils implements IUtils
 {
-	@Override public String getID() {
-		return "TimeUtils";
-	}
-	
 	private static TimeInternals parse(long seconds)
 	{
 		TimeInternals ti = new TimeInternals();
@@ -38,18 +33,6 @@ public class TimeUtils implements IUtils
 		}
 		
 		return ret;
-	}
-
-	@Override
-	public boolean addCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public boolean removeCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public void removeAllCallbacks() {
 	}
 }
 

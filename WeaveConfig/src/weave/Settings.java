@@ -174,7 +174,7 @@ public class Settings
 	public static final String WIKI_HELP_PAGE			= "http://info.oicweave.org/projects/weave/wiki/Installer";
 	
 	public static boolean canQuit						= true;
-	public static boolean downloadCanceled				= false;
+	public static boolean transferCancelled				= false;
 	public static boolean downloadLocked				= false;
 	public static boolean isConnectedToInternet			= true;
 

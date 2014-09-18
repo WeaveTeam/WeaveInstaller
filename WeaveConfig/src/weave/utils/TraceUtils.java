@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import weave.Settings;
-import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class TraceUtils implements IUtils 
@@ -43,12 +42,6 @@ public class TraceUtils implements IUtils
 	private static DateFormat tf = new SimpleDateFormat("[hh:mm:ss.SSS a]");
 	
 	private static ArrayList<String> pipes = new ArrayList<String>( Arrays.asList("stdout", "stderr") );
-	
-	@Override
-	public String getID() 
-	{
-		return "TraceUtils";
-	}
 	
 	public static String getStackTrace( Throwable e )
 	{
@@ -146,17 +139,5 @@ public class TraceUtils implements IUtils
 	public static File getLogFile( int pipe )
 	{
 		return new File(Settings.LOGS_DIRECTORY, pipes.get(pipe) + "." + df.format(d) + ".log" );
-	}
-
-	@Override
-	public boolean addCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public boolean removeCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public void removeAllCallbacks() {
 	}
 }

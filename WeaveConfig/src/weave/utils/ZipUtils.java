@@ -23,123 +23,82 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import weave.async.IAsyncCallback;
+import weave.async.AsyncObserver;
 import weave.includes.IUtils;
-import weave.includes.IUtilsInfo;
 
 public class ZipUtils implements IUtils
 {
-	private IUtilsInfo _func = null;
-	private List<IAsyncCallback> callbacks = null;
-	
-	private static ZipUtils _instance = null;
-	private static ZipUtils instance()
-	{
-		if( _instance == null )
-			_instance = new ZipUtils();
-		return _instance;
-	}
-	
-	public ZipUtils()
-	{
-		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
-	}
-	
-	@Override
-	public String getID()
-	{
-		return "ZipUtils";
-	}
-	
-	
-	/*
-	 * ZipUtils.extractZip( zip, destination )
-	 * 
-	 * Will extract a zip file to the destination.
-	 * No stats will be supplied with this extractZip.
-	 */
-	public static void extractZip( String zipFileName, String destination ) throws InterruptedException
-	{
-		instance().extractZipWithInfo(new File(zipFileName), new File(destination));
-	}
-	public static void extractZip( File zipFile, File destination ) throws InterruptedException
-	{
-		instance().extractZipWithInfo(zipFile, destination);
-	}
-	
-	
-	/*
-	 * ZipUtils.extractZipWithInfo( zip, destination )
-	 * 
-	 * Will extract a zip file to the destination
-	 * Stats can be tracked through the `info` object.
-	 */
-	public void extractZipWithInfo( String zipFileName, String destination ) throws InterruptedException
-	{
-		extractZipWithInfo(new File(zipFileName), new File(destination));
-	}
-	public void extractZipWithInfo( final File zipFile, final File destination ) throws InterruptedException
-	{
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ZipFile zip = new ZipFile(zipFile);
-					Enumeration<?> enu = zip.entries();
-					
-					while (enu.hasMoreElements()) 
-					{
-						ZipEntry zipEntry = (ZipEntry) enu.nextElement();
-						String name = zipEntry.getName();
-						File outputFile = new File(destination, name);
-						
-						if( zipEntry.isDirectory() )
-						{
-							if( !outputFile.exists() )	outputFile.mkdirs();
-							if( _func != null )			updateInfo(1, _func.info.max);
-							Thread.sleep(50);
-							continue;
-						}
+	public static final int FAILED		= 0;
+	public static final int COMPLETE	= 1;
+	public static final int CANCELLED	= 2;
 
-						InputStream is = zip.getInputStream(zipEntry);
-						FileOutputStream fos = new FileOutputStream(outputFile);
-						FileUtils.copy(is, fos);
-						
-						if( _func != null )	updateInfo(1, _func.info.max);
-						
-						Thread.sleep(50);
-					}
-					zip.close();
-					
-					if( callbacks != null ) {
-						synchronized (callbacks) {
-							for( int i = 0; i < callbacks.size(); i++ )
-								callbacks.get(i).run(null);
-						}
-					}
-					
-				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				}
-			}
-		});
-		t.start();
+	public static final int NO_FLAGS	= ( 1 << 0 );
+	public static final int OVERWRITE	= ( 1 << 1 );
+	
+	public static int extract( File zipFile, File destination) throws ZipException, IOException, InterruptedException
+	{
+		return extract(zipFile, destination, NO_FLAGS);
+	}
+	public static int extract( File zipFile, File destination, int flags) throws ZipException, IOException, InterruptedException
+	{
+		return extract(zipFile, destination, flags, null);
+	}
+	public static int extract( File zipFile, File destination, int flags, AsyncObserver observer) throws ZipException, IOException, InterruptedException
+	{
+		return extract(zipFile, destination, flags, observer, 0);
 	}
 	
+	/**
+	 * Extract a zip file to the destination location.
+	 * 
+	 * @param zipFile
+	 * @param destination
+	 * @param flags
+	 * @param observer
+	 * @param throttle
+	 * @return
+	 * @throws IOException 
+	 * @throws ZipException 
+	 * @throws InterruptedException 
+	 */
+	public static int extract( File zipFile, File destination, int flags, AsyncObserver observer, int throttle ) throws ZipException, IOException, InterruptedException
+	{
+		if( zipFile == null || destination == null )
+			throw new NullPointerException("Zip File or Destination File cannot be null");
+		
+		assert zipFile != null;
+		assert destination != null;
+		
+		
+		ZipFile zip = new ZipFile(zipFile);
+		Enumeration<?> enu = zip.entries();
+		ZipEntry zipEntry = null;
+
+		while (enu.hasMoreElements()) 
+		{
+			zipEntry = (ZipEntry) enu.nextElement();
+			File outputFile = new File(destination, zipEntry.getName());
+			
+			if( zipEntry.isDirectory() )
+			{
+				if( !outputFile.exists() )	outputFile.mkdirs();
+				continue;
+			}
+
+			InputStream is = zip.getInputStream(zipEntry);
+			FileOutputStream fos = new FileOutputStream(outputFile);
+			FileUtils.copy(is, fos, flags, observer, throttle);
+		}
+		zip.close();
+		
+		return COMPLETE;
+	}
+
 	
 	/*
 	 * ZipUtils.getNumberOfEntriesInZip( zip )
@@ -167,46 +126,5 @@ public class ZipUtils implements IUtils
 		}
 		
 		return 0;
-	}
-	
-	public boolean addCallback(IAsyncCallback c)
-	{
-		return callbacks.add(c);
-	}
-	public boolean removeCallback(IAsyncCallback c)
-	{
-		return callbacks.remove(c);
-	}
-	public void removeAllCallbacks()
-	{
-		callbacks.clear();
-	}
-	
-	public void addStatusListener(IUtils parent, IUtilsInfo func, String zip)
-	{
-		addStatusListener(parent, func, new File(zip));
-	}
-	public void addStatusListener(IUtils parent, IUtilsInfo func, File zip)
-	{
-		_func = func;
-		_func.info.parent = parent;
-		_func.info.min = 0;
-		_func.info.cur = 0;
-		_func.info.max = getNumberOfEntriesInZip(zip);
-		_func.info.progress = 0;
-	}
-	public void removeStatusListener()
-	{
-		_func = null;
-	}
-	private void updateInfo(long cur, long max)
-	{
-		if( _func != null )
-		{
-			_func.info.cur += cur;
-			_func.info.max = max;
-			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
-			_func.onProgressUpdate();
-		}
 	}
 }

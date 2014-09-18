@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class MD5Utils implements IUtils
@@ -19,12 +18,6 @@ public class MD5Utils implements IUtils
 		} catch (NoSuchAlgorithmException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
-	}
-	
-	@Override
-	public String getID()
-	{
-		return "MD5Utils";
 	}
 	
 	public static String hash(String str)
@@ -43,17 +36,5 @@ public class MD5Utils implements IUtils
 		while( ret.length() < 32 )
 			ret = "0" + ret;
 		return ret;
-	}
-	
-	@Override
-	public boolean addCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public boolean removeCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public void removeAllCallbacks() {
 	}
 }

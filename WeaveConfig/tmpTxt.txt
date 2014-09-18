@@ -1,0 +1,10 @@
+WeaveUpdatesURL: http://oicweave.org/.weave/updates.zip ;
+WeaveBinariesURL: https://github.com/IVPR/Weave-Binaries/zipball/master ;
+
+WeaveInstallerVersion: 1.1.0 R2 ;
+WeaveUpdaterVersion: 1.0.1 ;
+
+JettyURL: http://www.oicweave.org/.weave/jetty.zip ;
+JettyVersion: 9.2.2 ;
+
+WeaveShortcutVersion: 1 ;

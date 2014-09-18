@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 
 public class ProcessUtils implements IUtils
@@ -35,15 +34,6 @@ public class ProcessUtils implements IUtils
 	protected static Process proccess = null;
 	
 	private static Thread currentThread = null;
-	
-	public ProcessUtils(){
-	}
-
-	@Override
-	public String getID() {
-		return "ProcessUtils";
-	}
-	
 	
 	public static List<String> runAndWait( List<String> cmds ) throws IOException, InterruptedException
 	{
@@ -73,18 +63,6 @@ public class ProcessUtils implements IUtils
 			currentThread.interrupt();
 			currentThread = null;
 		}
-	}
-
-	@Override
-	public boolean addCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public boolean removeCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public void removeAllCallbacks() {
 	}
 }
 

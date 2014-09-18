@@ -7,12 +7,10 @@ import java.util.List;
 
 public abstract class AsyncTask
 {
-	private List<AsyncObserver> observers = null;
 	private List<IAsyncCallback> callbacks = null;
 	
 	public AsyncTask()
 	{
-		observers = Collections.synchronizedList(new ArrayList<AsyncObserver>());
 		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
 	}
 	
@@ -45,25 +43,6 @@ public abstract class AsyncTask
 	}
 	
 	
-	public boolean addObserver(AsyncObserver o) {
-		return observers.add(o);
-	}
-	public boolean removeObserver(AsyncObserver o) {
-		return observers.remove(o);
-	}
-	public void removeAllObservers() {
-		Iterator<AsyncObserver> it = observers.iterator();
-		while( it.hasNext() )
-			removeObserver(it.next());
-	}
-	
-	
-	public void notifyObservers()
-	{
-		Iterator<AsyncObserver> it = observers.iterator();
-		while( it.hasNext() )
-			it.next().onUpdate();
-	}
 	private void runCallbacks(Object o)
 	{
 		if( callbacks != null )

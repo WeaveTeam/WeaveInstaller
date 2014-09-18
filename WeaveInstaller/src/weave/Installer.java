@@ -588,7 +588,7 @@ public class Installer extends JFrame
 		File oldUpdater = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
 		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
 		
-		return ( newUpdater.exists() ? FileUtils.renameTo(newUpdater, oldUpdater, FileUtils.OVERWRITE) : false );
+		return ( newUpdater.exists() ? FileUtils.move(newUpdater, oldUpdater, FileUtils.OVERWRITE) : false );
 	}
 	//============================================================================================================
 	public void hideAllPanels()

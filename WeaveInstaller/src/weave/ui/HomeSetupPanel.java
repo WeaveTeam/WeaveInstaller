@@ -503,7 +503,7 @@ public class HomeSetupPanel extends SetupPanel
 			public void run(Object o) {
 				int status = ((IAsyncCallbackResult)o).getCode();
 				
-				Settings.downloadCanceled = false;
+				Settings.transferCancelled = false;
 				Settings.downloadLocked = false;
 
 				du.removeAllCallbacks();
@@ -550,7 +550,7 @@ public class HomeSetupPanel extends SetupPanel
 			progressbar.setIndeterminate(true);
 
 			Settings.downloadLocked = true;
-			Settings.downloadCanceled = false;
+			Settings.transferCancelled = false;
 			
 			du.addCallback(downloadCallback);
 			du.addStatusListener(null, downloadInfo);
@@ -668,8 +668,8 @@ public class HomeSetupPanel extends SetupPanel
 		
 		try {
 			fu.addCallback(fileCallback);
-			fu.addStatusListener(null, fileInfo, unzippedFile, FileUtils.OPTION_MULTIPLE_FILES);
-			fu.copyWithInfo(unzippedFile, configWebapps, FileUtils.OPTION_MULTIPLE_FILES);
+			fu.addStatusListener(null, fileInfo, unzippedFile, FileUtils.MULTIPLE_FILES);
+			fu.copyWithInfo(unzippedFile, configWebapps, FileUtils.MULTIPLE_FILES);
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		} catch (InterruptedException e) {

@@ -177,7 +177,7 @@ public class Updater extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if( Settings.downloadLocked )
-					Settings.downloadCanceled = true;
+					Settings.transferCancelled = true;
 				else
 					Settings.shutdown();
 			}
@@ -293,7 +293,7 @@ public class Updater extends JFrame
 				public void run(Object o) {
 					int resultCode = ((IAsyncCallbackResult)o).getCode();
 
-					Settings.downloadCanceled = false;
+					Settings.transferCancelled = false;
 					Settings.downloadLocked = false;
 					
 					try {
@@ -400,7 +400,7 @@ public class Updater extends JFrame
 			};
 			
 			Settings.downloadLocked = true;
-			Settings.downloadCanceled = false;
+			Settings.transferCancelled = false;
 			
 			du.addCallback(downloadCallback);
 			du.addStatusListener(null, downloadInfo);

@@ -31,5 +31,8 @@ public abstract class AsyncObserver
 		public long max;
 		public long cur;
 		public int percent;
+		
+		public int time;
+		public int speed;
 	}
 }

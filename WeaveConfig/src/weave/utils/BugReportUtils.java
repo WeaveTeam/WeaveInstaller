@@ -38,18 +38,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
 import weave.Settings;
-import weave.async.IAsyncCallback;
 import weave.includes.IUtils;
 import weave.ui.BugReportWindow;
 
 public class BugReportUtils implements IUtils
 {
-	@Override
-	public String getID() 
-	{
-		return "BugReportUtils";
-	}
-	
 	public static void autoSubmitBugReport( final Throwable e )
 	{
 		TraceUtils.traceln(TraceUtils.STDOUT, "");
@@ -137,16 +130,5 @@ public class BugReportUtils implements IUtils
 		}
 		
 		TraceUtils.put(TraceUtils.STDOUT, "SENT");
-	}
-	@Override
-	public boolean addCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public boolean removeCallback(IAsyncCallback c) {
-		return false;
-	}
-	@Override
-	public void removeAllCallbacks() {
 	}
 }

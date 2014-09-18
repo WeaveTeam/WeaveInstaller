@@ -25,19 +25,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import weave.Settings;
 import weave.async.AsyncObserver;
-import weave.async.IAsyncCallback;
-import weave.async.IAsyncCallbackResult;
+import weave.async.AsyncTask;
 import weave.includes.IUtils;
-import weave.includes.IUtilsInfo;
 
 public class DownloadUtils implements IUtils
 {
@@ -51,38 +46,40 @@ public class DownloadUtils implements IUtils
 	public static final int MB			= KB * 1024;
 	public static final int GB			= MB * 1024;
 	
-	private IUtilsInfo _func = null;
-	private List<IAsyncCallback> callbacks = null;
-	
-	private static DownloadUtils _instance = null;
-	private static DownloadUtils instance()
-	{
-		if( _instance == null )
-			_instance = new DownloadUtils();
-		return _instance;
-	}
-	
-	public DownloadUtils()
-	{
-		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
-	}
-	
-	@Override
-	public String getID()
-	{
-		return "DownloadUtils";
-	}
-	
-	
-	/*
-	 * DownloadUtils.speedify( speed )
+
+	/**
+	 * Convert a scalar value to a string speed measure
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	DownloadUtils.speedify( 23523523 )	= 22.43 MB/s
+	 * 	DownloadUtils.speedify( 34637 )	= 33.8 KB/s
+	 * </pre>
+	 * </code>
 	 * 
-	 * Convert a scalar value into a downloaded speed measure.
+	 * @param speed The speed of the transfer
+	 * @return The string representation of the transfer speed
 	 */
 	public static String speedify( int speed )
 	{
 		return speedify( (double)speed );
 	}
+	
+	/**
+	 * Convert a scalar value to a string speed measure
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	DownloadUtils.speedify( 23523523 )	= 22.43 MB/s
+	 * 	DownloadUtils.speedify( 34637 )	= 33.8 KB/s
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param speed The speed of the transfer
+	 * @return The string representation of the transfer speed
+	 */
 	public static String speedify( double speed )
 	{
 		int i = 0; 
@@ -94,254 +91,87 @@ public class DownloadUtils implements IUtils
 		}
 		return String.format("%." + i + "f %s", speed, s.get(i));
 	}
-	
-	
-	/*
-	 * DownloadUtils.download( url, destination )
+
+	/**
+	 * Download a file from the URL and save it to the destination location
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	URL url = new URL("http://google.com/some/file.zip");
+	 * 	File dest = new File("/path/to/local/file/", "filename.zip");
+	 * 	
+	 * 	int status = DownloadUtils.download( url, dest );
+	 * </pre>
+	 * </code>
 	 * 
-	 * This will open an input stream to the URL and download the contents to the destination.
-	 * No stats will be supplied with this download.
-	 */
-	public static void download( String url, String destination ) throws IOException, InterruptedException
-	{
-		instance().downloadWithInfo(url, destination);
-	}
-	public static void download( URL url, File destination ) throws IOException, InterruptedException
-	{
-		instance().downloadWithInfo(url, destination);
-	}
-	
-	
-	public static long download1(URL url, File destination) throws IOException
-	{
-		return download1(url, destination, null);
-	}
-	public static long download1(URL url, File destination, AsyncObserver observer) throws IOException
-	{
-		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-		InputStream in = conn.getInputStream();
-		OutputStream out = new FileOutputStream(destination);
-		
-		long size = FileUtils.copy1(in, out, observer);
-		
-		in.close();
-		out.close();
-		
-		return size;
-	}
-	
-	/*
-	 * DownloadUtils.downloadWithInfo( url, destination )
+	 * @param url The URL to access the file(s) from
+	 * @param destination The local file to save the download to
+	 * @return The exit status of the transfer <code>FAILED, COMPLETE, CANCELLED, OFFLINE</code>
 	 * 
-	 * This will open an input stream to the URL and download the contents to the destination.
-	 * Stats can be tracked through the `info` object.
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public void downloadWithInfo( String url, String destination ) throws MalformedURLException, InterruptedException
+	public static int download(URL url, File destination) throws IOException, InterruptedException
 	{
-		downloadWithInfo(url, destination, 0);
-	}
-	public void downloadWithInfo( String url, String destination, long downloadLimit ) throws MalformedURLException, InterruptedException
-	{
-		downloadWithInfo(new URL(url), new File(destination), downloadLimit);
+		return download(url, destination, null);
 	}
 	
-	public void downloadWithInfo( String url, File destination ) throws MalformedURLException, InterruptedException
+	/**
+	 * Download a file from the URL and save it to the destination location
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final URL url = new URL("http://google.com/some/file.zip");
+	 * 	final File dest = new File("/path/to/local/file/", "filename.zip");
+	 * 	
+	 * 	final {@link AsyncObserver} observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// DO STATUS UPDATES HERE
+	 * 			//
+	 * 			progressBar.setValue( info.progress );
+	 * 		}
+	 *	};
+	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *		public Object doInBackground() {
+	 * 			return DownloadUtils.download( url, dest, observer );
+	 *		}
+	 *	};
+	 *	task.execute();
+	 *
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param url The URL to access the file(s) from
+	 * @param destination The local file to save the download to
+	 * @param observer The observer to watch the status of the transfer
+	 * @return The exit status of the transfer <code>FAILED, COMPLETE, CANCELLED, OFFLINE</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int download(URL url, File destination, AsyncObserver observer) throws IOException, InterruptedException
 	{
-		downloadWithInfo(url, destination, 0);
-	}
-	public void downloadWithInfo( String url, File destination, long downloadLimit ) throws MalformedURLException, InterruptedException
-	{
-		downloadWithInfo(new URL(url), destination, downloadLimit);
-	}
-
-	public void downloadWithInfo( URL url, File destination ) throws InterruptedException
-	{
-		downloadWithInfo(url, destination, 0);
-	}
-	public void downloadWithInfo( final URL url, final File destination, final long downloadLimit ) throws InterruptedException
-	{
-		final DownloadInternalUtils diu = new DownloadInternalUtils();
-		diu.status = COMPLETE;
+		HttpURLConnection conn = null;
+		InputStream in = null;
+		OutputStream out = null;
 		
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				HttpURLConnection conn 	= null;
-				InputStream in 			= null;
-				OutputStream out 		= null;
-				
-				try {
-					// Setup the connection to follow redirects
-					conn = (HttpURLConnection) url.openConnection();
-					conn.setInstanceFollowRedirects(true);
-					conn.setRequestMethod("GET");
-					conn.connect();
-
-					// Initialize input and output streams
-					in 	= conn.getInputStream();
-					out = new FileOutputStream(destination);
-					
-					byte buffer[] 		= new byte[1024*4];
-					long sizeOfDownload = conn.getContentLengthLong();
-					int length = 0, cur = 0, kbps = 0, limit = 0, seconds = 0, aveDownSpeed = 1, timeleft = 0;
-					long speedLongNew 	= 0, speedLongOld = System.currentTimeMillis();
-					long cancelLongNew 	= 0, cancelLongOld = System.currentTimeMillis();
-					
-					if( _func != null ) setInfo(0, sizeOfDownload, 60);
-					
-					while( (length = in.read(buffer)) > 0 )
-					{
-						out.write(buffer, 0, length);
-						
-						cur += length;
-						kbps += length;
-						speedLongNew = System.currentTimeMillis();
-						cancelLongNew = System.currentTimeMillis();
-						
-						if( ( speedLongNew - speedLongOld ) > 1000 )
-						{
-							if( _func != null ) _func.info.speed = kbps;
-							kbps = 0;
-							seconds++;
-							speedLongOld = speedLongNew;
-							aveDownSpeed = (cur/KB)/seconds;
-						}
-						
-						// Throttle the check to see if the user has clicked the
-						// cancel button to every 100 milliseconds to stop the download. 
-						if( ( cancelLongNew - cancelLongOld ) > 200 ) {
-							cancelLongOld = cancelLongNew;
-							if( Settings.downloadCanceled == true ) 
-							{
-								diu.status = CANCELLED;
-
-								if( in != null )	in.close();
-								if( out != null )	out.close();
-								return;
-							}
-						}
-						timeleft = (int) ((sizeOfDownload - cur) / aveDownSpeed / KB);
-						updateInfo(length, sizeOfDownload, timeleft);
-						
-						if( downloadLimit > 0 ) 
-						{
-							limit += length;
-							
-							// 1/10th for speedy UI updates
-							if( limit >= ( downloadLimit / 10 ) ) {
-								limit = 0;
-								Thread.sleep(100);
-							}
-						}
-					}
-					out.flush();
-					
-					if( _func != null ) setInfo(sizeOfDownload, sizeOfDownload, 0);
-					
-				} catch ( IOException e ) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-					diu.status = FAILED;
-					return;
-				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-					diu.status = FAILED;
-					return;
-				} finally {
-					try {
-						if( in != null )	in.close();
-						if( out != null )	out.close();
-						
-						if( conn != null ) {
-							conn.disconnect();
-						}
-
-						if( callbacks != null )
-						{
-							synchronized (callbacks) {
-								for( int i = 0; i < callbacks.size(); i++ )
-								{
-									IAsyncCallbackResult res = new IAsyncCallbackResult() {
-										@Override public Object getResult() {
-											return null;
-										}
-										@Override public String getMessage() {
-											return "";
-										}
-										@Override public int getCode() {
-											return diu.status;
-										}
-									};
-									callbacks.get(i).run(res);
-								}
-							}
-						}
-					} catch (IOException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					}
-				}
-			}
-		});
-		t.start();
+		// Check to see if required arguments are non-null
+		if( url == null || destination == null )
+			throw new NullPointerException("URL or Destination File cannot be null");
+		
+		// If no exception was thrown, assert that URL and destination are non-null
+		assert url != null;
+		assert destination != null;
+		
+		if( Settings.isOfflineMode() )
+			return OFFLINE;
+		
+		conn = (HttpURLConnection)url.openConnection();
+		in = conn.getInputStream();
+		out = new FileOutputStream(destination);
+		
+		return FileUtils.copy(in, out, FileUtils.SINGLE_FILE, observer);
 	}
-	
-	public boolean addCallback(IAsyncCallback c)
-	{
-		return callbacks.add(c);
-	}
-	public boolean removeCallback(IAsyncCallback c)
-	{
-		return callbacks.remove(c);
-	}
-	public void removeAllCallbacks()
-	{
-		callbacks.clear();
-	}
-	
-	public void addStatusListener( IUtils parent, IUtilsInfo func ) throws IOException
-	{
-		_func = func;
-		_func.info.parent = parent;
-		_func.info.min = 0;
-		_func.info.cur = 0;
-		_func.info.max = 1;
-		_func.info.speed = 0;
-		_func.info.timeleft = 0;
-		_func.info.progress = 0;
-	}
-	
-	public void removeStatusListener()
-	{
-		_func = null;
-	}
-	
-	private void updateInfo(long cur, long max, int timeleft)
-	{
-		if( _func != null )
-		{
-			_func.info.cur += cur;
-			_func.info.max = max;
-			_func.info.timeleft = timeleft;
-			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
-			_func.onProgressUpdate();
-		}
-	}
-	private void setInfo(long cur, long max, int timeleft)
-	{
-		if( _func != null )
-		{
-			_func.info.cur = cur;
-			_func.info.max = max;
-			_func.info.timeleft = timeleft;
-			_func.info.progress = (int) (_func.info.cur * 100 / _func.info.max);
-			_func.onProgressUpdate();
-		}
-	}
-}
-
-class DownloadInternalUtils
-{
-	int status;
 }
