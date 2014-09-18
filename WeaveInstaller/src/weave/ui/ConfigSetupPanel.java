@@ -26,8 +26,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -40,19 +44,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 
 import weave.Settings;
-import weave.async.IAsyncCallback;
-import weave.async.IAsyncCallbackResult;
+import weave.async.AsyncCallback;
+import weave.async.AsyncObserver;
+import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.configs.Jetty;
 import weave.configs.SQLite;
 import weave.inc.SetupPanel;
-import weave.includes.IUtilsInfo;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
@@ -60,6 +63,7 @@ import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
+import weave.utils.TransferUtils;
 import weave.utils.ZipUtils;
 
 @SuppressWarnings("serial")
@@ -603,175 +607,59 @@ public class ConfigSetupPanel extends SetupPanel
 	}
 	public boolean savePanelInput(int panelIndex)
 	{
-		final ConfigInternals ci = new ConfigInternals();
-		ci.config = null;
+		final IConfig config;
 		boolean result = true;
 		
 		switch (panelIndex) {
 			case 0:
-				ci.config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
-				ci.config.setPort(servletPortInput.getText());
+				config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
+				config.setPort(servletPortInput.getText());
 				if( servletBrowserPath.isVisible() )
-					ci.config.setWebappsDirectory(servletBrowserPath.getText());
+					config.setWebappsDirectory(servletBrowserPath.getText());
 				
 				// Special Jetty case
-				if( ci.config.getConfigName().equals(Jetty.NAME) )
+				if( config.getConfigName().equals(Jetty.NAME) )
 				{
-					if( !ci.config.getWebappsDirectory().exists() )
+					if( !config.getWebappsDirectory().exists() )
 					{
 						result = false;
 						if( Settings.isOfflineMode() )
 						{
 							JOptionPane.showMessageDialog(null, 
-									ci.config.getConfigName() + " is not currently installed.\n\n" + 
-									"Please make sure the provided " + ci.config.getConfigName() + ".zip exists on your desktop\n" + 
+									config.getConfigName() + " is not currently installed.\n\n" + 
+									"Please make sure the provided " + config.getConfigName() + ".zip exists on your desktop\n" + 
 									"so it can be properly installed. Press OK to continue.", "Install Plugin", JOptionPane.INFORMATION_MESSAGE);
-							final File source = new File(Settings.DESKTOP_DIRECTORY, ci.config.getConfigName() + ".zip");
-							final File destination = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, ci.config.getConfigName());
+							final File source = new File(Settings.DESKTOP_DIRECTORY, config.getConfigName() + ".zip");
+							final File destination = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, config.getConfigName());
 							
 							if( !source.exists() )
 							{
-								JOptionPane.showMessageDialog(null, "Could not find " + ci.config.getConfigName() + ".zip on the desktop.", "Missing File", JOptionPane.ERROR_MESSAGE);
+								JOptionPane.showMessageDialog(null, "Could not find " + config.getConfigName() + ".zip on the desktop.", "Missing File", JOptionPane.ERROR_MESSAGE);
 								return false;
 							}
 							else
 							{
-								// Only way to get here is if the previous install failed
-								// So we should delete the directory anyway
+								// Only way to get here is if it is the first time installing
+								// or the the previous install failed
+								// Therefore, we should delete the directory anyway
 								FileUtils.recursiveDelete(destination);
 								destination.mkdirs();
-							
-								IUtilsInfo zipInfo = new IUtilsInfo() {
-									@Override
-									public void onProgressUpdate() {
-										SwingUtilities.invokeLater(new Runnable() {
-											@Override
-											public void run() {
-												servletProgressBar.setValue(info.progress);
-											}
-										});
-									}
-								};
-								IAsyncCallback callback = new IAsyncCallback() {
-									@Override
-									public void run(Object o) {
-										if( ci.config.getWebappsDirectory().exists() )
-											JOptionPane.showMessageDialog(null, 
-													ci.config.getConfigName() + " has been installed successfully.\n\n" +
-													"Click Next to continue.",
-													"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
-										else
-											JOptionPane.showMessageDialog(null, 
-													ci.config.getConfigName() + " install failed.\n\n" +
-													"Reason: Bad Zip File",
-													"Install Failed", JOptionPane.ERROR_MESSAGE);
-										
-										servletProgressBar.setVisible(false);
-										servletProgressBar.setIndeterminate(true);
-									}
-								};
 								
-								try {
-									servletProgressBar.setString("Installing...");
-									servletProgressBar.setVisible(true);
-									Thread.sleep(1000);
-									servletProgressBar.setIndeterminate(false);
-									
-									ZipUtils z = new ZipUtils();
-									z.addCallback(callback);
-									z.addStatusListener(null, zipInfo, source);
-									z.extractZipWithInfo(source, destination);
-									
-								} catch (InterruptedException e) {
-									TraceUtils.trace(TraceUtils.STDERR, e);
-									BugReportUtils.showBugReportDialog(e);
-								}
+								extract(source, config);
 							}
 						}
 						else
 						{
 							int choice = JOptionPane.showConfirmDialog(null, 
-									ci.config.getConfigName() + " is not currently installed.\n\n" +
+									config.getConfigName() + " is not currently installed.\n\n" +
 									"Would you like to download it now?", 
 									"Download Plugin", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 
 							if( choice == JOptionPane.YES_OPTION )
 							{
-								String jettyURL = ci.config.getURL();
-								final File zipDest = new File(Settings.DOWNLOADS_DIRECTORY, ci.config.getConfigName() + ".zip");
-								final File extractDest = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, ci.config.getConfigName());
-							
-								final DownloadUtils du = new DownloadUtils();
-								IUtilsInfo downloadInfo = new IUtilsInfo() {
-									@Override
-									public void onProgressUpdate() {
-										servletProgressBar.setValue(info.progress);
-									}
-								};
-								IAsyncCallback downloadCallback = new IAsyncCallback() {
-									@Override
-									public void run(Object o) {
-										int resultCode = ((IAsyncCallbackResult)o).getCode();
-										
-										du.removeAllCallbacks();
-										du.removeStatusListener();
-										
-										if( resultCode == DownloadUtils.COMPLETE )
-										{
-											final ZipUtils zu = new ZipUtils();
-											IUtilsInfo zipInfo = new IUtilsInfo() {
-												@Override
-												public void onProgressUpdate() {
-													servletProgressBar.setValue(info.progress);
-												}
-											};
-											IAsyncCallback zipCallback = new IAsyncCallback() {
-												@Override
-												public void run(Object o) {
-													zu.removeAllCallbacks();
-													zu.removeStatusListener();
-													
-													servletProgressBar.setVisible(false);
-													servletProgressBar.setIndeterminate(false);
-
-													if( ci.config.getWebappsDirectory().exists() )
-														JOptionPane.showMessageDialog(null, 
-																ci.config.getConfigName() + " has been installed successfully.",
-																"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
-													else
-														JOptionPane.showMessageDialog(null, 
-																ci.config.getConfigName() + " install failed.\n\n" +
-																"Reason: Bad Zip File",
-																"Install Failed", JOptionPane.ERROR_MESSAGE);
-												}
-											};
-											try {
-												servletProgressBar.setString("Installing...");
-												
-												zu.addCallback(zipCallback);
-												zu.addStatusListener(null, zipInfo, zipDest);
-												zu.extractZipWithInfo(zipDest, extractDest);
-											} catch (InterruptedException e) {
-												TraceUtils.trace(TraceUtils.STDERR, e);
-												BugReportUtils.showBugReportDialog(e);
-											}
-										}
-									}
-								};
 								try {
-									servletProgressBar.setString("Downloading...");
-									servletProgressBar.setVisible(true);
-									Thread.sleep(1000);
-									servletProgressBar.setIndeterminate(false);
-									servletProgressBar.setValue(0);
-									
-									du.addCallback(downloadCallback);
-									du.addStatusListener(null, downloadInfo);
-									du.downloadWithInfo(jettyURL, zipDest);
-								} catch (IOException e) {
-									TraceUtils.trace(TraceUtils.STDERR, e);
-									BugReportUtils.showBugReportDialog(e);
-								} catch (InterruptedException e) {
+									download(config);
+								} catch (MalformedURLException e) {
 									TraceUtils.trace(TraceUtils.STDERR, e);
 									BugReportUtils.showBugReportDialog(e);
 								}
@@ -782,9 +670,9 @@ public class ConfigSetupPanel extends SetupPanel
 				break;
 	
 			case 1:
-				ci.config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+				config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
 				if( databasePortInput.isVisible() )
-					ci.config.setPort(databasePortInput.getText());
+					config.setPort(databasePortInput.getText());
 				break;
 	
 			case 2:
@@ -796,6 +684,135 @@ public class ConfigSetupPanel extends SetupPanel
 		return result;
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	
+	private void download(final IConfig config) throws MalformedURLException
+	{
+		final URL url = new URL(config.getURL());
+		final File destination = new File(Settings.DOWNLOADS_DIRECTORY, config.getConfigName() + ".zip");
+		
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				servletProgressBar.setValue(info.percent);
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				switch( returnCode )
+				{
+					case TransferUtils.COMPLETE:
+						servletProgressBar.setValue(100);
+						extract(destination, config);
+						break;
+					case TransferUtils.CANCELLED:
+						break;
+					case TransferUtils.FAILED:
+						break;
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(url);
+					o = DownloadUtils.download(url, destination, observer, TransferUtils.MB);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		try {
+			servletProgressBar.setString("Downloading...");
+			servletProgressBar.setVisible(true);
+			Thread.sleep(1000);
+			servletProgressBar.setIndeterminate(false);
+			servletProgressBar.setValue(0);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		task.addCallback(callback);
+		task.execute();
+	}
+	
+	private void extract(final File source, final IConfig config)
+	{
+		final File destination = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, config.getConfigName());
+		
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				servletProgressBar.setValue(info.percent);
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				servletProgressBar.setValue(100);
+				if( destination.exists() )
+					JOptionPane.showMessageDialog(null, 
+							config.getConfigName() + " has been installed successfully.\n\n" +
+							"Click Next to continue.",
+							"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
+				else
+					JOptionPane.showMessageDialog(null, 
+							config.getConfigName() + " install failed.\n\n" +
+							"Reason: Bad Zip File",
+							"Install Failed", JOptionPane.ERROR_MESSAGE);
+				
+				servletProgressBar.setVisible(false);
+				servletProgressBar.setIndeterminate(true);
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(new ZipFile(source));
+					o = ZipUtils.extract(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer);
+				} catch (ZipException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		try {
+			servletProgressBar.setString("Installing...");
+			servletProgressBar.setVisible(true);
+			servletProgressBar.setIndeterminate(true);
+			Thread.sleep(1000);
+			servletProgressBar.setIndeterminate(false);
+			servletProgressBar.setValue(0);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		
+		task.addCallback(callback);
+		task.execute();
+	}
+	
 	/////////////////////////////////////////////////////////////////////////////////////
 	
 	public void updateReviewPanel()

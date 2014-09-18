@@ -82,7 +82,7 @@ public class Settings
 	/*
 	 * Weave Installer
 	 */
-	public static final String INSTALLER_NAME			= PROJECT_NAME + " Installer";
+	public static final String INSTALLER_NAME			= PROJECT_NAME + " Server Assistant";
 	public static final String INSTALLER_VER			= "1.1.0 R2";
 	public static final String INSTALLER_TITLE 			= INSTALLER_NAME + " v" + INSTALLER_VER;
 	public static final String INSTALLER_JAR			= "Installer.jar";
@@ -178,7 +178,7 @@ public class Settings
 	public static boolean downloadLocked				= false;
 	public static boolean isConnectedToInternet			= true;
 
-	public static 		String CURRENT_PROGRAM_NAME		= "Weave";
+	public static 		String CURRENT_PROGRAM_NAME		= PROJECT_NAME;
 	public static final String FONT						= "Corbel";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
 	public static int recommendPrune					= 6;

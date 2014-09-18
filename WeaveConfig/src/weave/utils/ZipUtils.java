@@ -31,15 +31,8 @@ import java.util.zip.ZipFile;
 import weave.async.AsyncObserver;
 import weave.includes.IUtils;
 
-public class ZipUtils implements IUtils
+public class ZipUtils extends TransferUtils implements IUtils
 {
-	public static final int FAILED		= 0;
-	public static final int COMPLETE	= 1;
-	public static final int CANCELLED	= 2;
-
-	public static final int NO_FLAGS	= ( 1 << 0 );
-	public static final int OVERWRITE	= ( 1 << 1 );
-	
 	public static int extract( File zipFile, File destination) throws ZipException, IOException, InterruptedException
 	{
 		return extract(zipFile, destination, NO_FLAGS);
@@ -74,11 +67,10 @@ public class ZipUtils implements IUtils
 		assert zipFile != null;
 		assert destination != null;
 		
-		
 		ZipFile zip = new ZipFile(zipFile);
 		Enumeration<?> enu = zip.entries();
 		ZipEntry zipEntry = null;
-
+		
 		while (enu.hasMoreElements()) 
 		{
 			zipEntry = (ZipEntry) enu.nextElement();
@@ -88,6 +80,12 @@ public class ZipUtils implements IUtils
 			{
 				if( !outputFile.exists() )	outputFile.mkdirs();
 				continue;
+			}
+			
+			if( observer != null && (flags & TransferUtils.MULTIPLE_FILES) != 0 ) {
+				observer.info.cur++;
+				observer.info.percent = (int) (observer.info.cur * 100 / observer.info.max);
+				observer.onUpdate();
 			}
 
 			InputStream is = zip.getInputStream(zipEntry);

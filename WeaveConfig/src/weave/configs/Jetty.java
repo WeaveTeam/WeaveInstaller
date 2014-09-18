@@ -22,6 +22,7 @@ package weave.configs;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -102,8 +103,10 @@ public class Jetty extends Config
 	@Override public boolean loadConfig() 
 	{
 		boolean result = ConfigManager.getConfigManager().setContainer(_instance);
-		if( result )
+		if( result ) {
+			startServer();
 			super.loadConfig();
+		}
 		else
 			JOptionPane.showMessageDialog(null, 
 					"There was an error loading the " + getConfigName() + " plugin.\n" + 
@@ -115,28 +118,39 @@ public class Jetty extends Config
 	@Override public boolean unloadConfig() 
 	{
 		boolean result = ConfigManager.getConfigManager().setContainer(null);
+		stopServer();
 		super.unloadConfig();
 		return result;
 	}
 	
 	
-	
-	private String[] START = {
-			"cmd",
-			"/c",
-			"java -jar start.jar STOP.PORT=" + PORT + " STOP.KEY=jetty --daemon &"
-	};
-	private String[] STOP = {
-			"cmd",
-			"/c",
-			"java -jar start.jar STOP.PORT=" + PORT + " STOP.KEY=jetty --stop"
-	};
-
 	public void startServer()
 	{
 		try {
+			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
+			String[] START = {
+					"cmd",
+					"/c",
+					"java -jar \"" + basePath + "start.jar\" --module=http jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --daemon &"
+			};
+			System.out.println("START cmd: " + Arrays.toString(START));
 			ProcessUtils.runAndWait(START);
 		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -145,8 +159,30 @@ public class Jetty extends Config
 	public void stopServer()
 	{
 		try {
+			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../"; 
+			String[] STOP = {
+					"cmd",
+					"/c",
+					"java -jar \"" + basePath + "start.jar\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop"
+			};
+			System.out.println("STOP cmd: " + Arrays.toString(STOP));
 			ProcessUtils.runAndWait(STOP);
 		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

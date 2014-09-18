@@ -99,7 +99,7 @@ public class BugReportWindow extends JFrame
 		
 		String title = "<b>" + Settings.CURRENT_PROGRAM_NAME + " has encountered a bug</b>";
 		
-		titleContainer.setBounds(65, 15, 275, 30);
+		titleContainer.setBounds(65, 15, 300, 30);
 		titleContainer.setContentType("text/html");
 		titleContainer.setText(title);
 		titleContainer.setBackground(new Color(0xF0F0F0));
@@ -167,7 +167,7 @@ public class BugReportWindow extends JFrame
 			}
 		});
 		
-		commentScroller.setBounds(40, 140, 334, 75);
+		commentScroller.setBounds(20, 140, 354, 75);
 		commentScroller.setVisible(true);
 		
 		close.setBounds(157, 225, 80, 25);

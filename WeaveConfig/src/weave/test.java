@@ -6,7 +6,7 @@ import java.net.MalformedURLException;
 
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
-import weave.async.IAsyncCallback;
+import weave.async.AsyncCallback;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.ObjectUtils;

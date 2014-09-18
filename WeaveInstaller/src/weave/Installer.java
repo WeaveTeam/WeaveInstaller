@@ -326,8 +326,13 @@ public class Installer extends JFrame
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if( updateToNewUpdater() )
-					TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating WeaveUpdater..........DONE");
+				try {
+					if( updateToNewUpdater() )
+						TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating WeaveUpdater..........DONE");
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
 			}
 		}, 3000);
 		
@@ -583,7 +588,7 @@ public class Installer extends JFrame
 		}
 	}
 	//============================================================================================================
-	private boolean updateToNewUpdater()
+	private boolean updateToNewUpdater() throws IOException
 	{
 		File oldUpdater = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
 		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);

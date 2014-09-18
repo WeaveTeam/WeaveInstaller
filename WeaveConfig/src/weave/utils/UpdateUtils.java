@@ -68,6 +68,8 @@ public class UpdateUtils
 		
 		refreshLookupValues();
 		
+		// Loop over local and remote application versions
+		// If there is a difference in the version, there is an update
 		for( int i = 0; i < entriesToCheck.size(); i++ )
 		{
 			String value = RemoteUtils.getConfigEntry( entriesToCheck.get(i) );
@@ -76,6 +78,8 @@ public class UpdateUtils
 			outOfDateFile |= !(value).equals( lookupEntries.get(i) );
 		}
 		
+		// Loop over the remote required files.
+		// If there is a missing file locally, there is an update
 		String[] files = RemoteUtils.getRemoteFiles();
 		for( String f : files ) {
 			tempFile = new File(Settings.WEAVE_ROOT_DIRECTORY, f.trim());

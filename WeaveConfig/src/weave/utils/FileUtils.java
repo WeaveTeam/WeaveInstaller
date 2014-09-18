@@ -39,23 +39,9 @@ import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.includes.IUtils;
 
-public class FileUtils implements IUtils
+public class FileUtils extends TransferUtils implements IUtils
 {
-	public static final int B						= 1;
-	public static final int KB						= B * 1024;
-	public static final int MB						= KB * 1024;
-	public static final int GB						= MB * 1024;
-	
-	public static final int NO_FLAGS				= ( 1 << 0 );
-	public static final int OVERWRITE				= ( 1 << 1 );
-	public static final int SINGLE_FILE 			= ( 1 << 2 );
-	public static final int MULTIPLE_FILES 			= ( 1 << 3 );
-	private static final int BUFFER_SIZE			= 8 * KB;
-
-	public static final int FAILED					= 0;
-	public static final int COMPLETE				= 1;
-	public static final int CANCELLED				= 2;
-	
+	private static final int BUFFER_SIZE			= 8 * TransferUtils.KB;
 	
 	/**
 	 * Copy the source file to the destination file
@@ -235,6 +221,7 @@ public class FileUtils implements IUtils
 			if( observer != null && (flags & MULTIPLE_FILES) != 0 ) {
 				observer.info.cur++;
 				observer.info.percent = (int) (observer.info.cur * 100 / observer.info.max);
+				observer.onUpdate();
 			}
 			status &= copy(new FileInputStream(source), new FileOutputStream(destination), flags, observer, throttle);
 		}
@@ -389,7 +376,7 @@ public class FileUtils implements IUtils
 	 * 
 	 * @throws IOException
 	 */
-	public static boolean renameTo( String source, String destination ) throws IOException
+	public static boolean move( String source, String destination ) throws IOException
 	{
 		return move(source, destination, NO_FLAGS);
 	}
@@ -404,7 +391,7 @@ public class FileUtils implements IUtils
 	 * 
 	 * @throws IOException
 	 */
-	public static boolean renameTo( File source, File destination ) throws IOException
+	public static boolean move( File source, File destination ) throws IOException
 	{
 		return move(source, destination, NO_FLAGS);
 	}
@@ -479,11 +466,13 @@ public class FileUtils implements IUtils
 	 * Example Usage:
 	 * <code>
 	 * <pre>
-	 * 	File f1 = new File("SomeFileName.txt");
-	 * 	File f2 = new File("SomeOtherName.xml");
+	 * 	String str1 = "C:/Program Files/SomeFileName.txt";
+	 * 	String str2 = "/users/lib/SomeOtherName.xml";
+	 * 	String str3 = "/var/lib/files.var/README";
 	 * 	
-	 * 	FileUtils.getExt( f1 )	=	"txt"
-	 * 	FileUtils.getExt( f2 )	= 	"xml"
+	 * 	FileUtils.getExt( str1 )	=	"txt"
+	 * 	FileUtils.getExt( str2 )	= 	"xml"
+	 * 	FileUtils.getExt( str3 )	=	NULL
 	 * </pre>
 	 * </code>
 	 * 
@@ -501,11 +490,13 @@ public class FileUtils implements IUtils
 	 * Example Usage:
 	 * <code>
 	 * <pre>
-	 * 	String str1 = "SomeFileName.txt";
-	 * 	String str2 = "SomeOtherName.xml";
+	 * 	String str1 = "C:/Program Files/SomeFileName.txt";
+	 * 	String str2 = "/users/lib/SomeOtherName.xml";
+	 * 	String str3 = "/var/lib/files.var/README";
 	 * 	
 	 * 	FileUtils.getExt( str1 )	=	"txt"
 	 * 	FileUtils.getExt( str2 )	= 	"xml"
+	 * 	FileUtils.getExt( str3 )	=	NULL
 	 * </pre>
 	 * </code>
 	 * 
@@ -514,9 +505,10 @@ public class FileUtils implements IUtils
 	 */
 	public static String getExt(String s)
 	{
-		int index = s.lastIndexOf(".") + 1;
-		if( index > 0 )
-			return s.substring( index );
+		int idx1 = s.lastIndexOf("/") + 1;
+		int idx2 = s.lastIndexOf(".", idx1) + 1;
+		if( idx2 > 0 )
+			return s.substring( idx2 );
 		
 		// The file does not have an extension
 		return null;
@@ -561,8 +553,7 @@ public class FileUtils implements IUtils
 	}
 	public static String sizeify( int size )
 	{
-		double d = size;
-		return sizeify(d);
+		return sizeify( (double)size );
 	}
 	public static String sizeify( double size )
 	{

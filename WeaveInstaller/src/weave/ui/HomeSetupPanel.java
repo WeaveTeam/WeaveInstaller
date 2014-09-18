@@ -23,12 +23,16 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -47,11 +51,11 @@ import javax.swing.event.HyperlinkListener;
 
 import weave.Revisions;
 import weave.Settings;
-import weave.async.IAsyncCallback;
-import weave.async.IAsyncCallbackResult;
+import weave.async.AsyncCallback;
+import weave.async.AsyncObserver;
+import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
-import weave.includes.IUtilsInfo;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
@@ -60,6 +64,7 @@ import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TraceUtils;
+import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
 
@@ -231,6 +236,8 @@ public class HomeSetupPanel extends SetupPanel
 					TraceUtils.trace(TraceUtils.STDERR, e);
 				} catch (MalformedURLException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
 				}
 			}
 		});
@@ -247,7 +254,7 @@ public class HomeSetupPanel extends SetupPanel
 				if( index < 0 )
 					return;
 				
-				installBinaries(Revisions.getRevisionsList().get(index));
+				extractBinaries(Revisions.getRevisionsList().get(index));
 			}
 		});
 		
@@ -420,10 +427,12 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 	
-	private void downloadBinaries() throws InterruptedException, MalformedURLException
+	private void downloadBinaries() throws InterruptedException, IOException
 	{
-		String url = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
-		if( url == null ) {
+		// Get the install URL to the zip file
+		final URL url;
+		final String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+		if( urlStr == null ) {
 			JOptionPane.showConfirmDialog(null, 
 					"A connection to the internet could not be established.\n\n" +
 					"Please connect to the internet and try again.", 
@@ -433,256 +442,368 @@ public class HomeSetupPanel extends SetupPanel
 			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
+		url = new URL(urlStr);
 
+		// Get the zip file's file name
+		String fileName = UpdateUtils.getWeaveUpdateFileName();
+		if( fileName == null ) {
+			JOptionPane.showConfirmDialog(null,
+					"There was an error generating the update package filename.\n\n" +
+					"Please try again later or if the problem persists,\n" +
+					"report this issue as a bug for the developers.", 
+					"Error", 
+					JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+			setButtonsEnabled(true);
+			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			return;
+		}
+		
+		// Get the active servlet container
 		IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
-		if( actvContainer == null )
-		{
+		if( actvContainer == null ) {
 			JOptionPane.showMessageDialog(null, 
 					"There is no active servlet selected.\n\n" + 
 					"Please configure a servlet to use, then try again.", "Error", JOptionPane.ERROR_MESSAGE);
+			setButtonsEnabled(true);
+			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 
+		// Get the active servlet container's webapps directory
 		File cfgWebapps = actvContainer.getWebappsDirectory();
-		if( cfgWebapps == null || !cfgWebapps.exists() )
-		{
+		if( cfgWebapps == null || !cfgWebapps.exists() ) {
 			JOptionPane.showMessageDialog(null, 
 					"Webapps folder is not set.", "Error", JOptionPane.ERROR_MESSAGE);
+			setButtonsEnabled(true);
+			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 		
-		String fileName = UpdateUtils.getWeaveUpdateFileName();
 		final File zipFile = new File(Settings.REVISIONS_DIRECTORY, fileName);
 		
-		final DownloadUtils du = new DownloadUtils();
-		IUtilsInfo downloadInfo = new IUtilsInfo() {
+		final AsyncObserver observer = new AsyncObserver() {
 			@Override
-			public void onProgressUpdate() {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						if( info.max == -1 ) {
-							// Unknown max size - progress unavailable
-							progressbar.setIndeterminate(true);
-							downloadLabel.setText( 
-									String.format("Downloading update....%s @ %s",
-										FileUtils.sizeify(info.cur), 
-										DownloadUtils.speedify(info.speed)) );
-						} else {
-							// Known max size
-							progressbar.setIndeterminate(false);
-							progressbar.setValue( info.progress );
-							if( info.timeleft > 3600 )
-								downloadLabel.setText(
-										String.format("Downloading - %d%% - %s - %s (%s)", 
-											info.progress, 
-											"Calculating ETA...",
-											FileUtils.sizeify(info.cur),
-											DownloadUtils.speedify(info.speed)) );
-							else if( info.timeleft < 60 )
-								downloadLabel.setText(
-										String.format("Downloading - %d%% - %s - %s (%s)", 
-											info.progress, 
-											TimeUtils.format("%s s remaining", info.timeleft),
-											FileUtils.sizeify(info.cur),
-											DownloadUtils.speedify(info.speed)) );
-							else
-								downloadLabel.setText(
-										String.format("Downloading - %d%% - %s - %s (%s)",
-											info.progress, 
-											TimeUtils.format("%m:%ss remaining", info.timeleft),
-											FileUtils.sizeify(info.cur),
-											DownloadUtils.speedify(info.speed)) );
-						}
-					}
-				});
+			public void onUpdate() {
+				if( info.max == -1 ) {
+					// Unknown max size - progress unavailable
+					progressbar.setIndeterminate(true);
+					downloadLabel.setText( 
+							String.format("Downloading update.... %s @ %s",
+								FileUtils.sizeify(info.cur), 
+								DownloadUtils.speedify(info.speed)) );
+				} else {
+					// Known max size
+					progressbar.setIndeterminate(false);
+					progressbar.setValue( info.percent );
+					if( info.time > 3600 )
+						downloadLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									"Calculating ETA...",
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					else if( info.time < 60 )
+						downloadLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									TimeUtils.format("%s s remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					else
+						downloadLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)",
+									info.percent, 
+									TimeUtils.format("%m:%ss remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+				}
 			}
 		};
-		IAsyncCallback downloadCallback = new IAsyncCallback() {
+		AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
-				int status = ((IAsyncCallbackResult)o).getCode();
-				
+				int returnCode = (Integer) o;
+
 				Settings.transferCancelled = false;
 				Settings.downloadLocked = false;
 
-				du.removeAllCallbacks();
-				du.removeStatusListener();
-				System.gc();
-				
-				if( status == DownloadUtils.COMPLETE )
+				switch( returnCode )
 				{
-					TraceUtils.put(TraceUtils.STDOUT, "DONE");
-					downloadLabel.setText("Download Complete....");
-					downloadLabel.setForeground(Color.BLACK);
+					case TransferUtils.COMPLETE:
+						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						downloadLabel.setText("Download Complete....");
+						downloadLabel.setForeground(Color.BLACK);
+	
+						extractBinaries(zipFile);
+						break;
+					case TransferUtils.CANCELLED:
+						TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+						downloadLabel.setText("Cancelling Download....");
+						downloadLabel.setForeground(Color.BLACK);
+						break;
+					case TransferUtils.FAILED:
+						TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+						downloadLabel.setText("Download Failed....");
+						downloadLabel.setForeground(Color.RED);
 
-					installBinaries(zipFile);
-				}
-				else if( status == DownloadUtils.FAILED )
-				{
-					TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-					downloadLabel.setText("Download Failed....");
-					downloadLabel.setForeground(Color.RED);
-				}
-				else if( status == DownloadUtils.CANCELLED )
-				{
-					TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
-					downloadLabel.setText("Cancelling Download....");
-					downloadLabel.setForeground(Color.BLACK);
+						try {
+							Thread.sleep(2000);
+							refreshProgramatically = true;
+							refreshInterface();
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						} catch (MalformedURLException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						}
+						break;
+					case TransferUtils.OFFLINE:
+						break;
 				}
 			}
 		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(url);
+					o = DownloadUtils.download(urlStr, zipFile, observer, 4 * TransferUtils.MB);
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() )
+			Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
+		if( zipFile.exists() )
+			zipFile.delete();
+		zipFile.createNewFile();
+
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
 		
-		try {
-			// Error checking
-			if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() )
-				Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
-			if( zipFile.exists() )
-				zipFile.delete();
-			zipFile.createNewFile();
+		downloadLabel.setVisible(true);
+		progressbar.setVisible(true);
+		
+		downloadLabel.setText("Downloading update.....");
+		progressbar.setIndeterminate(true);
+		
+		Thread.sleep(1000);
+		
+		progressbar.setValue(0);
+		progressbar.setIndeterminate(false);
 
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
-			
-			downloadLabel.setVisible(true);
-			progressbar.setVisible(true);
-			
-			downloadLabel.setText("Downloading update.....");
-			progressbar.setIndeterminate(true);
-
-			Settings.downloadLocked = true;
-			Settings.transferCancelled = false;
-			
-			du.addCallback(downloadCallback);
-			du.addStatusListener(null, downloadInfo);
-			du.downloadWithInfo(url, zipFile, 2 * DownloadUtils.MB);
-
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
+		Settings.downloadLocked = true;
+		Settings.transferCancelled = false;
+		
+		task.addCallback(callback);
+		task.execute();
 	}
 	
-	private void installBinaries(final File zipFile)
+	private void extractBinaries(final File zipFile)
 	{
 		if( !Settings.UNZIP_DIRECTORY.exists() )
 			Settings.UNZIP_DIRECTORY.mkdirs();
 		
 		final File unzippedFile = new File(Settings.UNZIP_DIRECTORY, zipFile.getName());
 		
-		final ZipUtils zu = new ZipUtils();
-		IUtilsInfo zipInfo = new IUtilsInfo() {
+		final AsyncObserver observer = new AsyncObserver() {
 			@Override
-			public void onProgressUpdate() {
+			public void onUpdate() {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						progressbar.setValue( info.progress / 2 );
+						progressbar.setValue( info.percent / 2 );
 						downloadLabel.setText( 
 								String.format(
-										"Extracting update....%d%%", 
-										info.progress / 2 ) );
+										"Extracting update.... %d%%", 
+										info.percent / 2 ) );
 					}
 				});
 			}
 		};
-		IAsyncCallback zipCallback = new IAsyncCallback() {
+		AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
-
-				zu.removeAllCallbacks();
-				zu.removeStatusListener();
-
-				moveBinaries(unzippedFile);
+				int returnCode = (Integer) o;
+				
+				switch( returnCode )
+				{
+					case TransferUtils.COMPLETE:
+						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						downloadLabel.setText("Extract Complete....");
+						progressbar.setValue(50);
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						}
+						moveBinaries(unzippedFile);
+						break;
+					case TransferUtils.FAILED:
+						break;
+					case TransferUtils.CANCELLED:
+						break;
+					case TransferUtils.OFFLINE:
+						break;
+				}
 			}
 		};
-		
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(new ZipFile(zipFile));
+					o = ZipUtils.extract(zipFile, unzippedFile, TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (ZipException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
 		try {
-			setButtonsEnabled(false);
+			progressbar.setVisible(true);
+			downloadLabel.setVisible(true);
+			
 			progressbar.setIndeterminate(true);
-			downloadLabel.setText("Preparing Install....");
+			downloadLabel.setText("Preparing Extraction....");
 			Thread.sleep(1000);
 			
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
+			TraceUtils.trace(TraceUtils.STDOUT, "-> Extracting update..............");
 			
 			Settings.canQuit = false;
 			
 			downloadLabel.setText("Extracting update....");
 			progressbar.setIndeterminate(false);
-			
-			zu.addCallback(zipCallback);
-			zu.addStatusListener(null, zipInfo, zipFile);
-			zu.extractZipWithInfo( zipFile, unzippedFile );
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
+		
+		task.addCallback(callback);
+		task.execute();
 	}
 	
 	private void moveBinaries(final File unzippedFile)
 	{
-		File configWebapps = ConfigManager.getConfigManager().getActiveContainer().getWebappsDirectory();
+		final File configWebapps = ConfigManager.getConfigManager().getActiveContainer().getWebappsDirectory();
 		
-		FileUtils fu = new FileUtils();
-		IUtilsInfo fileInfo = new IUtilsInfo() {
+		final AsyncObserver observer = new AsyncObserver() {
 			@Override
-			public void onProgressUpdate() {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						progressbar.setValue( 50 + info.progress / 2 );
-						downloadLabel.setText( 
-								String.format(
-										"Installing update....%d%%", 
-										50 + info.progress / 2 ) );
-					}
-				});
+			public void onUpdate() {
+				progressbar.setValue( 50 + info.percent / 2 );
+				downloadLabel.setText( 
+						String.format(
+								"Installing update.... %d%%", 
+								50 + info.percent / 2 ) );
 			}
 		};
-		IAsyncCallback fileCallback = new IAsyncCallback() {
+		AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				switch( returnCode ) {
+				case TransferUtils.COMPLETE:
+					TraceUtils.put(TraceUtils.STDOUT, "DONE");
+					downloadLabel.setText("Install complete....");
+					
+					Settings.canQuit = true;
+					System.gc();
 
-				Settings.canQuit = true;
-				System.gc();
-				
-				TraceUtils.put(TraceUtils.STDOUT, "DONE");
-				downloadLabel.setText("Install complete....");
-				
-				Settings.CURRENT_INSTALL_VER = Revisions.getRevisionName(unzippedFile.getAbsolutePath());
-				Settings.save();
-
-				setButtonsEnabled(true);
-				
-				new Timer().schedule(new TimerTask() {
-					@Override
-					public void run() {
-						downloadLabel.setVisible(false);
-						progressbar.setVisible(false);
-						
+					Settings.CURRENT_INSTALL_VER = Revisions.getRevisionName(unzippedFile.getAbsolutePath());
+					Settings.save();
+					
+					try {
+						Thread.sleep(1000);
 						refreshProgramatically = true;
-						refreshButton.doClick();
+						refreshInterface();
+					} catch (InterruptedException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+					} catch (MalformedURLException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
 					}
-				}, 1000);
+					break;
+				case TransferUtils.CANCELLED:
+					break;
+				case TransferUtils.FAILED:
+					break;
+				case TransferUtils.OFFLINE:
+					break;
+				}
 			}
 		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				int status = TransferUtils.COMPLETE;
+				String[] files = unzippedFile.list();
+				
+				try {
+					observer.init(unzippedFile, TransferUtils.MULTIPLE_FILES);
+
+					for( String file : files )
+					{
+						File source = new File(unzippedFile, file);
+						status &= FileUtils.copy(source, configWebapps, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 4 * TransferUtils.MB);
+					}
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (FileNotFoundException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return status;
+			}
+		};
+
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
+
+		downloadLabel.setText("Installing Update....");
+		progressbar.setIndeterminate(false);
 		
-		try {
-			fu.addCallback(fileCallback);
-			fu.addStatusListener(null, fileInfo, unzippedFile, FileUtils.MULTIPLE_FILES);
-			fu.copyWithInfo(unzippedFile, configWebapps, FileUtils.MULTIPLE_FILES);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
+		task.addCallback(callback);
+		task.execute();
 	}
+	
+	
 	private void refreshInterface() throws InterruptedException, MalformedURLException
 	{
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for new Weave Binaries....");
+		TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing User Interface......");
 
 		Settings.canQuit = false;
-		setButtonsEnabled(false);
 		
+		setButtonsEnabled(false);
 		int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
 		weaveStats.refresh(updateAvailable);
 		refreshProgramatically = false;
@@ -700,6 +821,7 @@ public class HomeSetupPanel extends SetupPanel
 		pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 		revisionTable.updateTableData();
 	}
+	
 	private void setButtonsEnabled(boolean enabled)
 	{
 		refreshButton.setEnabled(enabled);

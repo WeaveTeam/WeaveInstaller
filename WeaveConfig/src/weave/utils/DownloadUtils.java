@@ -34,7 +34,7 @@ import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.includes.IUtils;
 
-public class DownloadUtils implements IUtils
+public class DownloadUtils extends TransferUtils implements IUtils
 {
 	public static final int FAILED		= ( 1 << 0 );
 	public static final int COMPLETE	= ( 1 << 1 );
@@ -116,6 +116,85 @@ public class DownloadUtils implements IUtils
 	{
 		return download(url, destination, null);
 	}
+
+
+	/**
+	 * Download a file from the URL and save it to the destination location
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final String url = "http://google.com/some/file.zip";
+	 * 	final File dest = new File("/path/to/local/file/", "filename.zip");
+	 * 	
+	 * 	final {@link AsyncObserver} observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// DO STATUS UPDATES HERE
+	 * 			//
+	 * 			progressBar.setValue( info.progress );
+	 * 		}
+	 *	};
+	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *		public Object doInBackground() {
+	 * 			return DownloadUtils.download( url, dest, observer, 512 * DownloadUtils.KB );
+	 *		}
+	 *	};
+	 *	task.execute();
+	 *
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param url The URL string to access the file(s) from
+	 * @param destination The local file to save the download to
+	 * @param observer The observer to watch the status of the transfer
+	 * @return The exit status of the transfer <code>FAILED, COMPLETE, CANCELLED, OFFLINE</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int download(String url, File destination, AsyncObserver observer, int throttle) throws IOException, InterruptedException
+	{
+		return download(new URL(url), destination, observer, throttle);
+	}
+	
+	/**
+	 * Download a file from the URL and save it to the destination location
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final String url = "http://google.com/some/file.zip";
+	 * 	final File dest = new File("/path/to/local/file/", "filename.zip");
+	 * 	
+	 * 	final {@link AsyncObserver} observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// DO STATUS UPDATES HERE
+	 * 			//
+	 * 			progressBar.setValue( info.progress );
+	 * 		}
+	 *	};
+	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *		public Object doInBackground() {
+	 * 			return DownloadUtils.download( url, dest, observer );
+	 *		}
+	 *	};
+	 *	task.execute();
+	 *
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param url The URL string to access the file(s) from
+	 * @param destination The local file to save the download to
+	 * @param observer The observer to watch the status of the transfer
+	 * @return The exit status of the transfer <code>FAILED, COMPLETE, CANCELLED, OFFLINE</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int download(String url, File destination, AsyncObserver observer) throws IOException, InterruptedException
+	{
+		return download(new URL(url), destination, observer);
+	}
 	
 	/**
 	 * Download a file from the URL and save it to the destination location
@@ -153,6 +232,45 @@ public class DownloadUtils implements IUtils
 	 */
 	public static int download(URL url, File destination, AsyncObserver observer) throws IOException, InterruptedException
 	{
+		return download(url, destination, observer, 0);
+	}
+
+	/**
+	 * Download a file from the URL and save it to the destination location
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final URL url = new URL("http://google.com/some/file.zip");
+	 * 	final File dest = new File("/path/to/local/file/", "filename.zip");
+	 * 	
+	 * 	final {@link AsyncObserver} observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// DO STATUS UPDATES HERE
+	 * 			//
+	 * 			progressBar.setValue( info.progress );
+	 * 		}
+	 *	};
+	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *		public Object doInBackground() {
+	 * 			return DownloadUtils.download( url, dest, observer, 500 * DownloadUtils.KB );
+	 *		}
+	 *	};
+	 *	task.execute();
+	 *
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param url The URL to access the file(s) from
+	 * @param destination The local file to save the download to
+	 * @param observer The observer to watch the status of the transfer
+	 * @return The exit status of the transfer <code>FAILED, COMPLETE, CANCELLED, OFFLINE</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int download(URL url, File destination, AsyncObserver observer, int throttle) throws IOException, InterruptedException
+	{
 		HttpURLConnection conn = null;
 		InputStream in = null;
 		OutputStream out = null;
@@ -172,6 +290,6 @@ public class DownloadUtils implements IUtils
 		in = conn.getInputStream();
 		out = new FileOutputStream(destination);
 		
-		return FileUtils.copy(in, out, FileUtils.SINGLE_FILE, observer);
+		return FileUtils.copy(in, out, FileUtils.SINGLE_FILE, observer, throttle);
 	}
 }

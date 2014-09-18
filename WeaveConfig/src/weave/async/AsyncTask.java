@@ -7,11 +7,11 @@ import java.util.List;
 
 public abstract class AsyncTask
 {
-	private List<IAsyncCallback> callbacks = null;
+	private List<AsyncCallback> callbacks = null;
 	
 	public AsyncTask()
 	{
-		callbacks = Collections.synchronizedList(new ArrayList<IAsyncCallback>());
+		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
 	}
 	
 	public abstract Object doInBackground();
@@ -30,14 +30,14 @@ public abstract class AsyncTask
 	}
 	
 	
-	public boolean addCallback(IAsyncCallback c) {
+	public boolean addCallback(AsyncCallback c) {
 		return callbacks.add(c);
 	}
-	public boolean removeCallback(IAsyncCallback c) {
+	public boolean removeCallback(AsyncCallback c) {
 		return callbacks.remove(c);
 	}
 	public void removeAllCallbacks() {
-		Iterator<IAsyncCallback> it = callbacks.iterator();
+		Iterator<AsyncCallback> it = callbacks.iterator();
 		while( it.hasNext() )
 			removeCallback(it.next());
 	}
@@ -47,7 +47,7 @@ public abstract class AsyncTask
 	{
 		if( callbacks != null )
 		{
-			Iterator<IAsyncCallback> it = callbacks.iterator();
+			Iterator<AsyncCallback> it = callbacks.iterator();
 			while( it.hasNext() )
 				it.next().run(o);
 		}

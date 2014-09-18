@@ -41,7 +41,7 @@ public class ObjectUtils
 	 * Shorthand ternary operation to simplify testing null cases.
 	 * 
 	 * You can specify a function to apply to the null object if the test
-	 * of the object is not null. By default, no arguments can be supplied 
+	 * of the object is not null. By default, no arguments are supplied 
 	 * to the function.
 	 * 
 	 * @param testNotNull The test to see if it is <code>null</code>
