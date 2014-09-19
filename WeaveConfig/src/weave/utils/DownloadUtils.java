@@ -36,17 +36,6 @@ import weave.includes.IUtils;
 
 public class DownloadUtils extends TransferUtils implements IUtils
 {
-	public static final int FAILED		= ( 1 << 0 );
-	public static final int COMPLETE	= ( 1 << 1 );
-	public static final int CANCELLED 	= ( 1 << 2 );
-	public static final int OFFLINE		= ( 1 << 3 );
-	
-	public static final int B			= 1;
-	public static final int KB			= B * 1024;
-	public static final int MB			= KB * 1024;
-	public static final int GB			= MB * 1024;
-	
-
 	/**
 	 * Convert a scalar value to a string speed measure
 	 * <br><br>
@@ -290,6 +279,6 @@ public class DownloadUtils extends TransferUtils implements IUtils
 		in = conn.getInputStream();
 		out = new FileOutputStream(destination);
 		
-		return FileUtils.copy(in, out, FileUtils.SINGLE_FILE, observer, throttle);
+		return FileUtils.copy(in, out, observer, throttle);
 	}
 }

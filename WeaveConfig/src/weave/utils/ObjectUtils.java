@@ -20,7 +20,6 @@
 package weave.utils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class ObjectUtils
 {
@@ -84,8 +83,7 @@ public class ObjectUtils
 		if( testNotNull == null )
 			return failDefault;
 		
-		Method m = testNotNull.getClass().getDeclaredMethod(functionName, argClassList);
-		return m.invoke(testNotNull, args);
+		return ReflectionUtils.reflect(testNotNull, functionName, argClassList, args);
 	}
 	
 	

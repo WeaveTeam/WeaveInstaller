@@ -74,7 +74,7 @@ public class RevisionTable extends JPanel
 		for( int i = 0; i < sortedFiles.size(); i++ )
 		{
 			file = sortedFiles.get(i);
-			revisionName = Revisions.getRevisionName(file.getName());
+			revisionName = Revisions.getRevisionVersion(file.getName());
 			date.setTime(file.lastModified());
 			
 			data[i][0] = revisionName + ((revisionName.equals(Settings.CURRENT_INSTALL_VER)) ? "  (current)" : "" );

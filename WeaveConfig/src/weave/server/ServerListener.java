@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import weave.Settings;
+import org.json.JSONObject;
+
 import weave.utils.BugReportUtils;
 import weave.utils.TraceUtils;
 
@@ -137,21 +138,9 @@ public class ServerListener
 			try {
 				
 				String query = in.readLine();
-				Map<String, String> pairs = URLUtils.parse(query);
-				String component = pairs.get("component");
-				String command = pairs.get("command");
+				JSONObject queryObj = new JSONObject(query);
+
 				
-				if( component.equals("app") ) 
-				{
-					if( command.equals("start") )
-					{
-						
-					}
-					else if( command.equals("stop") )
-					{
-						Settings.shutdown();
-					}
-				}
 
 			} catch (UnsupportedEncodingException e) {
 				TraceUtils.trace(TraceUtils.STDERR, e);

@@ -22,13 +22,13 @@ package weave.configs;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
@@ -36,6 +36,7 @@ import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TraceUtils;
+import weave.utils.TransferUtils;
 
 public class Jetty extends Config
 {
@@ -126,34 +127,44 @@ public class Jetty extends Config
 	
 	public void startServer()
 	{
-		try {
-			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-			String[] START = {
-					"cmd",
-					"/c",
-					"java -jar \"" + basePath + "start.jar\" --module=http jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --daemon &"
-			};
-			System.out.println("START cmd: " + Arrays.toString(START));
-			ProcessUtils.runAndWait(START);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		}
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
+					final String[] START = {
+							"cmd",
+							"/c",
+							"java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty"
+					};
+					o = ProcessUtils.run(START);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (NoSuchMethodException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (SecurityException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalAccessException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalArgumentException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InvocationTargetException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+		task.execute();
 	}
 	
 	public void stopServer()
@@ -163,10 +174,9 @@ public class Jetty extends Config
 			String[] STOP = {
 					"cmd",
 					"/c",
-					"java -jar \"" + basePath + "start.jar\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop"
+					"java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop"
 			};
-			System.out.println("STOP cmd: " + Arrays.toString(STOP));
-			ProcessUtils.runAndWait(STOP);
+			ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -183,6 +193,9 @@ public class Jetty extends Config
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

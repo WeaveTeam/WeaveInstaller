@@ -4,33 +4,27 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
 
 import weave.utils.FileUtils;
-import weave.utils.TransferUtils;
+import weave.utils.ZipUtils;
 
 public abstract class AsyncObserver
 {
 	public AsyncObserverObject info = new AsyncObserverObject();
+	
 	public abstract void onUpdate();
 	
-	public void init(File f, int flags)
+	public void init(File f) throws ZipException, IOException
 	{
 		info.min = 0;
 		info.cur = 0;
 		info.percent = 0;
 		
-		if( (flags & TransferUtils.MULTIPLE_FILES) != 0 )
-			info.max = FileUtils.getNumberOfFilesInDirectory(f);
-		else if( (flags & TransferUtils.SINGLE_FILE) != 0)
-			info.max = f.length();
-	}
-	public void init(ZipFile z)
-	{
-		info.min = 0;
-		info.cur = 0;
-		info.percent = 0;
-		info.max = z.size();
+		if( ZipUtils.isZip(f) )
+			info.max = ZipUtils.getUncompressedSize(f);
+		else
+			info.max = FileUtils.getSize(f);
 	}
 	public void init(URL url) throws IOException
 	{

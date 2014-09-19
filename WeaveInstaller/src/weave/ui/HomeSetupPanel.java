@@ -32,7 +32,6 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -586,9 +585,6 @@ public class HomeSetupPanel extends SetupPanel
 
 		if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() )
 			Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
-		if( zipFile.exists() )
-			zipFile.delete();
-		zipFile.createNewFile();
 
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
 		
@@ -612,11 +608,6 @@ public class HomeSetupPanel extends SetupPanel
 	
 	private void extractBinaries(final File zipFile)
 	{
-		if( !Settings.UNZIP_DIRECTORY.exists() )
-			Settings.UNZIP_DIRECTORY.mkdirs();
-		
-		final File unzippedFile = new File(Settings.UNZIP_DIRECTORY, zipFile.getName());
-		
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
@@ -641,15 +632,9 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					case TransferUtils.COMPLETE:
 						TraceUtils.put(TraceUtils.STDOUT, "DONE");
-						downloadLabel.setText("Extract Complete....");
-						progressbar.setValue(50);
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						}
-						moveBinaries(unzippedFile);
+						
+						String folderName = Revisions.getRevisionName(zipFile.getAbsolutePath());
+						moveBinaries(new File(Settings.UNZIP_DIRECTORY, folderName));
 						break;
 					case TransferUtils.FAILED:
 						break;
@@ -665,11 +650,14 @@ public class HomeSetupPanel extends SetupPanel
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
-					observer.init(new ZipFile(zipFile));
-					o = ZipUtils.extract(zipFile, unzippedFile, TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
+					observer.init(zipFile);
+					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
+				}catch (NullPointerException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					// No bug report
 				} catch (ZipException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -685,6 +673,9 @@ public class HomeSetupPanel extends SetupPanel
 		};
 
 		try {
+			if( !Settings.UNZIP_DIRECTORY.exists() )
+				Settings.UNZIP_DIRECTORY.mkdirs();
+			
 			progressbar.setVisible(true);
 			downloadLabel.setVisible(true);
 			
@@ -734,7 +725,7 @@ public class HomeSetupPanel extends SetupPanel
 					Settings.canQuit = true;
 					System.gc();
 
-					Settings.CURRENT_INSTALL_VER = Revisions.getRevisionName(unzippedFile.getAbsolutePath());
+					Settings.CURRENT_INSTALL_VER = Revisions.getRevisionVersion(unzippedFile.getAbsolutePath());
 					Settings.save();
 					
 					try {
@@ -763,12 +754,13 @@ public class HomeSetupPanel extends SetupPanel
 				String[] files = unzippedFile.list();
 				
 				try {
-					observer.init(unzippedFile, TransferUtils.MULTIPLE_FILES);
+					observer.init(unzippedFile);
 
 					for( String file : files )
 					{
 						File source = new File(unzippedFile, file);
-						status &= FileUtils.copy(source, configWebapps, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 4 * TransferUtils.MB);
+						File destination = new File(configWebapps, file);
+						status &= FileUtils.copy(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 4 * TransferUtils.MB);
 					}
 				} catch (ArithmeticException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);

@@ -75,7 +75,7 @@ public class LaunchUtils
 			"/c", 
 			"java -jar \"" + launcher.getCanonicalPath() + "\" \"" + f.getCanonicalPath() + "\" \"" + delay + "\""
 		};
-		ProcessUtils.runAndWait(command);
+		ProcessUtils.run(command);
 		
  		return true;
 	}

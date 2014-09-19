@@ -31,7 +31,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -781,7 +780,7 @@ public class ConfigSetupPanel extends SetupPanel
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
-					observer.init(new ZipFile(source));
+					observer.init(source);
 					o = ZipUtils.extract(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer);
 				} catch (ZipException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);

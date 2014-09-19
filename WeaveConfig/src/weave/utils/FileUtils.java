@@ -202,7 +202,7 @@ public class FileUtils extends TransferUtils implements IUtils
 		// to see if the OVERWRITE flag bit was passed.
 		// If it exists, and OVERWRITE bit wasn't passed we need to throw an exception
 		if( destination.exists() && (flags & OVERWRITE) == 0 )
-			throw new FileAlreadyExistsException(destination.getName());
+			throw new FileAlreadyExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
 		
 		int status = COMPLETE;
 		
@@ -216,33 +216,11 @@ public class FileUtils extends TransferUtils implements IUtils
 		}
 		else
 		{
-			// If the multiple files flag is set, we just want to track the status
-			// of all the files instead of individual files
-			if( observer != null && (flags & MULTIPLE_FILES) != 0 ) {
-				observer.info.cur++;
-				observer.info.percent = (int) (observer.info.cur * 100 / observer.info.max);
-				observer.onUpdate();
-			}
-			status &= copy(new FileInputStream(source), new FileOutputStream(destination), flags, observer, throttle);
+			status &= copy(new FileInputStream(source), new FileOutputStream(destination), observer, throttle);
 		}
 		return status;
 	}
 
-	/**
-	 * Copy the contents of the InputStream to the OutputStream
-	 * 
-	 * @param in The InputStream to read from
-	 * @param out The OutputStream to write to
-	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
-	 * 
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	public static int copy(InputStream in, OutputStream out) throws IOException, InterruptedException
-	{
-		return copy(in, out, NO_FLAGS);
-	}
-	
 	/**
 	 * Copy the contents of the InputStream to the OutputStream
 	 * 
@@ -254,9 +232,9 @@ public class FileUtils extends TransferUtils implements IUtils
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static int copy(InputStream in, OutputStream out, int flags) throws IOException, InterruptedException
+	public static int copy(InputStream in, OutputStream out) throws IOException, InterruptedException
 	{
-		return copy(in, out, flags, null);
+		return copy(in, out, null);
 	}
 	
 	/**
@@ -271,9 +249,9 @@ public class FileUtils extends TransferUtils implements IUtils
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static int copy(InputStream in, OutputStream out, int flags, AsyncObserver observer) throws IOException, InterruptedException
+	public static int copy(InputStream in, OutputStream out, AsyncObserver observer) throws IOException, InterruptedException
 	{
-		return copy(in, out, flags, observer, 0);
+		return copy(in, out, observer, 0);
 	}
 	
 	/**
@@ -289,7 +267,7 @@ public class FileUtils extends TransferUtils implements IUtils
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static int copy(InputStream in, OutputStream out, int flags, AsyncObserver observer, int throttle) throws IOException, InterruptedException
+	public static int copy(InputStream in, OutputStream out, AsyncObserver observer, int throttle) throws IOException, InterruptedException
 	{
 		int n;
 		int limit = 0, bps = 0, seconds = 0, aveSpeed = 1;
@@ -320,7 +298,7 @@ public class FileUtils extends TransferUtils implements IUtils
 			// If an observer has been supplied to this function we want to 
 			// track the progress of this operation and provide feedback
 			// to the observer
-			if( observer != null && (flags & SINGLE_FILE) != 0) {
+			if( observer != null ) {
 				if( speedLongNew - speedLongOld > 1000 ) {
 					observer.info.speed = bps;
 					bps = 0;
@@ -617,5 +595,22 @@ public class FileUtils extends TransferUtils implements IUtils
 			ret += getNumberOfFilesInDirectory(new File(dir, file));
 		
 		return ret;
+	}
+	
+	public static long getSize(String file)
+	{
+		return getSize(new File(file));
+	}
+	public static long getSize(File file)
+	{
+		long length = 0L;
+		
+		if( file.isDirectory() )
+			for( File f : file.listFiles() )
+				length += getSize(f);
+		else
+			length += file.length();
+		
+		return length;
 	}
 }

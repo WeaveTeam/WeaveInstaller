@@ -36,7 +36,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +46,7 @@ import javax.swing.JOptionPane;
 
 import net.jimmc.jshortcut.JShellLink;
 import weave.dll.DLLInterface;
+import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
 import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
@@ -765,26 +765,29 @@ public class Settings
 		String windows_cmds[] = {"cmd", "/c", "tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH"};
 		String unix_cmds[] = {"/bin/bash", "-c", "ps -A -o pid,command | grep -i \"java\"" };
 		
-		List<String> result = null;
+		Map<String, List<String>> result = null;
 		
 		try {
 			
 			if( OS == OS_TYPE.WINDOWS )		
-				result = ProcessUtils.runAndWait(windows_cmds);
+				result = ProcessUtils.run(windows_cmds);
 			else if( OS == OS_TYPE.MAC || OS == OS_TYPE.LINUX )
-				result = ProcessUtils.runAndWait(unix_cmds);
+				result = ProcessUtils.run(unix_cmds);
 			else
-				result = new ArrayList<String>();
+				result = new HashMap<String, List<String>>();
 			
-			for( int i = 0; i < result.size(); i++ )
-				if( result.get(i).contains("" + pid) )
+			for( int i = 0; i < result.get("output").size(); i++ )
+				if( result.get("output").get(i).contains("" + pid) )
 					return true;
 
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			return false;
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			return false;
 		}
-				
+		
 		return false;
 	}
 	
@@ -855,6 +858,8 @@ public class Settings
 		}
 		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.INSTALLER_NAME) )
 		{
+			if( ConfigManager.getConfigManager().getActiveContainer() != null )
+				ConfigManager.getConfigManager().getActiveContainer().unloadConfig();
 			TrayManager.removeTrayIcon();
 			stopListenerServer();
 		}

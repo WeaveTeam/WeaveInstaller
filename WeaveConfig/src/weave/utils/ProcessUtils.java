@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import weave.includes.IUtils;
 
@@ -33,36 +35,37 @@ public class ProcessUtils implements IUtils
 	protected static Runtime runtime = Runtime.getRuntime();
 	protected static Process proccess = null;
 	
-	private static Thread currentThread = null;
-	
-	public static List<String> runAndWait( List<String> cmds ) throws IOException, InterruptedException
+	public static Map<String, List<String>> run(List<String> cmds) throws IOException, InterruptedException
 	{
 		String[] strList = cmds.toArray(new String[cmds.size()]);
-		return runAndWait(strList);
+		return run(strList);
 	}
-	public static List<String> runAndWait( final String cmds[] ) throws InterruptedException
+	public static Map<String, List<String>> run(String cmds[]) throws IOException, InterruptedException
 	{
-		ProcInternals proc = new ProcInternals();
-		ProcessRunnable pr = new ProcessRunnable(cmds, proc); 
-		currentThread = new Thread(pr);
+		Map<String, List<String>> returnMap = new HashMap<String, List<String>>();
+		ProcInternals internals = new ProcInternals();
+		internals.output = new ArrayList<String>();
+		internals.error = new ArrayList<String>();
 		
-//		System.out.println("Running query: " + Arrays.toString(cmds));
-		
-		currentThread.start();
-		currentThread.join();
+		proccess = runtime.exec(cmds);
 
-//		System.out.println("\tOutput: " + proc.output);
-//		System.out.println("\tError: " + proc.error + "\n");
+		ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), internals.output);
+		ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), internals.error);
 		
-		return proc.output;
-	}
-	public static void stopWaiting()
-	{
-		if( currentThread.isAlive() )
-		{
-			currentThread.interrupt();
-			currentThread = null;
-		}
+		outputStream.start();
+		errorStream.start();
+		
+		proccess.waitFor();
+		
+//		proccess.getInputStream().close();
+//		proccess.getOutputStream().close();
+//		proccess.getErrorStream().close();
+//		proccess.destroy();
+		
+		returnMap.put("output", internals.output);
+		returnMap.put("error", internals.error);
+		
+		return returnMap;
 	}
 }
 
@@ -97,49 +100,6 @@ class ProcessStream extends Thread
 
 			reader.close();
 			
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		}
-	}
-}
-
-class ProcessRunnable extends ProcessUtils implements Runnable
-{
-	private String cmds[] = null;
-	ProcInternals proc = null;
-	
-	public ProcessRunnable(String cmds[], ProcInternals proc)
-	{
-		this.cmds = cmds;
-		this.proc = proc;
-		this.proc.output = new ArrayList<String>();
-		this.proc.error = new ArrayList<String>();
-	}
-	
-	
-	@Override
-	public void run() {
-		
-		try {
-			proccess = runtime.exec(cmds);
-
-			ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), proc.output);
-			ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), proc.error);
-			
-			outputStream.start();
-			errorStream.start();
-			
-			proccess.waitFor();
-			
-			proccess.getOutputStream().close();
-			proccess.getInputStream().close();
-			proccess.getErrorStream().close();
-			proccess.destroy();
-			
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

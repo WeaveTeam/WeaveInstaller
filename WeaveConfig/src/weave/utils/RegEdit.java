@@ -3,6 +3,7 @@ package weave.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class RegEdit 
 {
@@ -18,7 +19,7 @@ public class RegEdit
 	{
 		StringBuilder sb = new StringBuilder("");
 		List<String> query = new ArrayList<String>();
-		List<String> results = null;
+		Map<String, List<String>> results = null;
 		
 		try {
 			
@@ -43,10 +44,10 @@ public class RegEdit
 			query.add("/C");
 			query.add(sb.toString());
 			
-			results = ProcessUtils.runAndWait(query);
+			results = ProcessUtils.run(query);
 			
 			for( int i = 0; i < results.size(); i++ )
-				if( results.get(i).toLowerCase().contains("success") )
+				if( results.get("output").get(i).toLowerCase().contains("success") )
 					return true;
 			
 		} catch (IOException e) {
