@@ -45,6 +45,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import net.jimmc.jshortcut.JShellLink;
+import weave.configs.Config;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
@@ -82,10 +83,10 @@ public class Settings
 	/*
 	 * Weave Installer
 	 */
-	public static final String INSTALLER_NAME			= PROJECT_NAME + " Server Assistant";
-	public static final String INSTALLER_VER			= "1.1.0 R2";
-	public static final String INSTALLER_TITLE 			= INSTALLER_NAME + " v" + INSTALLER_VER;
-	public static final String INSTALLER_JAR			= "Installer.jar";
+	public static final String SERVER_NAME				= PROJECT_NAME + " Server Assistant";
+	public static final String SERVER_VER				= "1.1.0 R2";
+	public static final String SERVER_TITLE 			= SERVER_NAME + " v" + SERVER_VER;
+	public static final String SERVER_JAR				= "Server.jar";
 	
 	/*
 	 * Weave Updater
@@ -790,7 +791,16 @@ public class Settings
 		
 		return false;
 	}
-	
+
+	public static String testAPIStr() {
+		return "Hello from API";
+	}
+	public static int testAPINum() {
+		return 1;
+	}
+	public static Config testAPICustom() {
+		return new Config();
+	}
 	
 	/**
 	 * Removes any temporary directories created by the tool
@@ -856,7 +866,7 @@ public class Settings
 				TraceUtils.trace(TraceUtils.STDERR, e);
 			}
 		}
-		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.INSTALLER_NAME) )
+		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.SERVER_NAME) )
 		{
 			if( ConfigManager.getConfigManager().getActiveContainer() != null )
 				ConfigManager.getConfigManager().getActiveContainer().unloadConfig();

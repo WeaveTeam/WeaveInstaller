@@ -99,7 +99,7 @@ public class Launcher extends JFrame
 					
 				}
 				else if( cmd.equals("startApplication" ) ) {
-					File file = new File(Settings.BIN_DIRECTORY, Settings.INSTALLER_JAR);
+					File file = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
 					start(file, delay);
 				}
 				else if( cmd.equals("stopApplication") ) {

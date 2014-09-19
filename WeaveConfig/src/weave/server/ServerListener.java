@@ -1,21 +1,41 @@
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package weave.server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.OutputStreamWriter;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import weave.utils.BugReportUtils;
+import weave.utils.ObjectUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.TraceUtils;
 
 public class ServerListener
@@ -108,6 +128,7 @@ public class ServerListener
 	{
 		private Socket clientSock = null;
 		private BufferedReader in = null;
+		private BufferedWriter out = null;
 		
 		public ServerListenerThread(Socket s)
 		{
@@ -115,6 +136,7 @@ public class ServerListener
 
 			try {
 				in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+				out = new BufferedWriter(new OutputStreamWriter(clientSock.getOutputStream()));
 			} catch (IOException e) {
 				TraceUtils.trace(TraceUtils.STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
@@ -124,49 +146,96 @@ public class ServerListener
 		public void close()
 		{
 			try {
-				
 				if( in != null ) in.close();
+				if( out != null ) out.close();
 				clientSock.close();
 				connections.remove(this);
-				
 			} catch (IOException e) {
 			}
 		}
 		
 		@Override
-		public void run() {
+		public void run() 
+		{
 			try {
+				int i = 0;
+				String line = in.readLine();
+//				System.out.println("Line: " + line);
+				JSONObject queryObj = new JSONObject(line);
+				JSONArray jsonSigs = null;
+				JSONArray jsonArgs = null;
 				
-				String query = in.readLine();
-				JSONObject queryObj = new JSONObject(query);
+				String pkg = queryObj.getString("package");
+				String clzz = queryObj.getString("class");
+				String func = queryObj.getString("function");
+				if( queryObj.has("signature") )
+					jsonSigs = queryObj.getJSONArray("signature");
+				if( queryObj.has("args") )
+					jsonArgs = queryObj.getJSONArray("args");
 
+				Class<?>[] sigs = null;
+				Object[] args = null;
 				
-
-			} catch (UnsupportedEncodingException e) {
+				if( jsonSigs != null ) {
+					sigs = new Class<?>[jsonSigs.length()];
+					for( i = 0; i < jsonSigs.length(); i++ )
+						sigs[i] = Class.forName((String) jsonSigs.get(i));
+				}
+				if( jsonArgs != null ) {
+					args = new Object[jsonArgs.length()];
+					for( i = 0; i < jsonArgs.length(); i++ ) {
+						if( jsonArgs.getString(i).contains("new") )
+							args[i] = sigs[i].newInstance();
+						else
+							args[i] = jsonArgs.get(i);
+					}
+				}
+				
+//				System.out.println("pkg: " + pkg);
+//				System.out.println("clzz: " + clzz);
+//				System.out.println("func: " + func);
+//				System.out.println("sigs: " + Arrays.toString(sigs));
+//				System.out.println("args: " + Arrays.toString(args));
+				
+				Object o = null;
+				if( sigs != null && args != null ) {
+					o = ReflectionUtils.reflectMethod(pkg, clzz, func, sigs, args);
+					if( o == null )
+						out.write("NULL");
+					else if( o instanceof String )
+						out.write( (String)ObjectUtils.ternary(o, "NULL") );
+					else if( o instanceof Integer )
+						out.write( "" + ObjectUtils.ternary(o, 0) );
+					else						
+						out.write("No case for type: " + o.getClass().getSimpleName());
+					out.newLine();
+					out.flush();
+				}
+				else
+				{
+					o = ReflectionUtils.reflectField(pkg, clzz, func);
+					if( o == null )
+						out.write("NULL");
+					else if( o instanceof String )
+						out.write( (String)ObjectUtils.ternary(o, "NULL") );
+					else if( o instanceof Integer )
+						out.write( "" + ObjectUtils.ternary(o, 0) );
+					else
+						out.write("No case for type: " + o.getClass().getSimpleName());
+					out.newLine();
+					out.flush();
+				}
+			} catch (Exception e) {
 				TraceUtils.trace(TraceUtils.STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-			} catch (IOException e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
+				try {
+					out.write(TraceUtils.getStackTrace(e));
+					out.newLine();
+					out.flush();
+				} catch (IOException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
 			}
 			close();
-		}
-	}
-	
-	static class URLUtils
-	{
-		public static Map<String, String> parse(String url) throws UnsupportedEncodingException
-		{
-			Map<String, String> result = new HashMap<String, String>();
-			
-			String[] pairs = url.split("&");
-			for( String pair : pairs ) 
-			{
-				String[] key_val = pair.split("=");
-				result.put(URLDecoder.decode(key_val[0], "UTF-8"), URLDecoder.decode(key_val[1], "UTF-8"));
-			}
-			
-			return result;
 		}
 	}
 }

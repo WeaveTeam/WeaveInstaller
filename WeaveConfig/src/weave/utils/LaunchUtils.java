@@ -106,7 +106,7 @@ public class LaunchUtils
 	}
 	public static Boolean launchWeaveInstaller(int delay) throws IOException, InterruptedException
 	{
-		return launch(new File(Settings.BIN_DIRECTORY, Settings.INSTALLER_JAR), delay);
+		return launch(new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR), delay);
 	}
 	
 	public static Boolean openAdminConsole() throws IOException, URISyntaxException, InterruptedException

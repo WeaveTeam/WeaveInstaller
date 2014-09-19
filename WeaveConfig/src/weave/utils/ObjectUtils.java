@@ -83,7 +83,7 @@ public class ObjectUtils
 		if( testNotNull == null )
 			return failDefault;
 		
-		return ReflectionUtils.reflect(testNotNull, functionName, argClassList, args);
+		return ReflectionUtils.reflectMethod(testNotNull, functionName, argClassList, args);
 	}
 	
 	

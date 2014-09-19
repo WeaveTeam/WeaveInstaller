@@ -100,7 +100,7 @@ public class Installer extends JFrame
 			Thread.sleep(1000);
 
 			Settings.init();
-			Settings.CURRENT_PROGRAM_NAME = Settings.INSTALLER_NAME;
+			Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
 
 			Thread.sleep(1000);
 			if( !Settings.getLock() )
@@ -179,7 +179,7 @@ public class Installer extends JFrame
 		setSize(500, 400);
 		setResizable(false);
 		setLayout(null);
-		setTitle(Settings.INSTALLER_TITLE);
+		setTitle(Settings.SERVER_TITLE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
 		setIconImage(TrayManager.trayIconOffline);

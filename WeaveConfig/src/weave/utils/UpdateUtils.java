@@ -50,10 +50,10 @@ public class UpdateUtils
 	public static void refreshLookupValues()
 	{
 		entriesToCheck = new ArrayList<String>( Arrays.asList( 	RemoteUtils.WEAVE_UPDATER_VERSION,
-																RemoteUtils.WEAVE_INSTALLER_VERSION,
+																RemoteUtils.WEAVE_SERVER_VERSION,
 																RemoteUtils.SHORTCUT_VER));
 		lookupEntries = new ArrayList<String>( Arrays.asList( 	Settings.UPDATER_VER,
-																Settings.INSTALLER_VER,
+																Settings.SERVER_VER,
 																Settings.SHORTCUT_VER ));
 	}
 	

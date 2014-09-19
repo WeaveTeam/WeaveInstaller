@@ -36,7 +36,7 @@ public class RemoteUtils
 	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
 	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";
 	
-	public static final String WEAVE_INSTALLER_VERSION 	= "WeaveInstallerVersion";
+	public static final String WEAVE_SERVER_VERSION 	= "WeaveInstallerVersion";
 	public static final String WEAVE_UPDATER_VERSION 	= "WeaveUpdaterVersion";
 
 	public static final String JETTY_URL 				= "JettyURL";
@@ -45,8 +45,10 @@ public class RemoteUtils
 	public static final String SQLite_URL				= "SQLiteURL";
 	public static final String SQLite_VERSION			= "SQLiteVersion";
 	
-	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
+	public static final String AWS_URL					= "AnalystURL";
+	public static final String AWS_VERSION				= "AnalystVersion";
 	
+	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	public static final String WIKI_HELP_PAGE			= "WikiHelpPage";
 	
 	

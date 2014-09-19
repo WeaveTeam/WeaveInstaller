@@ -729,6 +729,7 @@ public class HomeSetupPanel extends SetupPanel
 					Settings.save();
 					
 					try {
+						Settings.cleanUp();
 						Thread.sleep(1000);
 						refreshProgramatically = true;
 						refreshInterface();

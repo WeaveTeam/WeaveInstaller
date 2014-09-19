@@ -148,7 +148,7 @@ public class Updater extends JFrame
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
 		setIconImage(TrayManager.trayIconOnline);
 		
-		staticLabel = new JLabel("Updating " + Settings.INSTALLER_NAME + "...");
+		staticLabel = new JLabel("Updating " + Settings.SERVER_NAME + "...");
 		staticLabel.setBounds(20, 10, 400, 20);
 		staticLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 15));
 		staticLabel.setVisible(true);
@@ -210,10 +210,10 @@ public class Updater extends JFrame
 		{
 			setTitle(getTitle() + " [OFFLINE MODE]");
 			TraceUtils.traceln(TraceUtils.STDOUT, "-> Offline Mode enabled...");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
 
 			staticLabel.setText(Settings.UPDATER_NAME);
-			statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
+			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 			
 			LaunchUtils.launchWeaveInstaller(1000);
 			
@@ -428,8 +428,8 @@ public class Updater extends JFrame
 				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
 			Thread.sleep(1000);
 			
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
-			statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
+			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 	
 			while( !Settings.canQuit ) Thread.sleep(1000);
 	

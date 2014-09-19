@@ -95,7 +95,7 @@ public class BugReportUtils implements IUtils
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("os", Settings.getExactOS());
 			map.put("updr_ver", Settings.UPDATER_VER);
-			map.put("instll_ver", Settings.INSTALLER_VER);
+			map.put("instll_ver", Settings.SERVER_VER);
 			map.put("comment", comment);
 			map.put("stack", stack);
 			

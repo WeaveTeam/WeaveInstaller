@@ -89,7 +89,7 @@ public class TrayManager
 		systemTray = SystemTray.getSystemTray();
 		popupMenu = new PopupMenu();
 		
-		restoreItem = new MenuItem("Restore " + Settings.INSTALLER_NAME);
+		restoreItem = new MenuItem("Restore " + Settings.SERVER_NAME);
 		onOffItem = new MenuItem("Go into " + (Settings.isOfflineMode() ? "Online" : "Offline") + " Mode");
 		quickLinksMenu = new Menu("Quick Links");
 		adminConsoleItem = new MenuItem("Admin Console");
@@ -109,7 +109,7 @@ public class TrayManager
 		popupMenu.add(updateItem);
 		popupMenu.add(exitItem);
 		
-		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.INSTALLER_NAME);
+		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.SERVER_NAME);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.setPopupMenu(popupMenu);
 		
@@ -292,7 +292,7 @@ public class TrayManager
 				if( e.getNewState() == JFrame.ICONIFIED || e.getNewState() == 7) {
 					_parent.setVisible(false);
 					if( !Settings.INSTALLER_POPUP_SHOWN ) {
-						displayTrayMessage(Settings.INSTALLER_NAME, Settings.INSTALLER_NAME + " is still running!\nDouble click on this icon to restore", TrayIcon.MessageType.INFO);
+						displayTrayMessage(Settings.SERVER_NAME, Settings.SERVER_NAME + " is still running!\nDouble click on this icon to restore", TrayIcon.MessageType.INFO);
 						Settings.INSTALLER_POPUP_SHOWN = true;
 					}
 				} else if( e.getNewState() == JFrame.MAXIMIZED_BOTH || e.getNewState() == JFrame.NORMAL ) {
