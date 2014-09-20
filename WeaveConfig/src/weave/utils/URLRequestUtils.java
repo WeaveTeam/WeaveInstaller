@@ -44,7 +44,7 @@ public class URLRequestUtils
 						if( params == null )
 							url = new URL(urlStr);
 						else
-							url = new URL(urlStr + params.toString());
+							url = new URL(urlStr + "?" + params.toString());
 						
 						conn = (HttpURLConnection) url.openConnection();
 						conn.setRequestMethod(GET);

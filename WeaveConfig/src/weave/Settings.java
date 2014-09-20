@@ -56,6 +56,7 @@ import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
+import weave.utils.SyscallCreatorUtils;
 import weave.utils.TraceUtils;
 
 public class Settings 
@@ -763,10 +764,10 @@ public class Settings
 	 */
 	public static boolean isActivePID(int pid)
 	{
-		String windows_cmds[] = {"cmd", "/c", "tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH"};
-		String unix_cmds[] = {"/bin/bash", "-c", "ps -A -o pid,command | grep -i \"java\"" };
 		
 		Map<String, List<String>> result = null;
+		String windows_cmds[] = SyscallCreatorUtils.generate("tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH");
+		String unix_cmds[] = SyscallCreatorUtils.generate("ps -A -o pid,command | grep -i \"java\"" );
 		
 		try {
 			

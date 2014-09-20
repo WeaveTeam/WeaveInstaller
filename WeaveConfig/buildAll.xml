@@ -74,10 +74,6 @@
 				classpathref="WeaveConfigIncludes"
 				debug="true"></javac>
 		
-		<copy todir="WeaveLauncher/bin/resources/" failonerror="false">
-			<fileset dir="WeaveLauncher/src/resources/" />
-		</copy>
-		
         <jar basedir="WeaveLauncher/bin/" destfile="WeaveLauncher/build/Launcher.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Manifest-Version" value="1.0" />
@@ -139,7 +135,7 @@
 			<fileset dir="WeaveInstaller/src/resources/" />
 		</copy>
 
-		<jar basedir="WeaveInstaller/bin/" destfile="WeaveInstaller/build/Installer.jar" filesetmanifest="mergewithoutmain">
+		<jar basedir="WeaveInstaller/bin/" destfile="WeaveInstaller/build/Server.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
@@ -150,9 +146,9 @@
 			<exclude />
         </jar>
 
-		<waitfor><available file="WeaveInstaller/build/Installer.jar" /></waitfor>
-        <copy file="WeaveInstaller/build/Installer.jar" todir="${env.APPDATA}/.weave/bin/" />
-		<waitfor><available file="${env.APPDATA}/.weave/bin/Installer.jar" /></waitfor>
+		<waitfor><available file="WeaveInstaller/build/Server.jar" /></waitfor>
+        <copy file="WeaveInstaller/build/Server.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Server.jar" /></waitfor>
 	</target>
 	
 </project>

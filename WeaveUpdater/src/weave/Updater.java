@@ -30,6 +30,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.zip.ZipException;
 
 import javax.swing.JButton;
@@ -254,8 +255,9 @@ public class Updater extends JFrame
 	private void downloadUpdate() throws IOException
 	{
 		// Get update URL
-		final String url = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
-		if( url == null ) {
+		final URL url;
+		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
+		if( urlStr == null ) {
 			JOptionPane.showConfirmDialog(null, 
 				"A connection to the internet could not be established.\n\n" +
 				"Please connect to the internet and try again.", 
@@ -263,6 +265,7 @@ public class Updater extends JFrame
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 			Settings.shutdown(JFrame.NORMAL);
 		}
+		url = new URL(urlStr);
 		
 		final File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
 		if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() ) 
@@ -344,6 +347,7 @@ public class Updater extends JFrame
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
+					observer.init(url);
 					o = DownloadUtils.download(url, destination, observer, 500 * DownloadUtils.KB);
 				} catch (IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
@@ -390,6 +394,7 @@ public class Updater extends JFrame
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
+					observer.init(zipFile);
 					o = ZipUtils.extract(zipFile, Settings.WEAVE_ROOT_DIRECTORY, ZipUtils.OVERWRITE, observer);
 				} catch (ZipException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
@@ -493,7 +498,7 @@ public class Updater extends JFrame
 		if( oldDir.exists() ) {
 			File oldRevs = new File(oldDir, Settings.F_S + "revisions" + Settings.F_S);
 			if( oldRevs.exists() )
-				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY);
+				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY, TransferUtils.OVERWRITE);
 			FileUtils.recursiveDelete(oldDir);
 		}
 	}

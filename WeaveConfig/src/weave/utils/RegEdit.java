@@ -1,7 +1,6 @@
 package weave.utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,11 +17,10 @@ public class RegEdit
 	private static boolean doAction(String action, String root, String path, String type, String key, String data)
 	{
 		StringBuilder sb = new StringBuilder("");
-		List<String> query = new ArrayList<String>();
+		String[] query = null;
 		Map<String, List<String>> results = null;
 		
 		try {
-			
 			sb.append("REG " + action + " " + root + path + " ");
 	
 			if( key == null ) 				{ }
@@ -40,10 +38,7 @@ public class RegEdit
 			
 			sb.append("/f");
 			
-			query.add("cmd");
-			query.add("/C");
-			query.add(sb.toString());
-			
+			query = SyscallCreatorUtils.generate(sb.toString());
 			results = ProcessUtils.run(query);
 			
 			for( int i = 0; i < results.size(); i++ )

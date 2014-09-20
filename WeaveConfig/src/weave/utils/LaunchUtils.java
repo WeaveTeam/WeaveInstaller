@@ -29,6 +29,7 @@ import java.net.URISyntaxException;
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.Settings.OS_TYPE;
 import weave.managers.ConfigManager;
 
 public class LaunchUtils
@@ -69,12 +70,17 @@ public class LaunchUtils
 		}
 		
 		Settings.releaseLock();
+
+		if( Settings.OS == OS_TYPE.UNKNOWN )
+		{
+			JOptionPane.showMessageDialog(null, 
+					"Cannot launch file: " + f.getCanonicalPath() + "\n\n" +
+					"Please manually launch this file.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			return true;
+		}
 		
-		String[] command = {
-			"cmd", 
-			"/c", 
-			"java -jar \"" + launcher.getCanonicalPath() + "\" \"" + f.getCanonicalPath() + "\" \"" + delay + "\""
-		};
+		String[] command = SyscallCreatorUtils.generate("java -jar \"" + launcher.getCanonicalPath() + "\" \"" + f.getCanonicalPath() + "\" \"" + delay + "\"");
 		ProcessUtils.run(command);
 		
  		return true;

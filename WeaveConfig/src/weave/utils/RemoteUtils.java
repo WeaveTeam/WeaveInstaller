@@ -42,9 +42,6 @@ public class RemoteUtils
 	public static final String JETTY_URL 				= "JettyURL";
 	public static final String JETTY_VERSION 			= "JettyVersion";
 	
-	public static final String SQLite_URL				= "SQLiteURL";
-	public static final String SQLite_VERSION			= "SQLiteVersion";
-	
 	public static final String AWS_URL					= "AnalystURL";
 	public static final String AWS_VERSION				= "AnalystVersion";
 	

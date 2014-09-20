@@ -35,6 +35,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.SyscallCreatorUtils;
 import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 
@@ -133,11 +134,8 @@ public class Jetty extends Config
 				Object o = TransferUtils.FAILED;
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-					final String[] START = {
-							"cmd",
-							"/c",
-							"java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty"
-					};
+					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty");
+
 					o = ProcessUtils.run(START);
 				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
@@ -171,11 +169,8 @@ public class Jetty extends Config
 	{
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../"; 
-			String[] STOP = {
-					"cmd",
-					"/c",
-					"java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop"
-			};
+			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop");
+
 			ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

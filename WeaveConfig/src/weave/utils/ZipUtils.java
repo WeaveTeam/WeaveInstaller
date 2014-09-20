@@ -112,7 +112,7 @@ public class ZipUtils extends TransferUtils implements IUtils
 		assert zipFile != null;
 		assert destination != null;
 		
-		if( destination.exists() && (flags & OVERWRITE) != 0 )
+		if( destination.exists() && (flags & OVERWRITE) == 0 )
 			throw new FileAlreadyExistsException(destination.getName());
 		
 		int result = COMPLETE;
