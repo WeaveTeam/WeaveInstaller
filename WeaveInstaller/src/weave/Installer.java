@@ -144,7 +144,7 @@ public class Installer extends JFrame
 			}
 			
 			installer = new Installer();
-			
+
 		} catch (ClassNotFoundException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (InstantiationException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);			
@@ -335,7 +335,7 @@ public class Installer extends JFrame
 				}
 			}
 		}, 3000);
-		
+
 		switchToWelcomeSetupPanels(rightPanel);
 	}
 

@@ -51,9 +51,11 @@ public class UpdateUtils
 	{
 		entriesToCheck = new ArrayList<String>( Arrays.asList( 	RemoteUtils.WEAVE_UPDATER_VERSION,
 																RemoteUtils.WEAVE_SERVER_VERSION,
+																RemoteUtils.WEAVE_LAUNCHER_VERSION,
 																RemoteUtils.SHORTCUT_VER));
 		lookupEntries = new ArrayList<String>( Arrays.asList( 	Settings.UPDATER_VER,
 																Settings.SERVER_VER,
+																Settings.LAUNCHER_VER,
 																Settings.SHORTCUT_VER ));
 	}
 	

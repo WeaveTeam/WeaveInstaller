@@ -61,7 +61,6 @@ import weave.utils.TraceUtils;
 
 public class Settings 
 {
-
 	public static final String PROJECT_NAME				= "Weave";
 	public static final String PROJECT_PROTOCOL			= "weave://";
 	public static final String PROJECT_EXTENSION		= ".weave";
@@ -85,7 +84,7 @@ public class Settings
 	 * Weave Installer
 	 */
 	public static final String SERVER_NAME				= PROJECT_NAME + " Server Assistant";
-	public static final String SERVER_VER				= "1.1.0 R2";
+	public static final String SERVER_VER				= "2.0";
 	public static final String SERVER_TITLE 			= SERVER_NAME + " v" + SERVER_VER;
 	public static final String SERVER_JAR				= "Server.jar";
 	
@@ -93,7 +92,7 @@ public class Settings
 	 * Weave Updater
 	 */
 	public static final String UPDATER_NAME				= PROJECT_NAME + " Updater";
-	public static final String UPDATER_VER				= "1.0.1";
+	public static final String UPDATER_VER				= "1.1";
 	public static final String UPDATER_TITLE			= UPDATER_NAME + " v" + UPDATER_VER;
 	public static final String UPDATER_JAR				= "Updater.jar";
 	public static final String UDPATER_NEW_JAR			= "Updater_new.jar";
@@ -102,7 +101,7 @@ public class Settings
 	 * Weave Launcher
 	 */
 	public static final String LAUNCHER_NAME			= PROJECT_NAME + " Launcher";
-	public static final String LAUNCHER_VER				= "1.0.0";
+	public static final String LAUNCHER_VER				= "1.0";
 	public static final String LAUNCHER_TITLE			= LAUNCHER_NAME + " v" + LAUNCHER_VER;
 	public static final String LAUNCHER_JAR				= "Launcher.jar";
 	

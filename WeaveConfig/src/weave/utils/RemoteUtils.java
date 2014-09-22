@@ -36,8 +36,9 @@ public class RemoteUtils
 	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
 	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";
 	
-	public static final String WEAVE_SERVER_VERSION 	= "WeaveInstallerVersion";
+	public static final String WEAVE_SERVER_VERSION 	= "WeaveServerVersion";
 	public static final String WEAVE_UPDATER_VERSION 	= "WeaveUpdaterVersion";
+	public static final String WEAVE_LAUNCHER_VERSION	= "WeaveLauncherVersion";
 
 	public static final String JETTY_URL 				= "JettyURL";
 	public static final String JETTY_VERSION 			= "JettyVersion";

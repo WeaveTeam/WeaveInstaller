@@ -23,10 +23,10 @@ import java.net.URL;
 
 public class IconManager
 {
-	public static URL ICON_TRAY_LOGO = IconManager.class.getResource("/resources/logo.png");
-	public static URL ICON_TRAY_ONLINE = IconManager.class.getResource("/resources/logo_green.png");
-	public static URL ICON_TRAY_OFFLINE = IconManager.class.getResource("/resources/logo_orange.png");
-	public static URL ICON_TRAY_ERROR = IconManager.class.getResource("/resources/logo_red.png");
+	public static URL ICON_TRAY_LOGO = IconManager.class.getResource("/resources/icon.png");
+	public static URL ICON_TRAY_ONLINE = IconManager.class.getResource("/resources/icon.png");
+	public static URL ICON_TRAY_OFFLINE = IconManager.class.getResource("/resources/icon.png");
+	public static URL ICON_TRAY_ERROR = IconManager.class.getResource("/resources/icon.png");
 	public static URL IMAGE_OIC_LOGO = IconManager.class.getResource("/resources/oic4.png");
 	
 	public static URL IMAGE_JETTY = IconManager.class.getResource("/resources/jetty.png");

@@ -210,7 +210,7 @@ public class Updater extends JFrame
 		if( Settings.isOfflineMode() )
 		{
 			setTitle(getTitle() + " [OFFLINE MODE]");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Offline Mode enabled...");
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Offline Mode Enabled...");
 			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
 
 			staticLabel.setText(Settings.UPDATER_NAME);
@@ -220,11 +220,13 @@ public class Updater extends JFrame
 			
 			Settings.shutdown();
 		}
-		
+
 		
 		//=================================================
 		// Everything below this is for online launching
 		//=================================================
+		TraceUtils.traceln(TraceUtils.STDOUT, "-> Online Mode Enabled...");
+		
 		
 		// Need to check if this WeaveInstaller tool 
 		// has a unique ID assigned to it
@@ -236,19 +238,26 @@ public class Updater extends JFrame
 		}
 		Settings.canQuit = true;
 
+		
 		// Check to see if there is an update available and if 
 		// we should update at this time
+		TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for updates...........");
 		isUpdate = UpdateUtils.isUpdateAvailable();
 		shouldUpdate = Settings.UPDATE_FREQ == UPDATE_TYPE.START;
 		
 		if( isUpdate && ( shouldUpdate || Settings.UPDATE_OVERRIDE ) )
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Update is available!");
+			TraceUtils.put(TraceUtils.STDOUT, "AVAILABLE");
 			
 			Settings.UPDATE_OVERRIDE = false;
 			Settings.save();
 
 			downloadUpdate();
+		}
+		else
+		{
+			TraceUtils.put(TraceUtils.STDOUT, "NONE");
+			finish();
 		}
 	}
 	
@@ -275,11 +284,6 @@ public class Updater extends JFrame
 			destination.delete();
 		destination.createNewFile();
 		
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
-		statusLabel.setText("Downloading update....");
-		statusProgress.setIndeterminate(false);
-		statusProgress.setValue(0);
-
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
@@ -359,7 +363,12 @@ public class Updater extends JFrame
 				return o;
 			}
 		};
-		
+
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
+		statusLabel.setText("Downloading update....");
+		statusProgress.setIndeterminate(false);
+		statusProgress.setValue(0);
+
 		Settings.downloadLocked = true;
 		Settings.transferCancelled = false;
 		
@@ -386,7 +395,7 @@ public class Updater extends JFrame
 			public void run(Object o) {
 				statusLabel.setText("Install complete....");
 				TraceUtils.put(TraceUtils.STDOUT, "DONE");
-				finishInstall();
+				finish();
 			}
 		};
 		AsyncTask task = new AsyncTask() {
@@ -410,6 +419,8 @@ public class Updater extends JFrame
 			}
 		};
 
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing udpate..............");
+		
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
 		
@@ -417,7 +428,7 @@ public class Updater extends JFrame
 		task.execute();
 	}
 	
-	private void finishInstall()
+	private void finish()
 	{
 		try {
 			System.gc();
@@ -425,7 +436,6 @@ public class Updater extends JFrame
 			Thread.sleep(2000);
 			
 			StatsUtils.noop();
-			cleanUp();
 			upgradeOldStuff();
 			
 			String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
@@ -433,7 +443,7 @@ public class Updater extends JFrame
 				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
 			Thread.sleep(1000);
 			
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
+			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 	
 			while( !Settings.canQuit ) Thread.sleep(1000);
@@ -449,15 +459,6 @@ public class Updater extends JFrame
 
 		StatsUtils.noop();
 		Settings.shutdown();
-	}
-	
-	private void cleanUp() throws InterruptedException
-	{
-		statusLabel.setText("Cleaning up...");
-		statusProgress.setString("");
-		statusProgress.setIndeterminate(true);
-		statusProgress.setValue(0);
-		Settings.cleanUp();
 	}
 	
 	private void createShortcut( boolean overwrite ) throws IOException, InterruptedException
