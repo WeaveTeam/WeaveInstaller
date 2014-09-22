@@ -20,8 +20,6 @@
 package weave.configs;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -29,7 +27,6 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class MySQL extends Config
@@ -49,45 +46,19 @@ public class MySQL extends Config
 
 	@Override public void initConfig()
 	{
-		super.initConfig();
-		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
+		super.initConfig(_PORT);
 		
 		try {
-			Class<?>[] argClasses = { Object.class };
-			Object[] args = { "PORT" };
-			
-			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					savedCFG, "get", "3306", argClasses, args)));
 			
 			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
 
-			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
-					new Class<?>[] { Object.class }, 
-					new Object[] { "ACTIVE" }) )
-				loadConfig();
-			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (NumberFormatException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

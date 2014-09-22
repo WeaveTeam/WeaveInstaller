@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import weave.Settings;
+import weave.configs.Config;
 import weave.configs.IConfig;
 import weave.configs.Jetty;
 import weave.configs.MySQL;
@@ -240,9 +241,10 @@ public class ConfigManager
 					IConfig config = entry.getValue();
 					Map<String, Object> values = new HashMap<String, Object>();
 					
-					values.put("WEBAPPS", 	ObjectUtils.ternary(config.getWebappsDirectory(), "getCanonicalPath", null));
-					values.put("PORT",		"" + config.getPort());
-					values.put("ACTIVE", 	config.isConfigLoaded());
+					values.put(Config.WEBAPPS, 	ObjectUtils.ternary(config.getWebappsDirectory(), "getCanonicalPath", null));
+					values.put(Config.PORT,		"" + config.getPort());
+					values.put(Config.VERSION, 	config.getInstallVersion());
+					values.put(Config.ACTIVE, 	config.isConfigLoaded());
 					
 					CONFIGS_MAP.put(config.getConfigName(), values);
 				}

@@ -21,6 +21,7 @@ package weave.ui;
 
 import java.awt.GridLayout;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,7 +32,9 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import weave.Revisions;
-import weave.Settings;
+import weave.managers.ConfigManager;
+import weave.utils.ObjectUtils;
+import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
 public class RevisionTable extends JPanel
@@ -71,14 +74,28 @@ public class RevisionTable extends JPanel
 		Date date = new Date();
 		String revisionName = "";
 		
-		for( int i = 0; i < sortedFiles.size(); i++ )
-		{
-			file = sortedFiles.get(i);
-			revisionName = Revisions.getRevisionVersion(file.getName());
-			date.setTime(file.lastModified());
-			
-			data[i][0] = revisionName + ((revisionName.equals(Settings.CURRENT_INSTALL_VER)) ? "  (current)" : "" );
-			data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
+		try {
+			for( int i = 0; i < sortedFiles.size(); i++ )
+			{
+				file = sortedFiles.get(i);
+				revisionName = Revisions.getRevisionVersion(file.getName());
+				date.setTime(file.lastModified());
+
+				String configVer = (String)ObjectUtils.ternary(
+										ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "ASDFASDF");
+				data[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
+				data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
+			}
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
 
 		// Add row(s) if needed

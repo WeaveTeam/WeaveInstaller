@@ -130,7 +130,8 @@ public class LaunchUtils
 		}
 		return browse("http://" + 
 				Settings.LOCALHOST + ":" + 
-				ConfigManager.getConfigManager().getActiveContainer().getPort(),
+				ConfigManager.getConfigManager().getActiveContainer().getPort() +
+				"/AdminConsole.html",
 				delay);
 	}
 }

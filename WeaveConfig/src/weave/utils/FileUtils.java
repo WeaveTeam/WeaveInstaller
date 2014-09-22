@@ -31,10 +31,13 @@ import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import weave.Settings;
+import weave.Settings.OS_TYPE;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.includes.IUtils;
@@ -492,6 +495,43 @@ public class FileUtils extends TransferUtils implements IUtils
 		return null;
 	}
 
+	public static boolean isOnRemovableMedia(String s) throws IOException, InterruptedException
+	{
+		return isOnRemoveableMedia(new File(s));
+	}
+	public static boolean isOnRemoveableMedia(File f) throws IOException, InterruptedException
+	{
+		List<String> removeableMedia = new ArrayList<String>();
+		Map<String, List<String>> proc_result = null;
+		String[] windows_cmds = SyscallCreatorUtils.generate("wmic logicaldisk where drivetype=2 get deviceid /format:list");
+//		System.out.println("cmd: " + Arrays.toString(windows_cmds));
+		
+		if( Settings.OS == OS_TYPE.WINDOWS )
+		{
+			proc_result = ProcessUtils.run(windows_cmds);
+//			System.out.println("result: " + proc_result);
+			
+			for (String line : proc_result.get("output") ) {
+				if( line.contains("DeviceID") )
+					removeableMedia.add(line.substring(line.lastIndexOf("=")+1, 1));
+			}
+			return removeableMedia.contains(getPathRoot(f).getAbsolutePath().substring(0, 1));
+		}
+		
+		return false;
+	}
+	
+	public static File getPathRoot(String s)
+	{
+		return getPathRoot(new File(s));
+	}
+	public static File getPathRoot(File f)
+	{
+		File p = f;
+		while( p.getParentFile() != null )
+			p = p.getParentFile();
+		return p;
+	}
 	
 	/*
 	 * FileUtils.getFileContents( file )

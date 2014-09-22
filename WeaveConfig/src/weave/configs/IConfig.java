@@ -25,6 +25,7 @@ import java.io.File;
 public interface IConfig 
 {
 	public void initConfig();
+	public void initConfig(int i);
 	public boolean loadConfig();
 	public boolean unloadConfig();
 	public boolean isConfigLoaded();
@@ -49,6 +50,9 @@ public interface IConfig
 	
 	public File getInstallFile();
 	public void setInstallFile(File f);
+	
+	public String getInstallVersion();
+	public void setInstallVersion(String s);
 	
 	public int getPort();
 	public void setPort(int i);

@@ -20,8 +20,6 @@
 package weave.configs;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -29,7 +27,6 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
 public class Tomcat extends Config
@@ -49,20 +46,10 @@ public class Tomcat extends Config
 	
 	@Override public void initConfig()
 	{
-		super.initConfig();
-		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
+		super.initConfig(_WEBAPPS | _PORT | _VERSION);
 		
 		try {
-			Class<?>[] argClasses = { Object.class };
-			Object[] argsWebapps = { "WEBAPPS" };
-			Object[] argsPort = { "PORT" };
 			
-			setWebappsDirectory((String)ObjectUtils.ternary(
-					savedCFG, "get", "", argClasses, argsWebapps));
-			
-			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					savedCFG, "get", "8080", argClasses, argsPort)));
-
 			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
 							"that provides a pure Java HTTP web server environment for " +
 							"Java code to run in.");
@@ -70,27 +57,7 @@ public class Tomcat extends Config
 						"found <a href='" + getURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
 
-			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
-					new Class<?>[] { Object.class }, 
-					new Object[] { "ACTIVE" }) )
-				loadConfig();
-			
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

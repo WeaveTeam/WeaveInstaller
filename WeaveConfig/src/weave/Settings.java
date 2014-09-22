@@ -84,7 +84,7 @@ public class Settings
 	 * Weave Installer
 	 */
 	public static final String SERVER_NAME				= PROJECT_NAME + " Server Assistant";
-	public static final String SERVER_VER				= "2.0";
+	public static final String SERVER_VER				= "2.0 BETA";
 	public static final String SERVER_TITLE 			= SERVER_NAME + " v" + SERVER_VER;
 	public static final String SERVER_JAR				= "Server.jar";
 	
@@ -150,7 +150,6 @@ public class Settings
 	public static boolean CONFIGURED					= false;
 	public static String UNIQUE_ID						= "";
 	public static String LAST_UPDATE_CHECK 				= "Never";
-	public static String CURRENT_INSTALL_VER 			= "";
 	public static String SHORTCUT_VER					= "0";
 	public static int 	 RPC_PORT						= 3579;
 
@@ -275,7 +274,6 @@ public class Settings
 			SETTINGS_MAP.put("CONFIGURED", CONFIGURED);
 			SETTINGS_MAP.put("UNIQUE_ID", UNIQUE_ID);
 			SETTINGS_MAP.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
-			SETTINGS_MAP.put("CURRENT_INSTALL_VER", CURRENT_INSTALL_VER);
 			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
 			SETTINGS_MAP.put("UPDATE_FREQ", UPDATE_FREQ);
 			SETTINGS_MAP.put("UPDATE_OVERRIDE", UPDATE_OVERRIDE);
@@ -324,7 +322,6 @@ public class Settings
 			CONFIGURED = 			(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
 			UNIQUE_ID = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
 			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
-			CURRENT_INSTALL_VER = 	(String)  		ObjectUtils.ternary(SETTINGS_MAP.get("CURRENT_INSTALL_VER"),	CURRENT_INSTALL_VER);
 			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
 			UPDATE_FREQ = 			(UPDATE_TYPE)	ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_FREQ"),			UPDATE_FREQ);
 			UPDATE_OVERRIDE	=		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);

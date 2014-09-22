@@ -114,7 +114,17 @@ public class ReflectionUtils
 	 */
 	public static Object reflectMethod(Object instance, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
-		Method m = instance.getClass().getDeclaredMethod(function, argClassList);
-		return m.invoke(instance, args);
+		Method m = null;
+		Class<?> clazz = instance.getClass();
+		while( clazz != null )
+		{
+			try {
+				m = clazz.getDeclaredMethod(function, argClassList);
+				return m.invoke(instance, args);
+			} catch (NoSuchMethodException e) {
+				clazz = clazz.getSuperclass();
+			}
+		}
+		throw new NoSuchMethodException(instance.getClass().getName() + "." + function + "()");
 	}
 }

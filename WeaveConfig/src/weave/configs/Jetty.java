@@ -22,7 +22,6 @@ package weave.configs;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
@@ -58,17 +57,10 @@ public class Jetty extends Config
 
 	@Override public void initConfig()
 	{
-		super.initConfig();
+		super.initConfig(_PORT | _VERSION);
 		
 		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
-		Map<String, Object> savedCFG = ConfigManager.getConfigManager().getSavedConfigSettings(getConfigName());
 		try {
-			Class<?>[] argClasses = { Object.class };
-			Object[] args = { "PORT" };
-			
-			setPort(Integer.parseInt((String)ObjectUtils.ternary(
-					savedCFG, "get", "8084", argClasses, args)));
-			
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation.");
@@ -76,27 +68,7 @@ public class Jetty extends Config
 						"This is the appropriate choice for new users.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
 			
-			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false,
-					new Class<?>[] { Object.class }, 
-					new Object[] { "ACTIVE" }) )
-				loadConfig();
-			
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -134,7 +106,7 @@ public class Jetty extends Config
 				Object o = TransferUtils.FAILED;
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + PORT + " STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty");
+					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + _port + " STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
 
 					o = ProcessUtils.run(START);
 				} catch (InterruptedException e) {
@@ -169,7 +141,7 @@ public class Jetty extends Config
 	{
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../"; 
-			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (PORT+1) + " STOP.KEY=jetty --stop");
+			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
 
 			ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {

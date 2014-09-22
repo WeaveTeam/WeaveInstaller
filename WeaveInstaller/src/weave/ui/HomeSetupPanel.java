@@ -136,7 +136,7 @@ public class HomeSetupPanel extends SetupPanel
 		tabbedPane.setBounds(0, 0, 350, 325);
 
 		tabbedPane.addTab("Weave", (tab1 = createTab1(tabbedPane)));
-		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
+//		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
 		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -341,21 +341,15 @@ public class HomeSetupPanel extends SetupPanel
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
-				IConfig activeContainer = ConfigManager.getConfigManager().getActiveContainer();
-				
-				if( activeContainer != null )
-				{
-					try {
-						LaunchUtils.browse("http://" + Settings.LOCALHOST + ":" + activeContainer.getPort() + "/AdminConsole.html");
-					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
-					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
-					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
-					}
-				} else
-					JOptionPane.showMessageDialog(null, "No servlet container loaded.", "Error", JOptionPane.ERROR_MESSAGE);
+				try {
+					LaunchUtils.openAdminConsole();
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (URISyntaxException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
 			}
 		});
 		
@@ -651,7 +645,7 @@ public class HomeSetupPanel extends SetupPanel
 				Object o = TransferUtils.FAILED;
 				try {
 					observer.init(zipFile);
-					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
+					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -725,8 +719,11 @@ public class HomeSetupPanel extends SetupPanel
 					Settings.canQuit = true;
 					System.gc();
 
-					Settings.CURRENT_INSTALL_VER = Revisions.getRevisionVersion(unzippedFile.getAbsolutePath());
-					Settings.save();
+					ConfigManager
+						.getConfigManager()
+						.getActiveContainer()
+						.setInstallVersion(Revisions.getRevisionVersion(unzippedFile.getAbsolutePath()));
+					ConfigManager.getConfigManager().save();
 					
 					try {
 						Settings.cleanUp();

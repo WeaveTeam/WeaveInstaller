@@ -326,11 +326,11 @@ public class Updater extends JFrame
 							TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
 							statusLabel.setText("Cancelling download...");
 							
-							if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, 
+							if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
 									"Would you like to launch anyway?", "Download Cancelled", 
-									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
-								Settings.shutdown();
-							}
+									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE))
+								LaunchUtils.launchWeaveInstaller();
+							Settings.shutdown();
 							break;
 						case TransferUtils.FAILED:
 							TraceUtils.put(TraceUtils.STDOUT, "FAILED");
@@ -341,6 +341,9 @@ public class Updater extends JFrame
 							break;
 					}
 				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}

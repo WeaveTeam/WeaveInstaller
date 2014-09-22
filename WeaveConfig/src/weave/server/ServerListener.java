@@ -30,6 +30,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -65,6 +67,10 @@ public class ServerListener
 		} catch (BindException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED (Port already in use)");
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			JOptionPane.showMessageDialog(null, 
+					"Starting RPC server failed. Port already in use.\n\n" + 
+					"Close any process running on port " + port + " and try again.",
+					"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -97,11 +103,13 @@ public class ServerListener
 	
 	public void stop()
 	{
+		int i = 0;
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Stopping RPC Server............");
 		
 		try {
 			while( !connections.isEmpty() )
 			{
+				i++;
 				ServerListenerThread slt = connections.get(0);
 				slt.interrupt();
 				slt.close();
@@ -117,7 +125,7 @@ public class ServerListener
 		loopThread.interrupt();
 		ssocket = null;
 		loopThread = null;
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		TraceUtils.put(TraceUtils.STDOUT, "DONE (" + i + " remaining connections killed)");
 	}
 	
 	
@@ -160,7 +168,6 @@ public class ServerListener
 			try {
 				int i = 0;
 				String line = in.readLine();
-//				System.out.println("Line: " + line);
 				JSONObject queryObj = new JSONObject(line);
 				JSONArray jsonSigs = null;
 				JSONArray jsonArgs = null;
@@ -198,7 +205,10 @@ public class ServerListener
 //				System.out.println("args: " + Arrays.toString(args));
 				
 				Object o = null;
-				if( sigs != null && args != null ) {
+				
+				if( sigs != null && args != null ) 
+				{
+					// Run a function on an object
 					o = ReflectionUtils.reflectMethod(pkg, clzz, func, sigs, args);
 					if( o == null )
 						out.write("NULL");
@@ -213,6 +223,7 @@ public class ServerListener
 				}
 				else
 				{
+					// Get a variable from an object
 					o = ReflectionUtils.reflectField(pkg, clzz, func);
 					if( o == null )
 						out.write("NULL");

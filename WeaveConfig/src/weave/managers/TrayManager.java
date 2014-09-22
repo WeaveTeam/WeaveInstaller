@@ -180,13 +180,18 @@ public class TrayManager
 							LaunchUtils.launchWeaveUpdater(1000);
 							Thread.sleep(50);
 							Settings.shutdown();
-						} catch (IOException e1) {
-							TraceUtils.trace(TraceUtils.STDERR, e1);
-							BugReportUtils.showBugReportDialog(e1);
-						} catch (InterruptedException e1) {
-							TraceUtils.trace(TraceUtils.STDERR, e1);
-							BugReportUtils.showBugReportDialog(e1);
+						} catch (IOException ex) {
+							TraceUtils.trace(TraceUtils.STDERR, ex);
+							BugReportUtils.showBugReportDialog(ex);
+						} catch (InterruptedException ex) {
+							TraceUtils.trace(TraceUtils.STDERR, ex);
+							BugReportUtils.showBugReportDialog(ex);
 						}
+					}
+					else
+					{
+						_parent.setVisible( !_parent.isVisible() );
+						_parent.setExtendedState( _parent.isVisible() ? JFrame.NORMAL : JFrame.ICONIFIED );
 					}
 				}
 				else
@@ -217,8 +222,8 @@ public class TrayManager
 				try {
 					LaunchUtils.launchWeaveUpdater();
 					Settings.shutdown();
-				} catch (IOException e1) {				TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (InterruptedException e1) {		TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
 				}
 			}
 		});
@@ -227,12 +232,11 @@ public class TrayManager
         adminConsoleItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
 				try {
 					LaunchUtils.openAdminConsole();
-				} catch (IOException e2) {				TraceUtils.trace(TraceUtils.STDERR, e2);
-				} catch (URISyntaxException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);
-				} catch (InterruptedException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);		
+				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (URISyntaxException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
 				}
 				
 			}
@@ -242,12 +246,11 @@ public class TrayManager
         installerWikiItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE, 100);
-				} catch (IOException e2) {				TraceUtils.trace(TraceUtils.STDERR, e2);
-				} catch (URISyntaxException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);
-				} catch (InterruptedException e2) {		TraceUtils.trace(TraceUtils.STDERR, e2);		
+				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (URISyntaxException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);		
 				}
 
 			}
