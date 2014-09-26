@@ -90,7 +90,7 @@ public class ConfigSetupPanel extends SetupPanel
 		maxPanels = 3;
 
 		setLayout(null);
-		setBounds(0, 0, 350, 325);
+		setBounds(0, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
 		
 		JPanel panel = null;
 		for (int i = 0; i < maxPanels; i++) {
@@ -111,8 +111,8 @@ public class ConfigSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 350, 325);
-		panel.setBackground(new Color(0xFFFFFF));
+		panel.setBounds(0, 0, getWidth(), getHeight());
+		panel.setBackground(Color.WHITE);
 		
 		int activeServletIndex = 0;
 		
@@ -125,7 +125,7 @@ public class ConfigSetupPanel extends SetupPanel
 		// Servlet Combobox
 		List<IConfig> servlets = ConfigManager.getConfigManager().getServletConfigs();
 		servletCombo = new JComboBox<String>();
-		servletCombo.setBounds(160, 22, 170, 22);
+		servletCombo.setBounds(250, 20, 170, 25);
 		servletCombo.setVisible(true);
 		servletCombo.setEnabled(true);
 		servletCombo.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
@@ -150,14 +150,15 @@ public class ConfigSetupPanel extends SetupPanel
 
 		// Image
 		servletImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		servletImage.setBounds(20, 60, 80, 80);
+		servletImage.setBounds(20, 60, 100, 100);
 		servletImage.setVerticalAlignment(JLabel.TOP);
 		panel.add(servletImage);
 
 		
 		// Description
 		servletDesc = new JEditorPane();
-		servletDesc.setBounds(110, 60, 210, 85);
+		servletDesc.setBackground(Color.WHITE);
+		servletDesc.setBounds(140, 60, 280, 120);
 		servletDesc.setEditable(false);
 		servletDesc.setContentType("text/html");
 		servletDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -188,7 +189,7 @@ public class ConfigSetupPanel extends SetupPanel
 
 		// Progress bar
 		servletProgressBar = new JProgressBar();
-		servletProgressBar.setBounds(20, 150, 310, 20);
+		servletProgressBar.setBounds(20, 180, 390, 25);
 		servletProgressBar.setMinimum(0);
 		servletProgressBar.setMaximum(100);
 		servletProgressBar.setValue(0);
@@ -200,7 +201,8 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Warning
 		servletWarning = new JEditorPane();
-		servletWarning.setBounds(20, 180, 310, 60);
+		servletWarning.setBackground(Color.WHITE);
+		servletWarning.setBounds(20, 210, 390, 60);
 		servletWarning.setEditable(false);
 		servletWarning.setContentType("text/html");
 		servletWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -229,10 +231,28 @@ public class ConfigSetupPanel extends SetupPanel
 		});
 		panel.add(servletWarning);
 
+
+		// Servlet Port
+		servletPortLabel = new JLabel("Port:");
+		servletPortLabel.setBounds(20, 280, 90, 25);
+		servletPortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		servletPortLabel.setVisible(true);
+		panel.add(servletPortLabel);
+
+		
+		// Servlet Port Input
+		servletPortInput = new JTextField();
+		servletPortInput.setBounds(100, 280, 220, 25);
+		servletPortInput.setEditable(true);
+		servletPortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 14));
+		servletPortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
+		servletPortInput.setVisible(true);
+		panel.add(servletPortInput);
+		
 		
 		// Servlet directory label
 		servletWebappsLabel = new JLabel("Webapps:");
-		servletWebappsLabel.setBounds(20, 280, 70, 25);
+		servletWebappsLabel.setBounds(20, 320, 90, 25);
 		servletWebappsLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		panel.add(servletWebappsLabel);
 		
@@ -244,7 +264,7 @@ public class ConfigSetupPanel extends SetupPanel
 		servletFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		
 		servletBrowserPath = new JTextField();
-		servletBrowserPath.setBounds(100, 280, 150, 25);
+		servletBrowserPath.setBounds(100, 320, 220, 25);
 		servletBrowserPath.setEditable(false);
 		servletBrowserPath.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		servletBrowserPath.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
@@ -252,7 +272,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(servletBrowserPath);
 		
 		servletBrowserButton = new JButton("Browse");
-		servletBrowserButton.setBounds(260, 280, 70, 25);
+		servletBrowserButton.setBounds(330, 320, 90, 25);
 		servletBrowserButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -281,24 +301,6 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(servletBrowserButton);
 		
 		
-		// Servlet Port
-		servletPortLabel = new JLabel("Port:");
-		servletPortLabel.setBounds(20, 250, 70, 25);
-		servletPortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
-		servletPortLabel.setVisible(true);
-		panel.add(servletPortLabel);
-
-		
-		// Servlet Port Input
-		servletPortInput = new JTextField();
-		servletPortInput.setBounds(100, 250, 150, 25);
-		servletPortInput.setEditable(true);
-		servletPortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 14));
-		servletPortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
-		servletPortInput.setVisible(true);
-		panel.add(servletPortInput);
-		
-		
 		// Apply default values
 		servletCombo.setSelectedIndex(activeServletIndex);
 		
@@ -311,8 +313,8 @@ public class ConfigSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 350, 325);
-		panel.setBackground(new Color(0xFFFFFF));
+		panel.setBounds(0, 0, getWidth(), getHeight());
+		panel.setBackground(Color.WHITE);
 		
 		int activeDatabaseIndex = 0;
 		
@@ -325,7 +327,7 @@ public class ConfigSetupPanel extends SetupPanel
 		// Database Combobox
 		List<IConfig> databases = ConfigManager.getConfigManager().getDatabaseConfigs();
 		databaseCombo = new JComboBox<String>();
-		databaseCombo.setBounds(160, 22, 170, 22);
+		databaseCombo.setBounds(250, 20, 170, 25);
 		databaseCombo.setVisible(true);
 		databaseCombo.setEnabled(true);
 		databaseCombo.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
@@ -350,14 +352,15 @@ public class ConfigSetupPanel extends SetupPanel
 
 		// Image
 		databaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		databaseImage.setBounds(20, 60, 80, 80);
+		databaseImage.setBounds(20, 60, 100, 100);
 		databaseImage.setVerticalAlignment(JLabel.TOP);
 		panel.add(databaseImage);
 
 		
 		// Description
 		databaseDesc = new JEditorPane();
-		databaseDesc.setBounds(110, 60, 210, 100);
+		databaseDesc.setBounds(140, 60, 280, 120);
+		databaseDesc.setBackground(Color.WHITE);
 		databaseDesc.setEditable(false);
 		databaseDesc.setContentType("text/html");
 		databaseDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -389,7 +392,8 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Warning
 		databaseWarning = new JEditorPane();
-		databaseWarning.setBounds(20, 180, 310, 60);
+		databaseWarning.setBounds(20, 210, 390, 60);
+		databaseWarning.setBackground(Color.WHITE);
 		databaseWarning.setEditable(false);
 		databaseWarning.setContentType("text/html");
 		databaseWarning.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
@@ -421,14 +425,14 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Database port label
 		databasePortLabel = new JLabel("Port:");
-		databasePortLabel.setBounds(20, 250, 70, 25);
+		databasePortLabel.setBounds(20, 280, 90, 25);
 		databasePortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		databasePortLabel.setVisible(true);
 		panel.add(databasePortLabel);
 		
 		// Database port input
 		databasePortInput = new JTextField();
-		databasePortInput.setBounds(100, 250, 150, 25);
+		databasePortInput.setBounds(100, 280, 220, 25);
 		databasePortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		databasePortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
 		databasePortInput.setMargin(new Insets(2, 2, 2, 2));
@@ -447,8 +451,8 @@ public class ConfigSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 350, 325);
-		panel.setBackground(new Color(0xFFFFFF));
+		panel.setBounds(0, 0, getWidth(), getHeight());
+		panel.setBackground(Color.WHITE);
 		
 		
 		JLabel title = new JLabel("Review Configuration");
@@ -463,7 +467,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewServletTitleLabel);
 		
 		reviewServletImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		reviewServletImage.setBounds(250, 50, 60, 60);
+		reviewServletImage.setBounds(340, 50, 90, 90);
 		reviewServletImage.setVerticalAlignment(JLabel.TOP);
 		reviewServletImage.setVisible(true);
 		panel.add(reviewServletImage);
@@ -487,7 +491,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewServletWebappsLabel);
 		
 		reviewServletWebappsInput = new JTextField();
-		reviewServletWebappsInput.setBounds(90, 120, 240, 25);
+		reviewServletWebappsInput.setBounds(90, 120, 230, 25);
 		reviewServletWebappsInput.setVisible(true);
 		reviewServletWebappsInput.setEditable(false);
 		panel.add(reviewServletWebappsInput);
@@ -499,7 +503,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewDatabaseTitleLabel);
 		
 		reviewDatabaseImage = new JLabel((ImageIcon)null, JLabel.CENTER);
-		reviewDatabaseImage.setBounds(250, 170, 60, 60);
+		reviewDatabaseImage.setBounds(340, 170, 90, 90);
 		reviewDatabaseImage.setVerticalAlignment(JLabel.TOP);
 		reviewDatabaseImage.setVisible(true);
 		panel.add(reviewDatabaseImage);
@@ -517,7 +521,8 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewDatabasePortInput);
 		
 		reviewDesc = new JEditorPane();
-		reviewDesc.setBounds(20, 250, 310, 60);
+		reviewDesc.setBounds(20, 270, 410, 80);
+		reviewDesc.setBackground(Color.WHITE);
 		reviewDesc.setEditable(false);
 		reviewDesc.setContentType("text/html");
 		reviewDesc.setFont(new Font(Settings.FONT, Font.PLAIN, 10));

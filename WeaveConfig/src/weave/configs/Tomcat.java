@@ -31,6 +31,10 @@ import weave.utils.TraceUtils;
 
 public class Tomcat extends Config
 {
+	public static final String NAME = "Tomcat";
+	public static final String URL = "http://tomcat.apache.org/";
+	public static final int PORT = 8080;
+	
 	public static Tomcat _instance 	= null;
 	public static Tomcat getConfig()
 	{
@@ -41,7 +45,7 @@ public class Tomcat extends Config
 	
 	public Tomcat()
 	{
-		super("Tomcat", "http://tomcat.apache.org/");
+		super(NAME, URL, PORT);
 	}
 	
 	@Override public void initConfig()

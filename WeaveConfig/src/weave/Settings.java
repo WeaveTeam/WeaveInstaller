@@ -179,7 +179,7 @@ public class Settings
 	public static boolean isConnectedToInternet			= true;
 
 	public static 		String CURRENT_PROGRAM_NAME		= PROJECT_NAME;
-	public static final String FONT						= "Corbel";
+	public static final String FONT						= "Arial";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
 	public static int recommendPrune					= 6;
 	
@@ -420,11 +420,12 @@ public class Settings
 	{
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Getting network info...........");
 		try {
-			if( !offline )
-				REMOTE_IP = RemoteUtils.getIP();
-			
 			LOCAL_IP = InetAddress.getLocalHost().getHostAddress();
 			LOCALHOST = "127.0.0.1";
+			
+			if( !offline )
+				REMOTE_IP = (String) ObjectUtils.coalesce(RemoteUtils.getIP(), LOCAL_IP, LOCALHOST);
+			
 		} catch (UnknownHostException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -530,7 +531,7 @@ public class Settings
 	 * @param host the host to query
 	 * @param port	the port to check
 	 */
-	public static Boolean isServiceUp(String host, int port)
+	public static Boolean isServiceUp(String host, Integer port)
 	{
 		Boolean b = false;
 		try {
@@ -538,10 +539,10 @@ public class Settings
 			sock.close();
 			b = true;
 		} catch (IOException ex) {
-			TraceUtils.trace(TraceUtils.STDERR, ex);
+//			TraceUtils.trace(TraceUtils.STDERR, ex);
 		} catch (IllegalArgumentException ex) {
 			JOptionPane.showMessageDialog(null, "Port out of range.");
-			TraceUtils.trace(TraceUtils.STDERR, ex);
+//			TraceUtils.trace(TraceUtils.STDERR, ex);
 		}
 		return b;
 	}
@@ -569,6 +570,7 @@ public class Settings
 					url = new URL(Settings.OICWEAVE_URL);
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setReadTimeout(1500);
 					conn.setUseCaches(false);
 					conn.connect();
 				} catch (ConnectException e) {
@@ -586,7 +588,7 @@ public class Settings
 		});
 		try {
 			t.start();
-			t.join(700);
+			t.join(2000);
 			t.interrupt();
 			t = null;
 		} catch (InterruptedException e) {
@@ -648,7 +650,7 @@ public class Settings
 		DLLInterface.refresh();
 	}
 	
-	public static void enableWeaveExtension(boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	public static void enableWeaveExtension(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
 		if( OS != OS_TYPE.WINDOWS )
 			return;
@@ -665,7 +667,7 @@ public class Settings
 					RegEdit.HKEY_CURRENT_USER,
 					"Software\\Classes\\weavefile\\DefaultIcon", 
 					RegEdit.REG_EXPAND_SZ, 
-					"", "\"^%APPDATA^%\\.weave\\bin\\icon.ico\"");
+					"", "\"^%APPDATA^%\\.weave\\bin\\file.ico\"");
 			RegEdit.writeString(
 					RegEdit.HKEY_CURRENT_USER,
 					"Software\\Classes\\weavefile\\shell\\open\\command",

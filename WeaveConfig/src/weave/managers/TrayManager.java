@@ -188,11 +188,6 @@ public class TrayManager
 							BugReportUtils.showBugReportDialog(ex);
 						}
 					}
-					else
-					{
-						_parent.setVisible( !_parent.isVisible() );
-						_parent.setExtendedState( _parent.isVisible() ? JFrame.NORMAL : JFrame.ICONIFIED );
-					}
 				}
 				else
 				{

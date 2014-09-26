@@ -19,13 +19,7 @@
 
 package weave.utils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import javax.swing.JOptionPane;
 
@@ -58,19 +52,16 @@ public class RemoteUtils
 			return null;
 			
 		try {
-			URL url = new URL(Settings.UPDATE_CONFIG);
-			String line = "";
-			InputStream is = url.openStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-			
-			while( (line = reader.readLine()) != null )
-				content += line;
-		} catch (Exception e) {
+			content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
+			return content.split(";");
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		
-		return content.split(";");
+		return null;
 	}
 	
 	public static String getConfigEntry(String key)
@@ -112,46 +103,39 @@ public class RemoteUtils
 		}
 
 		try {
-			URL url = new URL(Settings.UPDATE_FILES);
-			String line = "";
-			InputStream is = url.openStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			
-			while( (line = reader.readLine()) != null )
-				content += line;
-		} catch (Exception e) {
+			content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
+			return content.split(";");
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		return content.split(";");
+		return null;
 	}
 	
+	/**
+	 * Get the remote IP of the user's computer
+	 * 
+	 * @return 	The external IP of the user's or <code>null</code> if they are
+	 * 			in offline mode or a connection timeout is reached.
+	 */
 	public static String getIP()
 	{
 		if( Settings.isOfflineMode() )
 			return null;
 		
 		try {
-			URL url = new URL(Settings.API_GET_IP);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			StringBuilder response = new StringBuilder();
-			String inputLine;
-			
-			while( (inputLine = in.readLine()) != null )
-				response.append(inputLine);
-			
-			in.close();
-			
-			return response.toString();
-			
-		} catch (MalformedURLException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.autoSubmitBugReport(e);
+			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP);
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.autoSubmitBugReport(e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
+		
 		return null;
 	}
 }

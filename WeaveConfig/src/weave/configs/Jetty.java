@@ -22,11 +22,14 @@ package weave.configs;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.Settings;
+import weave.async.AsyncCallback;
 import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
@@ -41,6 +44,8 @@ import weave.utils.TransferUtils;
 public class Jetty extends Config
 {
 	public static final String NAME = "Jetty";
+	public static final int PORT = 8084;
+	
 	public static Jetty _instance 	= null;
 	
 	public static Jetty getConfig()
@@ -52,7 +57,7 @@ public class Jetty extends Config
 	
 	public Jetty()
 	{
-		super(NAME);
+		super(NAME, PORT);
 	}
 
 	@Override public void initConfig()
@@ -100,15 +105,24 @@ public class Jetty extends Config
 	
 	public void startServer()
 	{
-		AsyncTask task = new AsyncTask() {
+		final AsyncTask startTask = new AsyncTask() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\""+basePath+"\" jetty.port=" + _port + " STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
-
-					o = ProcessUtils.run(START);
+					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDOUT).getName());
+					File logStderr = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDERR).getName());
+					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
+											"jetty.logs=\"" + basePath + "/logs/\"" +
+											"jetty.home=\"" + basePath + "\" " +
+											"jetty.base=\"" + basePath + "\" " +
+											"jetty.port=" + _port + " " +
+//											"--debug " +
+//											"--module=logging " +
+											"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
+					
+					o = ProcessUtils.run(START, logStdout, logStderr);
 				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -134,16 +148,50 @@ public class Jetty extends Config
 				return o;
 			}
 		};
-		task.execute();
+		AsyncCallback stopCallback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
+				startTask.execute();
+			}
+		};
+		AsyncTask stopTask = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				stopServer();
+				return null;
+			}
+		};
+		
+		// If the service is already running, try to stop it first.
+		// Might have been caused by a previous improper shutdown
+		if( Settings.isServiceUp(Settings.LOCALHOST, getPort()) )
+		{
+			stopTask.addCallback(stopCallback);
+			stopTask.execute();
+		}
+		else
+		{
+			startTask.execute();
+		}
 	}
-	
-	public void stopServer()
+	public static String stop()
+	{
+		return getConfig().stopServer().toString();
+	}
+	public Map<String, List<String>> stopServer()
 	{
 		try {
-			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../"; 
-			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" jetty.base=\"" + basePath + "\" STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
+			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
+			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
+												"jetty.base=\"" + basePath + "\" " +
+												"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
 
-			ProcessUtils.run(STOP);
+			return ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -166,5 +214,6 @@ public class Jetty extends Config
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
+		return null;
 	}
 }

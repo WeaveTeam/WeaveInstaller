@@ -51,6 +51,8 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.jtattoo.plaf.fast.FastLookAndFeel;
+
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.Settings.UPDATE_TYPE;
 import weave.inc.SetupPanel;
@@ -96,7 +98,7 @@ public class Installer extends JFrame
 	public static void main( String[] args )
 	{
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel(FastLookAndFeel.class.getCanonicalName());
 			Thread.sleep(1000);
 
 			Settings.init();
@@ -176,7 +178,7 @@ public class Installer extends JFrame
 		ConfigManager.getConfigManager().initializeConfigs();
 
 		// ======== STRUCTURING ========= //
-		setSize(500, 400);
+		setSize(600, 450);
 		setResizable(false);
 		setLayout(null);
 		setTitle(Settings.SERVER_TITLE);
@@ -199,7 +201,7 @@ public class Installer extends JFrame
 		leftPanel.add(oicLabel);
 
 		final JLabel iweaveLink = new JLabel(Settings.OICWEAVE_HOST);
-		iweaveLink.setBounds(30, 300, 125, 20);
+		iweaveLink.setBounds(30, SetupPanel.LEFT_PANEL_HEIGHT - 30, 125, 20);
 		iweaveLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		iweaveLink.setFont(new Font(Settings.FONT, Font.PLAIN, 15));
 		iweaveLink.addMouseListener(new MouseListener() {
@@ -232,26 +234,30 @@ public class Installer extends JFrame
 		// ======== CREATE BOTTOM PANEL ======== //
 		bottomPanel = new SetupPanel();
 		bottomPanel.setLayout(null);
-		bottomPanel.setBounds(0, 325, SetupPanel.BOTTOM_PANEL_WIDTH, SetupPanel.BOTTOM_PANEL_HEIGHT);
+		bottomPanel.setBounds(0, SetupPanel.LEFT_PANEL_HEIGHT, SetupPanel.BOTTOM_PANEL_WIDTH, SetupPanel.BOTTOM_PANEL_HEIGHT);
 		bottomPanel.setBackground(new Color(0x507AAA));
 		bottomPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.black));
 		//////////////////////////////////////////////////////////////////////////////////
 		configureButton = new JButton("Configure");
-		configureButton.setBounds(100, 13, 100, 25);
+		configureButton.setBounds(150, 10, 120, 30);
+		configureButton.setOpaque(true);
 		configureButton.setBackground(new Color(0x507AAA));
 		configureButton.setToolTipText("Edit configuration settings");
 		configureButton.setVisible(false);
 		//////////////////////////////////////////////////////////////////////////////////
 		backButton = new JButton("< Back") ;
-		backButton.setBounds(200, 13, 80, 25);
+		backButton.setBounds(260, 10, 100, 30);
+		backButton.setOpaque(true);
 		backButton.setBackground(new Color(0x507AAA));
 		//////////////////////////////////////////////////////////////////////////////////
 		nextButton = new JButton("Next >") ;
-		nextButton.setBounds(280, 13, 80, 25);
+		nextButton.setBounds(360, 10, 100, 30);
+		nextButton.setOpaque(true);
 		nextButton.setBackground(new Color(0x507AAA));
 		//////////////////////////////////////////////////////////////////////////////////
 		helpButton = new JButton("Help");
-		helpButton.setBounds(10, 13, 80, 25);
+		helpButton.setBounds(10, 10, 100, 30);				// 10, 13, 80, 25
+		helpButton.setOpaque(true);
 		helpButton.setBackground(new Color(0x507AAA));
 		helpButton.setToolTipText("Open wiki page for help");
 		helpButton.addActionListener(new ActionListener() {
@@ -274,13 +280,13 @@ public class Installer extends JFrame
 		helpButton.setVisible(true);
 		//////////////////////////////////////////////////////////////////////////////////
 		cancelButton = new JButton("Cancel");
-		cancelButton.setBounds(400, 13, 80, 25);
+		cancelButton.setBounds(480, 10, 100, 30);				// 400, 13, 80, 25
 		cancelButton.setBackground(new Color(0x507AAA));
 		cancelButton.setToolTipText("Close the installer");
 		cancelButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "Confirm", JOptionPane.YES_NO_OPTION ) ;
+				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "", JOptionPane.YES_NO_OPTION ) ;
 				if( response == JOptionPane.YES_OPTION ){
 					System.gc();
 					Settings.shutdown();
@@ -300,7 +306,7 @@ public class Installer extends JFrame
 		// ======== CREATE RIGHT PANEL ======== //
 		rightPanel = new SetupPanel();
 		rightPanel.setLayout(null);
-		rightPanel.setBounds(150, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
+		rightPanel.setBounds(SetupPanel.LEFT_PANEL_WIDTH, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
 		rightPanel.setBackground(new Color(0xFFFFFF));
 		rightPanel.setVisible(false);
 		add(rightPanel);

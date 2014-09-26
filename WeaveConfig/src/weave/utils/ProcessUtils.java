@@ -20,6 +20,9 @@
 package weave.utils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,15 +45,26 @@ public class ProcessUtils implements IUtils
 	}
 	public static Map<String, List<String>> run(String cmds[]) throws IOException, InterruptedException
 	{
+		return run(cmds, (File)null, (File)null);
+	}
+	public static Map<String, List<String>> run(String cmds[], String stdout, String stderr) throws IOException, InterruptedException
+	{
+		return run(cmds, new File(stdout), new File(stderr));
+	}
+	public static Map<String, List<String>> run(String cmds[], File stdout, File stderr) throws IOException, InterruptedException
+	{
 		Map<String, List<String>> returnMap = new HashMap<String, List<String>>();
 		ProcInternals internals = new ProcInternals();
 		internals.output = new ArrayList<String>();
 		internals.error = new ArrayList<String>();
 		
+		if( cmds == null )
+			throw new NullPointerException("Runtime cannot run NULL commands.");
+		
 		proccess = runtime.exec(cmds);
 
-		ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), internals.output);
-		ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), internals.error);
+		ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), internals.output, stdout);
+		ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), internals.error, stderr);
 		
 		outputStream.start();
 		errorStream.start();
@@ -79,12 +93,20 @@ class ProcessStream extends Thread
 {
 	private InputStream is = null;
 	private BufferedReader reader = null;
+	private BufferedWriter writer = null;
 	private List<String> list = null;
+	private File output = null;
 	
 	public ProcessStream(InputStream is, List<String> list)
 	{
+		this(is, list, null);
+	}
+	
+	public ProcessStream(InputStream is, List<String> list, File output)
+	{
 		this.is = is;
 		this.list = list;
+		this.output = output;
 	}
 	
 	@Override
@@ -94,11 +116,23 @@ class ProcessStream extends Thread
 
 			String line = "";
 			reader = new BufferedReader(new InputStreamReader(is));
+			if( output != null ) {
+				writer = new BufferedWriter(new FileWriter(output, true));
+				writer.newLine();
+			}
 		
-			while( (line = reader.readLine()) != null )
+			while( (line = reader.readLine()) != null ) {
+//				System.out.println(line);
 				list.add(line);
+				if( writer != null ) {
+					writer.write(line);
+					writer.newLine();
+					writer.flush();
+				}
+			}
 
-			reader.close();
+			if( reader != null )	reader.close();
+			if( writer != null )	writer.close();
 			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

@@ -23,88 +23,79 @@ public class URLRequestUtils
 	
 	public static String request(final String method, final String urlStr, final URLRequestParams params) throws IOException, InterruptedException
 	{
-		final URLRequestInternals uri = new URLRequestInternals();
-		
 		if( Settings.isOfflineMode() )
 			return null;
-		
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL url 					= null;
-				HttpURLConnection conn 		= null;
-				DataOutputStream outStream 	= null;
-				BufferedReader reader 		= null;
-				String line 				= null;
-				StringBuilder response 		= null;
 
-				try {
-					if( method.equals(GET) )
-					{
-						if( params == null )
-							url = new URL(urlStr);
-						else
-							url = new URL(urlStr + "?" + params.toString());
-						
-						conn = (HttpURLConnection) url.openConnection();
-						conn.setRequestMethod(GET);
-						conn.setDoOutput(false);
-						conn.setUseCaches(false);
-						conn.setRequestProperty("Content-Type", "multipart/form-data");
-						conn.setRequestProperty("charset", "utf-8");
-						conn.connect();
-						
-						response = new StringBuilder();
-						reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-						while( (line = reader.readLine()) != null )
-							response.append(line);
-						
-						reader.close();
-					}
-					else if( method.equals(POST) )
-					{
-						url = new URL(urlStr);
-						conn = (HttpURLConnection) url.openConnection();
-						conn.setRequestMethod(POST);
-						conn.setDoOutput(params != null);
-						conn.setUseCaches(false);
-						conn.setRequestProperty("Content-Type", "multipart/form-data");
-						conn.setRequestProperty("charset", "UTF-8");
-						conn.connect();
-						
-						if( params != null )
-						{
-							outStream = new DataOutputStream(conn.getOutputStream());
-							outStream.writeBytes(params.toString());
-							outStream.flush();
-							outStream.close();
-						}
-						
-						response = new StringBuilder();
-						reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-						while( (line = reader.readLine()) != null )
-							response.append(line);
-						
-						reader.close();
-					}
-					uri._str = response.toString();
-					
-				} catch (MalformedURLException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (ProtocolException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				}
+		URL url 					= null;
+		HttpURLConnection conn 		= null;
+		DataOutputStream outStream 	= null;
+		BufferedReader reader 		= null;
+		String line 				= null;
+		StringBuilder response 		= null;
+
+		try {
+			if( method.equals(GET) )
+			{
+				if( params == null )
+					url = new URL(urlStr);
+				else
+					url = new URL(urlStr + "?" + params.toString());
+				
+				conn = (HttpURLConnection) url.openConnection();
+				conn.setRequestMethod(GET);
+				conn.setDoOutput(false);
+				conn.setUseCaches(false);
+				conn.setRequestProperty("Content-Type", "multipart/form-data");
+				conn.setRequestProperty("charset", "utf-8");
+				conn.connect();
+				
+				response = new StringBuilder();
+				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				while( (line = reader.readLine()) != null )
+					response.append(line);
+				
+				reader.close();
 			}
-		});
-		t.start();
-		t.join();
+			else if( method.equals(POST) )
+			{
+				url = new URL(urlStr);
+				conn = (HttpURLConnection) url.openConnection();
+				conn.setRequestMethod(POST);
+				conn.setDoOutput(params != null);
+				conn.setUseCaches(false);
+				conn.setRequestProperty("Content-Type", "multipart/form-data");
+				conn.setRequestProperty("charset", "UTF-8");
+				conn.connect();
+				
+				if( params != null )
+				{
+					outStream = new DataOutputStream(conn.getOutputStream());
+					outStream.writeBytes(params.toString());
+					outStream.flush();
+					outStream.close();
+				}
+				
+				response = new StringBuilder();
+				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				while( (line = reader.readLine()) != null )
+					response.append(line);
+				
+				reader.close();
+			}
+			return response.toString();
+			
+		} catch (MalformedURLException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (ProtocolException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
 		
-		return uri._str;
+		return null;
 	}
 	
 	public static String getContentHeader(final String url, final String field) throws InterruptedException, MalformedURLException
@@ -128,13 +119,6 @@ public class URLRequestUtils
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
 		return null;
-	}
-	
-	static class URLRequestInternals
-	{
-		public String 	_str;
-		public int 		_int;
-		public boolean 	_bool;
 	}
 }
 

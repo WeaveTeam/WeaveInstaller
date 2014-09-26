@@ -38,7 +38,7 @@ public class WelcomeSetupPanel extends SetupPanel
 		
 		setLayout(null);
 		setSize(350, 325);
-		setBounds(0, 0, 350, 325);
+		setBounds(0, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
 		
 		JPanel panel = null;
 		for (int i = 0; i < maxPanels; i++) {
@@ -55,29 +55,30 @@ public class WelcomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 350, 325);
+		panel.setBounds(0, 0, getWidth(), getHeight());
 		panel.setBackground(new Color(0xFFFFFF));
 
 		JEditorPane welcome = new JEditorPane();
-		welcome.setBounds(30, 30, 290, 50);
+		welcome.setBounds(30, 30, 390, 70);
+		welcome.setBackground(Color.WHITE);
 		welcome.setEditable(false);
 		welcome.setContentType("text/html");
 		welcome.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		String welcomeStyle =	"body { font-family: " + welcome.getFont().getFamily() + "; " + 
 								"font-size: " + welcome.getFont().getSize() + "px; }";
 		((HTMLDocument)welcome.getDocument()).getStyleSheet().addRule(welcomeStyle);
-		welcome.setText("<b>Welcome to Weave Setup Wizard</b>");
+		welcome.setText("<center><b>Welcome to the<br>" + Settings.SERVER_NAME + "</b></center>");
 
 		JEditorPane info = new JEditorPane();
-		info.setBounds(30, 100, 290, 150);
+		info.setBounds(30, 120, 390, 200);
+		info.setBackground(Color.WHITE);
 		info.setEditable(false);
 		info.setContentType("text/html");
 		info.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		String infoStyle =	"body { font-family: " + info.getFont().getFamily() + "; " + 
 							"font-size: " + info.getFont().getSize() + "px; }";
 		((HTMLDocument)info.getDocument()).getStyleSheet().addRule(infoStyle);
-		info.setText(	"The Setup Wizard will help install Weave on your computer. <br><br>" +
-						"Click Next to continue or Cancel to exit the Setup Wizard.");
+		info.setText(	"This tool will assist you in quickly setting up Weave on your system.");
 
 		panel.add(welcome);
 		panel.add(info);

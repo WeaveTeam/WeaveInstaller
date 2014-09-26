@@ -59,6 +59,7 @@ public class ObjectUtils
 		return ternary(testNotNull, functionName, failDefault, new Class<?>[]{}, new Object[]{});
 	}
 	
+	
 	/**
 	 * Shorthand ternary operation to simplify testing null cases.
 	 * 
@@ -92,7 +93,7 @@ public class ObjectUtils
 	 * and return the first non-null argument passed.
 	 * 
 	 * @param args Variable length list of arguments
-	 * @return The first non-null argument
+	 * @return The first non-null argument, or <code>null</code> if all arguments are null
 	 */
 	public static Object coalesce( Object ... args )
 	{

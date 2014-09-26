@@ -39,17 +39,17 @@ public class WeaveStats extends JPanel
 		setLayout(null);
 		setBackground(new Color(0xFFFFFF));
 		
-		desc = new JLabel("Weave Update:");
-		desc.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		desc = new JLabel("Status:");
+		desc.setFont(new Font(Settings.FONT, Font.BOLD, 13));
 		
 		status = new JLabel("Loading...");
-		status.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		status.setFont(new Font(Settings.FONT, Font.BOLD, 13));
 		
 		desc2 = new JLabel("Last Check:");
-		desc2.setFont(new Font(Settings.FONT, Font.BOLD, 13));
+		desc2.setFont(new Font(Settings.FONT, Font.BOLD, 12));
 		
 		lastUpdateTime = new JLabel(Settings.LAST_UPDATE_CHECK);
-		lastUpdateTime.setFont(new Font(Settings.FONT, Font.BOLD, 13));
+		lastUpdateTime.setFont(new Font(Settings.FONT, Font.BOLD, 12));
 		
 		desc.setBounds(0, 0, 115, 25);
 		status.setBounds(115, 0, 140, 25);

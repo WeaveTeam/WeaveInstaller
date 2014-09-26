@@ -29,6 +29,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
@@ -191,18 +192,21 @@ public class ServerListener
 				if( jsonArgs != null ) {
 					args = new Object[jsonArgs.length()];
 					for( i = 0; i < jsonArgs.length(); i++ ) {
-						if( jsonArgs.getString(i).contains("new") )
-							args[i] = sigs[i].newInstance();
-						else
+						if( jsonArgs.get(i) instanceof String ) {
+							if( jsonArgs.getString(i).contains("new") )
+								args[i] = sigs[i].newInstance();
+							else
+								args[i] = jsonArgs.get(i);
+						} else
 							args[i] = jsonArgs.get(i);
 					}
 				}
 				
-//				System.out.println("pkg: " + pkg);
-//				System.out.println("clzz: " + clzz);
-//				System.out.println("func: " + func);
-//				System.out.println("sigs: " + Arrays.toString(sigs));
-//				System.out.println("args: " + Arrays.toString(args));
+				System.out.println("pkg: " + pkg);
+				System.out.println("clzz: " + clzz);
+				System.out.println("func: " + func);
+				System.out.println("sigs: " + Arrays.toString(sigs));
+				System.out.println("args: " + Arrays.toString(args));
 				
 				Object o = null;
 				
@@ -216,7 +220,9 @@ public class ServerListener
 						out.write( (String)ObjectUtils.ternary(o, "NULL") );
 					else if( o instanceof Integer )
 						out.write( "" + ObjectUtils.ternary(o, 0) );
-					else						
+					else if( o instanceof Boolean )
+						out.write("" + ObjectUtils.ternary(o, "FALSE"));
+					else
 						out.write("No case for type: " + o.getClass().getSimpleName());
 					out.newLine();
 					out.flush();

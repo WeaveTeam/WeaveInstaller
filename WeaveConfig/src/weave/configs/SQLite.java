@@ -52,7 +52,7 @@ public class SQLite extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + CONFIG_NAME + " plugin.\n" + 
+					"There was an error loading the " + getConfigName() + " plugin.\n" + 
 					"Another plugin might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 		return result;

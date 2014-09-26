@@ -20,6 +20,7 @@
 package weave.ui;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -102,7 +103,7 @@ public class HomeSetupPanel extends SetupPanel
 		maxPanels = 1;
 		
 		setLayout(null);
-		setBounds(0, 0, 350, 325);
+		setBounds(0, 0, SetupPanel.RIGHT_PANEL_WIDTH, SetupPanel.RIGHT_PANEL_HEIGHT);
 
 		JPanel panel = null;
 		for (int i = 0; i < maxPanels; i++) {
@@ -129,11 +130,11 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setBounds(0, 0, 350, 325);
+		panel.setBounds(0, 0, this.getWidth(), this.getHeight());
 		panel.setBackground(new Color(0xFFFFFF));
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
-		tabbedPane.setBounds(0, 0, 350, 325);
+		tabbedPane.setBounds(0, 0, panel.getWidth(), panel.getHeight());
 
 		tabbedPane.addTab("Weave", (tab1 = createTab1(tabbedPane)));
 //		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
@@ -203,7 +204,7 @@ public class HomeSetupPanel extends SetupPanel
 		JPanel panel = createTab(parent);
 
 		refreshButton = new JButton("Refresh");
-		refreshButton.setBounds(250, 10, 80, 25);
+		refreshButton.setBounds(330, 10, 100, 30);
 		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
 		refreshButton.addActionListener(new ActionListener() {
 			@Override
@@ -221,7 +222,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(250, 40, 80, 25);
+		installButton.setBounds(330, 45, 100, 30);
 		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
 		installButton.setEnabled(false);
 		installButton.addActionListener(new ActionListener() {
@@ -242,7 +243,7 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		
 		deployButton = new JButton("Deploy");
-		deployButton.setBounds(250, 125, 80, 25);
+		deployButton.setBounds(330, 140, 100, 30);
 		deployButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
 		deployButton.setVisible(true);
 		deployButton.addActionListener(new ActionListener() {
@@ -259,7 +260,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		deleteButton = new JButton("Delete");
-		deleteButton.setBounds(250, 155, 80, 25);
+		deleteButton.setBounds(330, 175, 100, 30);
 		deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
 		deleteButton.setVisible(true);
 		deleteButton.addActionListener(new ActionListener() {
@@ -299,7 +300,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		pruneButton = new JButton("Clean");
-		pruneButton.setBounds(250, 185, 80, 25);
+		pruneButton.setBounds(330, 210, 100, 30);
 		pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
 		pruneButton.setVisible(true);
 		pruneButton.addActionListener(new ActionListener() {
@@ -334,7 +335,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		
 		adminButton = new JButton("Launch Admin Console");
-		adminButton.setBounds(10, 265, 230, 25);
+		adminButton.setBounds(10, 285, 300, 30);
 		adminButton.setToolTipText("Open up the Admin Console");
 		adminButton.setVisible(true);
 		adminButton.addActionListener(new ActionListener() {
@@ -353,24 +354,24 @@ public class HomeSetupPanel extends SetupPanel
 			}
 		});
 		
+
+		weaveStats = new WeaveStats();
+		weaveStats.setBounds(10, 10, 300, 75);
+		weaveStats.setVisible(true);
 		
 		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
-		progressbar.setBounds(10, 75, 320, 15);
+		progressbar.setBounds(10, 85, 420, 15);
 		progressbar.setIndeterminate(true);
 		progressbar.setVisible(false);
 		
 		downloadLabel = new JLabel();
-		downloadLabel.setBounds(10, 90, 320, 25);
+		downloadLabel.setBounds(10, 105, 420, 25);
+		downloadLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 12));
 		downloadLabel.setText("");
 		downloadLabel.setVisible(false);
 		
-		weaveStats = new WeaveStats();
-		weaveStats.setBounds(10, 10, 230, 55);
-		weaveStats.setVisible(true);
-		
-		
 		revisionTable = new RevisionTable();
-		revisionTable.setBounds(10, 125, 230, 130);
+		revisionTable.setBounds(10, 140, 300, 135);
 		revisionTable.setVisible(true);
 		
 		

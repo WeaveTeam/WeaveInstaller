@@ -19,6 +19,7 @@
 
 package weave.ui;
 
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +33,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import weave.Revisions;
+import weave.Settings;
 import weave.managers.ConfigManager;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
@@ -56,6 +58,7 @@ public class RevisionTable extends JPanel
 				return false;
 			}
 		};
+		table.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		scrollPane = new JScrollPane(table);
 		
 		add(scrollPane);
@@ -82,7 +85,7 @@ public class RevisionTable extends JPanel
 				date.setTime(file.lastModified());
 
 				String configVer = (String)ObjectUtils.ternary(
-										ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "ASDFASDF");
+										ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
 				data[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
 				data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 			}

@@ -48,6 +48,7 @@ public class ReflectionUtils
 		return f.get(null);
 	}
 
+	
 	/**
 	 * Get a field of a class instance.
 	 * 
@@ -67,6 +68,31 @@ public class ReflectionUtils
 		Field f = instance.getClass().getDeclaredField(field);
 		return f.get(instance);
 	}
+	
+
+	/**
+	 * Run a static function of a class by using reflection.<br>
+	 * This is done by getting the declared method of the class with the given name.
+	 * By default, this static function cannot take any arguments. This method is then 
+	 * statically run outside of any instance of the class.
+	 * 
+	 * @param pkg The fully qualified package name of the class
+	 * @param clzz The class name
+	 * @param function The function you want to call on the class
+	 * @return The result of calling the function
+	 * 
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws ClassNotFoundException
+	 */
+	public static Object reflectMethod(String pkg, String clzz, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
+	{
+		return reflectMethod(pkg, clzz, function, new Class<?>[] {}, new Object[] {});
+	}
+	
 	
 	/**
 	 * Run a static function of a class by using reflection.<br>
@@ -94,6 +120,29 @@ public class ReflectionUtils
 		Method m = c.getDeclaredMethod(function, argClassList);
 		return m.invoke(null, args);
 	}
+	
+	
+	/**
+	 * Run a class function on an instance of the class by using reflection.<br>
+	 * This is done by getting the declared method of the class with the given name.
+	 * By default, this function cannot take any arguments. The method is then invoked
+	 * on the instance of the class.
+	 * 
+	 * @param instance The instance of the class
+	 * @param function The function you want to call on the class
+	 * @return The result of calling the function
+	 * 
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	public static Object reflectMethod(Object instance, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		return reflectMethod(instance, function, new Class<?>[] {}, new Object[] {});
+	}
+	
 	
 	/**
 	 * Run a class function on an instance of the class by using reflection.<br>

@@ -31,6 +31,10 @@ import weave.utils.TraceUtils;
 
 public class MySQL extends Config
 {
+	public static final String NAME = "MySQL";
+	public static final String URL = "http://dev.mysql.com/downloads/mysql/";
+	public static final int PORT = 3306;
+	
 	public static MySQL _instance 		= null;
 	public static MySQL getConfig()
 	{
@@ -41,7 +45,7 @@ public class MySQL extends Config
 	
 	public MySQL()
 	{
-		super("MySQL", "http://dev.mysql.com/downloads/mysql/");
+		super(NAME, URL, PORT);
 	}
 
 	@Override public void initConfig()

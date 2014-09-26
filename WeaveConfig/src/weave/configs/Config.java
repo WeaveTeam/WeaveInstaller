@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import weave.managers.ConfigManager;
+import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
@@ -61,9 +62,15 @@ public class Config implements IConfig
 		CONFIG_NAME = name;
 	}
 	
-	public Config(String name, String url) {
+	public Config(String name, int port) {
+		CONFIG_NAME = name;
+		_port = port;
+	}
+	
+	public Config(String name, String url, int port) {
 		CONFIG_NAME = name;
 		_url = url;
+		_port = port;
 	}
 	
 	@Override public void initConfig() {
@@ -86,7 +93,7 @@ public class Config implements IConfig
 			
 			if( (i & _PORT) != 0 )
 				setPort(Integer.parseInt((String)ObjectUtils.ternary(
-						savedCFG, "get", "0", argClasses, argsPort)));
+						savedCFG, "get", ""+_port, argClasses, argsPort)));
 
 			if( (i & _VERSION) != 0 )
 				setInstallVersion((String)ObjectUtils.ternary(
@@ -96,10 +103,20 @@ public class Config implements IConfig
 				loadConfig();
 				
 		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 	}
 
