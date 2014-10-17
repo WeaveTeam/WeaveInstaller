@@ -29,19 +29,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import weave.Globals;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ReflectionUtils;
 import weave.utils.TraceUtils;
 
-public class ServerListener
+public class ServerListener extends Globals
 {
 	private int port = 0;
 	
@@ -202,11 +202,11 @@ public class ServerListener
 					}
 				}
 				
-				System.out.println("pkg: " + pkg);
-				System.out.println("clzz: " + clzz);
-				System.out.println("func: " + func);
-				System.out.println("sigs: " + Arrays.toString(sigs));
-				System.out.println("args: " + Arrays.toString(args));
+//				System.out.println("pkg: " + pkg);
+//				System.out.println("clzz: " + clzz);
+//				System.out.println("func: " + func);
+//				System.out.println("sigs: " + Arrays.toString(sigs));
+//				System.out.println("args: " + Arrays.toString(args));
 				
 				Object o = null;
 				
@@ -249,7 +249,7 @@ public class ServerListener
 					out.newLine();
 					out.flush();
 				} catch (IOException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				}
 			}
 			close();

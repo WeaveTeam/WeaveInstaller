@@ -34,6 +34,7 @@ import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
+import weave.utils.FileUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
@@ -81,16 +82,36 @@ public class Jetty extends Config
 	
 	@Override public boolean loadConfig() 
 	{
+		int lockPID;
 		boolean result = ConfigManager.getConfigManager().setContainer(_instance);
-		if( result ) {
-			startServer();
-			super.loadConfig();
+		
+		TraceUtils.trace(TraceUtils.STDOUT, "-> result: " + (result ? "TRUE":"FALSE"));
+		
+		try {
+			if( !Settings.LOCK_FILE.exists() )
+				return false;
+			
+			lockPID = Integer.parseInt(FileUtils.getFileContents(Settings.LOCK_FILE));
+			TraceUtils.trace(TraceUtils.STDOUT, "-> lockPID: " + lockPID);
+
+			if( result ) {
+				if( !Settings.isActivePID(lockPID) )
+					startServer();
+				super.loadConfig();
+			}
+			else
+				JOptionPane.showMessageDialog(null, 
+						"There was an error loading the " + getConfigName() + " plugin.\n" + 
+						"Another plugin might already be loaded.", 
+						"Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NumberFormatException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
-		else
-			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + getConfigName() + " plugin.\n" + 
-					"Another plugin might already be loaded.", 
-					"Error", JOptionPane.ERROR_MESSAGE);
+		
 		return result;
 	}
 

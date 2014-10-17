@@ -1,6 +1,8 @@
 package weave.utils;
 
-public class TransferUtils 
+import weave.Globals;
+
+public class TransferUtils extends Globals
 {
 	public static final int B				= 1;
 	public static final int KB				= B * 1024;

@@ -1,9 +1,10 @@
 package weave.utils;
 
+import weave.Globals;
 import weave.Settings;
 import weave.Settings.OS_TYPE;
 
-public class SyscallCreatorUtils 
+public class SyscallCreatorUtils extends Globals
 {
 	public static String[] generate(String cmd)
 	{

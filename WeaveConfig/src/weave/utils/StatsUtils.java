@@ -22,11 +22,12 @@ package weave.utils;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import weave.Globals;
 import weave.Settings;
 import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
 
-public class StatsUtils 
+public class StatsUtils extends Globals
 {
 	public static void logUpdate()
 	{

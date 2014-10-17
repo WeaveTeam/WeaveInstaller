@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import weave.Globals;
 import weave.Settings;
 import weave.configs.Config;
 import weave.configs.IConfig;
@@ -41,7 +42,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
-public class ConfigManager
+public class ConfigManager extends Globals
 {
 	public static final String SERVLET = "SERVLET";
 	public static final String DATABASE = "DATABASE";

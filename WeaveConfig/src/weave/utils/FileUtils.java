@@ -31,20 +31,17 @@ import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import weave.Settings;
-import weave.Settings.OS_TYPE;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
-import weave.includes.IUtils;
 
-public class FileUtils extends TransferUtils implements IUtils
+public class FileUtils extends TransferUtils
 {
 	private static final int BUFFER_SIZE			= 8 * TransferUtils.KB;
+	
 	
 	/**
 	 * Copy the source file to the destination file
@@ -72,6 +69,8 @@ public class FileUtils extends TransferUtils implements IUtils
 		return copy(source, destination, NO_FLAGS);
 	}
 
+	
+	
 	/**
 	 * Copy the source file to the destination file
 	 * <br><br>
@@ -98,6 +97,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return copy(source, destination, flags, null);
 	}
+	
+	
 	
 	/**
 	 * Copy the source file to the destination file
@@ -146,6 +147,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return copy(source, destination, flags, observer, 0);
 	}
+	
+	
 	
 	/**
 	 * Copy the source file to the destination file.
@@ -224,6 +227,8 @@ public class FileUtils extends TransferUtils implements IUtils
 		return status;
 	}
 
+	
+	
 	/**
 	 * Copy the contents of the InputStream to the OutputStream
 	 * 
@@ -239,6 +244,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return copy(in, out, null);
 	}
+	
+	
 	
 	/**
 	 * Copy the contents of the InputStream to the OutputStream
@@ -256,6 +263,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return copy(in, out, observer, 0);
 	}
+	
+	
 	
 	/**
 	 * Copy the contents of the InputStream to the OutputStream
@@ -362,6 +371,8 @@ public class FileUtils extends TransferUtils implements IUtils
 		return move(source, destination, NO_FLAGS);
 	}
 	
+	
+	
 	/**
 	 * Move or rename the source file to the destination file.
 	 * Default operation is to not overwrite the destination file if it already exists.
@@ -376,6 +387,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return move(source, destination, NO_FLAGS);
 	}
+	
+	
 	
 	/**
 	 * Move or rename the source file to the destination file.
@@ -393,6 +406,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return move(new File(source), new File(destination), flags);
 	}
+	
+	
 	
 	/**
 	 * Move or rename the source file to the destination file.
@@ -430,6 +445,7 @@ public class FileUtils extends TransferUtils implements IUtils
 	}
 	
 	
+	
 	/*
 	 * FileUtils.getClassPath( class )
 	 * 
@@ -440,6 +456,7 @@ public class FileUtils extends TransferUtils implements IUtils
 		return c.getProtectionDomain().getCodeSource().getLocation().getPath();
 	}
 	
+	
 
 	/**
 	 * Get the extension of a file
@@ -447,13 +464,16 @@ public class FileUtils extends TransferUtils implements IUtils
 	 * Example Usage:
 	 * <code>
 	 * <pre>
-	 * 	String str1 = "C:/Program Files/SomeFileName.txt";
-	 * 	String str2 = "/users/lib/SomeOtherName.xml";
-	 * 	String str3 = "/var/lib/files.var/README";
+	 * Windows:
+	 * 	File f1 = new File("C:/Program Files/SomeFileName.txt");
+	 * 
+	 * Unix:
+	 * 	File f2 = new File("/users/lib/SomeOtherName.xml");
+	 * 	File f3 = new File("/var/lib/files.var/README");
 	 * 	
-	 * 	FileUtils.getExt( str1 )	=	"txt"
-	 * 	FileUtils.getExt( str2 )	= 	"xml"
-	 * 	FileUtils.getExt( str3 )	=	NULL
+	 * 	FileUtils.getExt( f1 )	=	"txt"
+	 * 	FileUtils.getExt( f2 )	= 	"xml"
+	 * 	FileUtils.getExt( f3 )	=	NULL
 	 * </pre>
 	 * </code>
 	 * 
@@ -464,6 +484,8 @@ public class FileUtils extends TransferUtils implements IUtils
 	{
 		return getExt(f.getAbsolutePath());
 	}
+	
+	
 	
 	/**
 	 * Get the extension of a file
@@ -495,31 +517,6 @@ public class FileUtils extends TransferUtils implements IUtils
 		return null;
 	}
 
-	public static boolean isOnRemovableMedia(String s) throws IOException, InterruptedException
-	{
-		return isOnRemoveableMedia(new File(s));
-	}
-	public static boolean isOnRemoveableMedia(File f) throws IOException, InterruptedException
-	{
-		List<String> removeableMedia = new ArrayList<String>();
-		Map<String, List<String>> proc_result = null;
-		String[] windows_cmds = SyscallCreatorUtils.generate("wmic logicaldisk where drivetype=2 get deviceid /format:list");
-//		System.out.println("cmd: " + Arrays.toString(windows_cmds));
-		
-		if( Settings.OS == OS_TYPE.WINDOWS )
-		{
-			proc_result = ProcessUtils.run(windows_cmds);
-//			System.out.println("result: " + proc_result);
-			
-			for (String line : proc_result.get("output") ) {
-				if( line.contains("DeviceID") )
-					removeableMedia.add(line.substring(line.lastIndexOf("=")+1, 1));
-			}
-			return removeableMedia.contains(getPathRoot(f).getAbsolutePath().substring(0, 1));
-		}
-		
-		return false;
-	}
 	
 	public static File getPathRoot(String s)
 	{
@@ -533,19 +530,45 @@ public class FileUtils extends TransferUtils implements IUtils
 		return p;
 	}
 	
-	/*
-	 * FileUtils.getFileContents( file )
+	
+	
+	/**
+	 * Get the entire file contents of a file as a string.
 	 * 
-	 * This can read a text file line by line and return it as a string.
+	 * @param f The path to the file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
 	 */
 	public static String getFileContents(String f) throws IOException
 	{
 		return getFileContents(new File(f));
 	}
+	
+	
+	
+	/**
+	 * Get the entire file contents of a file as a string.
+	 * 
+	 * @param f The file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
+	 */
 	public static String getFileContents(File f) throws IOException
 	{
 		return getFileContents(new FileInputStream(f));
 	}
+	
+	
+	/**
+	 * Get the entire file contents of a file as a string.
+	 * 
+	 * @param in The input stream to the file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
+	 */
 	public static String getFileContents(InputStream in) throws IOException
 	{
 		String contents = "";
@@ -560,19 +583,39 @@ public class FileUtils extends TransferUtils implements IUtils
 	}
 	
 
-	/*
-	 * FileUtils.sizeify( size )
+	
+	/**
+	 * Get a human readable size of a value.
 	 * 
-	 * Will return a String representation of the size given in bytes.
+	 * @param size The value to convert
+	 * @return The size as a human readable string
 	 */
 	public static String sizeify( long size )
 	{
 		return sizeify( (double)size );
 	}
+	
+
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
 	public static String sizeify( int size )
 	{
 		return sizeify( (double)size );
 	}
+	
+	
+
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
 	public static String sizeify( double size )
 	{
 		int i = 0;

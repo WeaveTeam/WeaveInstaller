@@ -28,10 +28,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import weave.Globals;
 import weave.Settings;
 import weave.managers.TrayManager;
 
-public class UpdateUtils 
+public class UpdateUtils extends Globals
 {
 	public static final int FROM_USER = 1;
 	public static final int FROM_EVENT = 2;

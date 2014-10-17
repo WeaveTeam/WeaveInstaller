@@ -23,7 +23,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ReflectionUtils 
+import weave.Globals;
+
+public class ReflectionUtils extends Globals
 {
 	/**
 	 * Get a static field of a class.
@@ -43,9 +45,19 @@ public class ReflectionUtils
 	 */
 	public static Object reflectField(String pkg, String clzz, String field) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException
 	{
+		Field f = null;
 		Class<?> c = Class.forName(pkg + "." + clzz);
-		Field f = c.getDeclaredField(field);
-		return f.get(null);
+		
+		while( c != null )
+		{
+			try {
+				f = c.getDeclaredField(field);
+				return f.get(null);
+			} catch (NoSuchFieldException e) {
+				c = c.getSuperclass();
+			}
+		}
+		throw new NoSuchFieldException(clzz + "." + field);
 	}
 
 	
@@ -65,8 +77,19 @@ public class ReflectionUtils
 	 */
 	public static Object reflectField(Object instance, String field) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException
 	{
-		Field f = instance.getClass().getDeclaredField(field);
-		return f.get(instance);
+		Field f = null;
+		Class<?> c = instance.getClass();
+		
+		while( c != null )
+		{
+			try {
+				f = c.getDeclaredField(field);
+				return f.get(instance);
+			} catch (NoSuchFieldException e) {
+				c = c.getSuperclass();
+			}
+		}
+		throw new NoSuchFieldException(instance.getClass().getName() + "." + field);
 	}
 	
 
@@ -116,9 +139,19 @@ public class ReflectionUtils
 	 */
 	public static Object reflectMethod(String pkg, String clzz, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
 	{
+		Method m = null;
 		Class<?> c = Class.forName(pkg + "." + clzz);
-		Method m = c.getDeclaredMethod(function, argClassList);
-		return m.invoke(null, args);
+		
+		while( c != null )
+		{
+			try {
+				m = c.getDeclaredMethod(function, argClassList);
+				return m.invoke(null, args);
+			} catch (NoSuchMethodException e) {
+				c = c.getSuperclass();
+			}
+		}
+		throw new NoSuchMethodException(clzz + "." + function + "()");
 	}
 	
 	
@@ -165,6 +198,7 @@ public class ReflectionUtils
 	{
 		Method m = null;
 		Class<?> clazz = instance.getClass();
+		
 		while( clazz != null )
 		{
 			try {

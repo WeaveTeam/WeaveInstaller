@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import weave.includes.IUtils;
+import weave.Globals;
 
-public class ProcessUtils implements IUtils
+public class ProcessUtils extends Globals
 {
 	protected static Runtime runtime = Runtime.getRuntime();
 	protected static Process proccess = null;

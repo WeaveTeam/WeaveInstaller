@@ -5,9 +5,9 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import weave.includes.IUtils;
+import weave.Globals;
 
-public class MD5Utils implements IUtils
+public class MD5Utils extends Globals
 {
 	private static MessageDigest m = null;
 	

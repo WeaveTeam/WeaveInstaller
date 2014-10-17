@@ -23,9 +23,10 @@ import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
+import weave.Globals;
 import weave.Settings;
 
-public class RemoteUtils
+public class RemoteUtils extends Globals
 {
 	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
 	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";

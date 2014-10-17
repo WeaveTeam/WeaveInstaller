@@ -1,6 +1,8 @@
 package weave.utils;
 
-public class StringUtils
+import weave.Globals;
+
+public class StringUtils extends Globals
 {
 	/**
 	 * Check to see if the <code>test</code> word is at the 

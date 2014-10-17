@@ -21,7 +21,9 @@ package weave.utils;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class ObjectUtils
+import weave.Globals;
+
+public class ObjectUtils extends Globals
 {
 	/**
 	 * Shorthand ternary operation to simplify testing

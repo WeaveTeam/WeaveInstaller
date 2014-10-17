@@ -37,11 +37,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
+import weave.Globals;
 import weave.Settings;
-import weave.includes.IUtils;
 import weave.ui.BugReportWindow;
 
-public class BugReportUtils implements IUtils
+public class BugReportUtils extends Globals
 {
 	public static void autoSubmitBugReport( final Throwable e )
 	{

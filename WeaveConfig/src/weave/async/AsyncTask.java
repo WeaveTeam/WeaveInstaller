@@ -24,7 +24,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class AsyncTask
+import weave.Globals;
+
+public abstract class AsyncTask extends Globals
 {
 	private List<AsyncCallback> callbacks = null;
 	

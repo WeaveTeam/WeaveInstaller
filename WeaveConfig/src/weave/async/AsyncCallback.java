@@ -1,6 +1,8 @@
 package weave.async;
 
-public abstract class AsyncCallback 
+import weave.Globals;
+
+public abstract class AsyncCallback extends Globals
 {
 	public abstract void run(Object o);
 }

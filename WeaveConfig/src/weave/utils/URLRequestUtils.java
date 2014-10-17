@@ -9,9 +9,10 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
+import weave.Globals;
 import weave.Settings;
 
-public class URLRequestUtils 
+public class URLRequestUtils extends Globals
 {
 	public static final String GET = "GET";
 	public static final String POST = "POST";

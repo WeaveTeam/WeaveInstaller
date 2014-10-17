@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
+import weave.Globals;
 import weave.Settings;
-import weave.includes.IUtils;
 
-public class TraceUtils implements IUtils 
+public class TraceUtils extends Globals
 {
 	public static int STDOUT = 0;
 	public static int STDERR = 1;

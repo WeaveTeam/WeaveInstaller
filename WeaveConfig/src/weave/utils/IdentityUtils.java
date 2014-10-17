@@ -19,13 +19,14 @@
 
 package weave.utils;
 
+import weave.Globals;
 import weave.Settings;
 
-public class IdentityUtils
+public class IdentityUtils extends Globals
 {
 	public static String createID()
 	{
-		String ip = (( Settings.isOfflineMode() ) ? Settings.LOCAL_IP : Settings.REMOTE_IP );
+		String ip = (( Settings.isOfflineMode() || Settings.REMOTE_IP == null ) ? Settings.LOCAL_IP : Settings.REMOTE_IP );
 
 		String str = ip + " " + System.currentTimeMillis();
 		return MD5Utils.hash(str);

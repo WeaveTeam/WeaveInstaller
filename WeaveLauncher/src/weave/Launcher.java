@@ -21,18 +21,20 @@ package weave;
 
 import java.awt.Color;
 import java.awt.Desktop;
-import java.awt.HeadlessException;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import weave.configs.IConfig;
+import weave.managers.ConfigManager;
+import weave.utils.FileUtils;
+import weave.utils.LaunchUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
+import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
 public class Launcher extends JFrame
@@ -83,44 +85,80 @@ public class Launcher extends JFrame
 			if( args.length == 0 ) System.exit(NORMAL);
 			if( args.length > 0 ) path = args[0];
 			if( args.length > 1 ) delay = Integer.parseInt(args[1]);
-			
-			
+
 			// Handle special cases first
+			//
+			// Examples:
+			//		weave://reflect/weave/Settings/testAPIStr
+			// 		weave://server/start
+			//		weave://server/stop
 			if( StringUtils.beginsWith(path, Settings.PROJECT_PROTOCOL) )
 			{
 				String[] params = path.substring(Settings.PROJECT_PROTOCOL.length()).split("/");
-				String cmd = params[0];
-//				String arg = params[1];
+				String component = params[0];
 				
-				if( cmd.equals("open") ) {
-
+				if( component.equals("reflect") )
+				{
+					ReflectionUtils.reflectMethod(params[1], params[2], params[3]);
+				}
+				else if( component.equals("server") ) 
+				{
+					String cmd = params[1];
+					if( cmd.equals("start") )
+						LaunchUtils.launchWeaveInstaller(delay);
+					else if( cmd.equals("stop") )
+						Settings.shutdown();
 				} 
-				else if( cmd.equals("download") ) {
-					
+				else if( component.equals("updater") )
+				{
+					String cmd = params[1];
+					if( cmd.equals("start") )
+						LaunchUtils.launchWeaveUpdater(delay);
+					else if( cmd.equals("stop") )
+						Settings.shutdown();
 				}
-				else if( cmd.equals("startApplication" ) ) {
-					File file = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
-					start(file, delay);
-				}
-				else if( cmd.equals("stopApplication") ) {
-					Socket s = new Socket(Settings.LOCALHOST, Settings.RPC_PORT);
-					PrintWriter out = new PrintWriter(s.getOutputStream(), true);
-					
-					out.println("stopApplication");
-					out.close();
-					s.close();
-				}
-				else {
-					throw new IllegalArgumentException("Invalid protocol command: " + cmd);
+				else
+				{
+					throw new IllegalArgumentException("Invalid protocol component: " + component);
 				}
 			}
+			
+			
+			// Examples:
+			//
+			//		C:\path\to\file\Obesity.weave
+			//		/usr/var/path/to/file/saved_session.weave
 			else if( StringUtils.endsWith(path, Settings.PROJECT_EXTENSION) )
 			{
+				ConfigManager.getConfigManager().initializeConfigs();
+				IConfig cfg = ConfigManager.getConfigManager().getActiveContainer();
+
+				if( cfg == null )
+					System.exit(NORMAL);
+				TraceUtils.traceln(TraceUtils.STDOUT, "-> cfg: " + cfg.getConfigName());
 				
+				File webapps = cfg.getWebappsDirectory();
+				if( webapps == null )
+					System.exit(NORMAL);
+				TraceUtils.traceln(TraceUtils.STDOUT, "-> webapps: " + webapps.getAbsolutePath());
+				
+				File ROOT = new File(webapps, "ROOT");
+				TraceUtils.traceln(TraceUtils.STDOUT, "-> ROOT: " + ROOT.getAbsolutePath());
+				if( !ROOT.exists() )
+					System.exit(NORMAL);
+				
+				File src = new File(path);
+				File dest = new File(ROOT, src.getName());
+				
+				FileUtils.copy(src, dest, FileUtils.SINGLE_FILE | FileUtils.OVERWRITE);
+				LaunchUtils.browse("http://" + 
+						Settings.LOCALHOST + ":" +
+						ConfigManager.getConfigManager().getActiveContainer().getPort() +
+						"/weave.html?file=" + dest.getName(), 0);
 			}
 			else
 			{
-				start(path, delay);
+				LaunchUtils.browse(path, delay);
 			}
 
 		} catch (InterruptedException e1) {
@@ -132,25 +170,5 @@ public class Launcher extends JFrame
 		}
 		
 		System.exit(NORMAL);
-	}
-	
-	private void start(String path, int delay) throws HeadlessException, IOException, InterruptedException 
-	{
-		start(new File(path), delay);
-	}
-	private void start(File file, int delay) throws IOException, InterruptedException
-	{
-		if( !file.exists() ) {
-			System.out.println("!! Program not found: \"" + file.getCanonicalPath() + "\"");
-			JOptionPane.showMessageDialog(null, 
-					"Program not found: \n\"" + file.getCanonicalPath() + "\"", 
-					"File Not Found", 
-					JOptionPane.ERROR_MESSAGE);
-			System.exit(NORMAL);
-		}
-		
-		Thread.sleep(delay);
-		Desktop.getDesktop().open(file.getCanonicalFile());
-		Thread.sleep(delay);
 	}
 }

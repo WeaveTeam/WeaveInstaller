@@ -20,12 +20,14 @@
 package weave.ui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,6 +36,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.ZipException;
 
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -44,10 +49,12 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
 
 import weave.Revisions;
 import weave.Settings;
@@ -57,9 +64,11 @@ import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
+import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
+import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TimeUtils;
@@ -73,7 +82,7 @@ public class HomeSetupPanel extends SetupPanel
 {
 	private boolean refreshProgramatically = false;
 	public JTabbedPane tabbedPane;
-	public JPanel tab1, tab2, tab3, tab4;
+	public JPanel tab1, tab2, tab3, tab4, tab5;
 
 	
 	// ============== Tab 1 ============== //
@@ -90,13 +99,19 @@ public class HomeSetupPanel extends SetupPanel
 	
 	
 	// ============== Tab 3 ============== //
+	public JScrollPane settingsScrollPane;
+	public TitledBorder settingsUpdatesTitle, settingsStartupTitle;
+	public JButton testExt, testProto;
 	
 	
 	// ============== Tab 4 ============== //
 	public String faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
 	public JEditorPane troubleshootHTML;
 	public JScrollPane troubleshootScrollPane;
-	
+
+	// ============== Tab 5 ============== //
+	public JLabel aboutImage, aboutTitle, aboutVersion;
+	public JEditorPane aboutHTML;
 	
 	public HomeSetupPanel()
 	{
@@ -140,6 +155,7 @@ public class HomeSetupPanel extends SetupPanel
 //		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
 		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
+		tabbedPane.addTab("About", (tab5 = createTab5(tabbedPane)));
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event)
@@ -396,6 +412,75 @@ public class HomeSetupPanel extends SetupPanel
 	public JPanel createTab3(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
+		JPanel innerPanel = new JPanel();
+		JPanel p1 = new JPanel();
+		JPanel p2 = new JPanel();
+		
+		innerPanel.setLayout(null);
+		innerPanel.setSize(panel.getWidth() - 40, 800);
+		innerPanel.setPreferredSize(new Dimension(parent.getWidth() - 40, 800));
+		innerPanel.setBackground(Color.WHITE);
+		
+		p1.setBounds(10, 10, innerPanel.getWidth() - 50, 150);
+		p1.setBackground(Color.WHITE);
+		p2.setBounds(10, 170, innerPanel.getWidth() - 50, 150);
+		p2.setBackground(Color.WHITE);
+		
+		settingsUpdatesTitle = BorderFactory.createTitledBorder(null, "Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		settingsStartupTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		
+		p1.setBorder(settingsUpdatesTitle);
+		p2.setBorder(settingsStartupTitle);
+		
+		testExt = new JButton("Enable Extension");
+		testExt.setBounds(10, 10, 100, 25);
+		testExt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Settings.enableWeaveExtension(true);
+				} catch (IllegalArgumentException e1) {
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					e1.printStackTrace();
+				} catch (InvocationTargetException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		p1.add(testExt);
+		
+		testProto = new JButton("Enable Protocol");
+		testProto.setBounds(10, 40, 100, 25);
+		testProto.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Settings.enableWeaveProtocol(true);
+				} catch (IllegalArgumentException e1) {
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					e1.printStackTrace();
+				} catch (InvocationTargetException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		p1.add(testProto);
+		
+		innerPanel.add(p1);
+		innerPanel.add(p2);
+		
+		settingsScrollPane = new JScrollPane();
+		settingsScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
+		settingsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		settingsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		settingsScrollPane.setViewportView(innerPanel);
+		settingsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		settingsScrollPane.setVisible(true);
+		
+		panel.add(settingsScrollPane);
+		
 		return panel;
 	}
 	public JPanel createTab4(JComponent parent)
@@ -405,11 +490,14 @@ public class HomeSetupPanel extends SetupPanel
 		try {
 			troubleshootHTML = new JEditorPane();
 			troubleshootHTML.setPage(faqURL);
+			troubleshootHTML.setBounds(0, 0, panel.getWidth() - 20, panel.getHeight() - 20);
+			troubleshootHTML.setBackground(Color.WHITE);
 			troubleshootHTML.setEditable(false);
 			troubleshootHTML.setVisible(true);
 			
 			troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			troubleshootScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
+			troubleshootScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 			troubleshootScrollPane.setVisible(true);
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -417,6 +505,66 @@ public class HomeSetupPanel extends SetupPanel
 		}
 
 		panel.add(troubleshootScrollPane);
+		
+		return panel;
+	}
+	public JPanel createTab5(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		
+		try {
+			aboutImage = new JLabel("");
+			aboutImage.setBounds(20, 20, 100, 100);
+			aboutImage.setIcon(new ImageIcon(ImageUtils.scale(ImageIO.read(IconManager.ICON_TRAY_LOGO), aboutImage.getWidth(), ImageUtils.SCALE_WIDTH)));
+			
+			aboutTitle = new JLabel(Settings.SERVER_NAME);
+			aboutTitle.setBounds(150, 30, 300, 30);
+			aboutTitle.setFont(new Font(Settings.FONT, Font.BOLD, 18));
+			
+			aboutVersion = new JLabel(Settings.SERVER_VER);
+			aboutVersion.setBounds(150, 60, 300, 30);
+			aboutVersion.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+			
+			aboutHTML = new JEditorPane();
+			aboutHTML.setBounds(20, 130, 400, 200);
+			aboutHTML.setBackground(Color.WHITE);
+			aboutHTML.setEditable(false);
+			aboutHTML.setContentType("text/html");
+			aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
+			aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
+								"enable visualization of any available  data by anyone for any purpose.");
+			String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
+										"font-size: " + aboutHTML.getFont().getSize() + "px; }";
+			((HTMLDocument)aboutHTML.getDocument()).getStyleSheet().addRule(htmlStyle);
+			aboutHTML.addHyperlinkListener(new HyperlinkListener() {
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+					{
+						try {
+							LaunchUtils.browse(e.getURL().toURI());
+						} catch (IOException ex) {
+							TraceUtils.trace(TraceUtils.STDERR, ex);
+							BugReportUtils.showBugReportDialog(ex);
+						} catch (InterruptedException ex) {
+							TraceUtils.trace(TraceUtils.STDERR, ex);
+							BugReportUtils.showBugReportDialog(ex);
+						} catch (URISyntaxException ex) {
+							TraceUtils.trace(TraceUtils.STDERR, ex);
+							BugReportUtils.showBugReportDialog(ex);
+						}
+					}
+				}
+			});
+			
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		
+		panel.add(aboutImage);
+		panel.add(aboutTitle);
+		panel.add(aboutVersion);
+		panel.add(aboutHTML);
 		
 		return panel;
 	}
@@ -467,7 +615,7 @@ public class HomeSetupPanel extends SetupPanel
 		File cfgWebapps = actvContainer.getWebappsDirectory();
 		if( cfgWebapps == null || !cfgWebapps.exists() ) {
 			JOptionPane.showMessageDialog(null, 
-					"Webapps folder is not set.", "Error", JOptionPane.ERROR_MESSAGE);
+					"Webapps folder for " + actvContainer.getConfigName() + " is not set.", "Error", JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
 			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
@@ -646,7 +794,7 @@ public class HomeSetupPanel extends SetupPanel
 				Object o = TransferUtils.FAILED;
 				try {
 					observer.init(zipFile);
-					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 4 * TransferUtils.MB);
+					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -759,7 +907,7 @@ public class HomeSetupPanel extends SetupPanel
 					{
 						File source = new File(unzippedFile, file);
 						File destination = new File(configWebapps, file);
-						status &= FileUtils.copy(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 4 * TransferUtils.MB);
+						status &= FileUtils.copy(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
 					}
 				} catch (ArithmeticException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);

@@ -5,7 +5,9 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class URLRequestParams
+import weave.Globals;
+
+public class URLRequestParams extends Globals
 {
 	Map<String, String> params = new HashMap<String, String>();
 	

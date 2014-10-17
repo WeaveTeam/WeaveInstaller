@@ -28,11 +28,12 @@ import java.net.URISyntaxException;
 
 import javax.swing.JOptionPane;
 
+import weave.Globals;
 import weave.Settings;
 import weave.Settings.OS_TYPE;
 import weave.managers.ConfigManager;
 
-public class LaunchUtils
+public class LaunchUtils extends Globals
 {
 	public static Boolean browse(String path) throws IOException, URISyntaxException, InterruptedException
 	{

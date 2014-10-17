@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class RegEdit 
+import weave.Globals;
+
+public class RegEdit extends Globals
 {
 	public static final String HKEY_LOCAL_MACHINE	= "HKLM\\";
 	public static final String HKEY_CURRENT_USER	= "HKCU\\";

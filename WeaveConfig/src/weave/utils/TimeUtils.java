@@ -2,9 +2,9 @@ package weave.utils;
 
 import java.util.concurrent.TimeUnit;
 
-import weave.includes.IUtils;
+import weave.Globals;
 
-public class TimeUtils implements IUtils
+public class TimeUtils extends Globals
 {
 	private static TimeInternals parse(long seconds)
 	{

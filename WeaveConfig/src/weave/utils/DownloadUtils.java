@@ -32,9 +32,8 @@ import java.util.List;
 import weave.Settings;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
-import weave.includes.IUtils;
 
-public class DownloadUtils extends TransferUtils implements IUtils
+public class DownloadUtils extends TransferUtils
 {
 	/**
 	 * Convert a scalar value to a string speed measure

@@ -6,10 +6,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.ZipException;
 
+import weave.Globals;
 import weave.utils.FileUtils;
 import weave.utils.ZipUtils;
 
-public abstract class AsyncObserver
+public abstract class AsyncObserver extends Globals
 {
 	public AsyncObserverObject info = new AsyncObserverObject();
 	

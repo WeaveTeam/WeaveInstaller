@@ -33,9 +33,8 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import weave.async.AsyncObserver;
-import weave.includes.IUtils;
 
-public class ZipUtils extends TransferUtils implements IUtils
+public class ZipUtils extends TransferUtils
 {
 	public static final byte[] MAGIC_BYTES = { 'P', 'K', 0x3, 0x4 };
 	

@@ -43,6 +43,7 @@ import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import net.jimmc.jshortcut.JShellLink;
 import weave.configs.Config;
@@ -59,7 +60,7 @@ import weave.utils.RemoteUtils;
 import weave.utils.SyscallCreatorUtils;
 import weave.utils.TraceUtils;
 
-public class Settings 
+public class Settings extends Globals
 {
 	public static final String PROJECT_NAME				= "Weave";
 	public static final String PROJECT_PROTOCOL			= "weave://";
@@ -112,6 +113,7 @@ public class Settings
 	public static final String N_L						= System.getProperty("line.separator");
 	public static final String F_S						= System.getProperty("file.separator");
 	public static final String EXACT_OS					= System.getProperty("os.name");
+	public static final String JAVA_VERSION				= System.getProperty("java.specification.version");
 	
 	/*
 	 * File directory structure
@@ -152,6 +154,7 @@ public class Settings
 	public static String LAST_UPDATE_CHECK 				= "Never";
 	public static String SHORTCUT_VER					= "0";
 	public static int 	 RPC_PORT						= 3579;
+	public static double REQUIRED_JAVA_VERSION			= 1.7;
 
 	/*
 	 * Networking
@@ -190,6 +193,20 @@ public class Settings
 	 */
 	public static void init()
 	{
+		// Check for Java version
+		double version = Double.parseDouble(JAVA_VERSION);
+		if( version < REQUIRED_JAVA_VERSION )
+		{
+			JOptionPane.showMessageDialog(null, "Your version of Java is not supported by this application.\n\n" +
+					"Your version: " + JAVA_VERSION + "\n" +
+					"Required version: " + REQUIRED_JAVA_VERSION + "\n\n" + 
+					"Please update Java and try again.\n" +
+					"If the problem persists, try installing the JDK.", "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(JPanel.ERROR);
+		}
+		
+		initUpdateMap();
+		
 		findOS();
 		createFS();
 		
@@ -200,7 +217,10 @@ public class Settings
 		save();		 
 
 		getNetworkInfo(( isOfflineMode() || !isConnectedToInternet() ));
-		
+	}
+	
+	public static void initUpdateMap()
+	{
 		UPDATE_MAP = new EnumMap<UPDATE_TYPE, Integer>(UPDATE_TYPE.class);
 		UPDATE_MAP.put(UPDATE_TYPE.NEVER, 	-1);
 		UPDATE_MAP.put(UPDATE_TYPE.START, 	0);
@@ -363,7 +383,17 @@ public class Settings
 	 */
 	public static void createFS()
 	{
-		if( OS == OS_TYPE.WINDOWS )
+		String wsp = System.getenv("WEAVE_HOME");
+		File wsp_file;
+		
+		if( wsp != null )
+		{
+			wsp_file = new File(wsp);
+			if( wsp_file.exists() && wsp_file.isDirectory() )
+				createFS(wsp);
+		}
+		
+		else if( OS == OS_TYPE.WINDOWS )
 			createFS(System.getenv("APPDATA"));
 		else if( OS == OS_TYPE.LINUX )
 			createFS(USER_HOME);
@@ -424,7 +454,7 @@ public class Settings
 			LOCALHOST = "127.0.0.1";
 			
 			if( !offline )
-				REMOTE_IP = (String) ObjectUtils.coalesce(RemoteUtils.getIP(), LOCAL_IP, LOCALHOST);
+				REMOTE_IP = RemoteUtils.getIP();
 			
 		} catch (UnknownHostException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
@@ -618,7 +648,7 @@ public class Settings
 	}
 	
 	
-	public static void enableWeaveProtocol(boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
+	public static void enableWeaveProtocol(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
 		if( OS != OS_TYPE.WINDOWS )
 			return;
@@ -791,8 +821,8 @@ public class Settings
 		return false;
 	}
 
-	public static String testAPIStr() {
-		return "Hello from API";
+	public static String testAPIStr(Boolean b, String name, Integer age) {
+		return "Hello " + name + " you are " + age + "? " + (b ? "TRUE":"FALSE");
 	}
 	public static int testAPINum() {
 		return 1;

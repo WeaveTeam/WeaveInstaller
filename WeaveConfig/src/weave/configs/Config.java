@@ -24,12 +24,13 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import weave.Globals;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
 
-public class Config implements IConfig
+public class Config extends Globals implements IConfig
 {
 	public static final String WEBAPPS 		= "WEBAPPS";
 	public static final String PORT			= "PORT";

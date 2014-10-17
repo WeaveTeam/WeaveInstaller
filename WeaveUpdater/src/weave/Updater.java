@@ -86,10 +86,10 @@ public class Updater extends JFrame
 		} catch (ClassNotFoundException e) {
 			try {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (ClassNotFoundException e1) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-			} catch (InstantiationException e1) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-			} catch (IllegalAccessException e1) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-			} catch (UnsupportedLookAndFeelException e1) {	TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
+			} catch (ClassNotFoundException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (InstantiationException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalAccessException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (UnsupportedLookAndFeelException e1) {	TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
 			}
 		} catch (InstantiationException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);

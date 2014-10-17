@@ -38,6 +38,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import weave.Globals;
 import weave.Settings;
 import weave.Settings.MODE;
 import weave.utils.BugReportUtils;
@@ -45,7 +46,7 @@ import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
 
-public class TrayManager 
+public class TrayManager extends Globals
 {
 	private static JFrame		_parent			= null;
 	
