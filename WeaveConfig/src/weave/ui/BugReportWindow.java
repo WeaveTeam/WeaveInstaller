@@ -35,6 +35,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -48,6 +49,7 @@ import javax.swing.JTextArea;
 
 import weave.Settings;
 import weave.managers.TrayManager;
+import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
@@ -120,14 +122,15 @@ public class BugReportWindow extends JFrame
 		details.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if( Desktop.isDesktopSupported() ) {
-					if( TraceUtils.getLogFile(TraceUtils.STDERR).exists() ) {
-						try {
-							Desktop.getDesktop().open(TraceUtils.getLogFile(TraceUtils.STDERR));
-						} catch (IOException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
-						}
-					}
+				try {
+					if( TraceUtils.getLogFile(TraceUtils.STDERR).exists() )
+						LaunchUtils.browse(TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath());
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (URISyntaxException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
 				}
 			}
 		});

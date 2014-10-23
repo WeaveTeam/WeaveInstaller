@@ -109,7 +109,7 @@ public class FileUtils extends TransferUtils
 	 * 	final File a = new File( src, file );
 	 * 	final File b = new File( dest, file );
 	 * 
-	 * 	AsyncObserver observer = new AsyncObserver() {
+	 * 	{@link AsyncObserver} observer = new AsyncObserver() {
 	 * 		public void onUpdate() {
 	 * 			// RUN UPDATE CODE HERE
 	 * 			progressBar.setProgress( info.progress );
@@ -123,7 +123,7 @@ public class FileUtils extends TransferUtils
 	 * 			// from the call to {@link AsyncTask#doInBackground()} 
 	 * 		}
 	 * 	};
-	 * 	AsyncTask task = new AsyncTask() {
+	 * 	{@link AsyncTask} task = new AsyncTask() {
 	 * 		public Object doInBackground() {
 	 * 			return FileUtils.copy(a, b, {@link FileUtils#OVERWRITE} | {@link FileUtils#SINGLE_FILE}, observer);
 	 * 		}
@@ -445,18 +445,6 @@ public class FileUtils extends TransferUtils
 	}
 	
 	
-	
-	/*
-	 * FileUtils.getClassPath( class )
-	 * 
-	 * Get the current class path of the specified class.
-	 */
-	public static String getClassPath(Class<?> c)
-	{
-		return c.getProtectionDomain().getCodeSource().getLocation().getPath();
-	}
-	
-	
 
 	/**
 	 * Get the extension of a file
@@ -535,14 +523,14 @@ public class FileUtils extends TransferUtils
 	/**
 	 * Get the entire file contents of a file as a string.
 	 * 
-	 * @param f The path to the file
+	 * @param s The path to the file
 	 * @return The file contents
 	 * 
 	 * @throws IOException
 	 */
-	public static String getFileContents(String f) throws IOException
+	public static String getFileContents(String s) throws IOException
 	{
-		return getFileContents(new File(f));
+		return getFileContents(new File(s));
 	}
 	
 	
@@ -628,6 +616,19 @@ public class FileUtils extends TransferUtils
 		}
 		return String.format("%." + i + "f %s", size, s.get(i));
 	}
+	
+	
+	
+	/*
+	 * FileUtils.getClassPath( class )
+	 * 
+	 * Get the current class path of the specified class.
+	 */
+	public static String getClassPath(Class<?> c)
+	{
+		return c.getProtectionDomain().getCodeSource().getLocation().getPath();
+	}
+	
 	
 	
 	/*

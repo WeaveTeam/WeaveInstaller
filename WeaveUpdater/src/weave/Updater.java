@@ -101,7 +101,6 @@ public class Updater extends JFrame
 			
 			Settings.init();
 			
-			Thread.sleep(1000);
 			if( !Settings.getLock() )
 			{
 				JOptionPane.showMessageDialog(null, 

@@ -24,6 +24,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import weave.Globals;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
@@ -165,6 +167,9 @@ public class Config extends Globals implements IConfig
 			i = Integer.parseInt(s);
 		} catch (NumberFormatException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
+			JOptionPane.showMessageDialog(null, 
+					"Error parsing port.\n\n" +
+					"\"" + s + "\" is not an integer.", "Parse Error", JOptionPane.ERROR_MESSAGE);
 		}
 		setPort(i);
 	}
