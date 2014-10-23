@@ -39,11 +39,30 @@ public class ObjectUtils extends Globals
 	
 	
 	/**
-	 * Shorthand ternary operation to simplify testing null cases.
+	 * Shorthand ternary operation to simplify testing null cases.<br><br>
 	 * 
 	 * You can specify a function to apply to the null object if the test
 	 * of the object is not null. By default, no arguments are supplied 
 	 * to the function.
+	 * 
+	 * <code><pre>
+	 * class Dog {
+	 * 	public String bark() {
+	 * 		return "woof";
+	 * 	}
+	 * }
+	 * 
+	 * Dog d = new Dog();
+	 * String says = ObjectUtils.ternary( d, "bark", "not-woof" );
+	 * System.out.println( says );	// outputs: "woof"
+	 *
+	 * 
+	 * 
+	 * Dog d_Null = null;
+	 * String says = ObjectUtils.ternary( d_Null, "bark", "null-default" );
+	 * System.out.println( says );	// outputs: "null-default"
+	 * 
+	 * </pre></code>
 	 * 
 	 * @param testNotNull The test to see if it is <code>null</code>
 	 * @param functionName The name of the function to apply to the non-null test case
@@ -63,10 +82,35 @@ public class ObjectUtils extends Globals
 	
 	
 	/**
-	 * Shorthand ternary operation to simplify testing null cases.
+	 * Shorthand ternary operation to simplify testing null cases.<br><br>
 	 * 
 	 * You can specify a function to apply to the null object if the test
-	 * of the object is not null.
+	 * of the object is not null.<br>
+	 * 
+	 * <code><pre>
+	 * class Dog {
+	 * 	public String bark(int breed) {
+	 * 		switch( breed ) {
+	 * 			case 1: return "woof";
+	 * 			case 2: return "yipp";
+	 * 			case 3: return "yelp";
+	 * 			default: return "meow";
+	 * 		}
+	 * 		return null; // unreachable
+	 * 	}
+	 * }
+	 * 
+	 * Dog d = new Dog();
+	 * String says = ObjectUtils.ternary( d, "bark", "not-woof", new Class&lt;?>[] { Integer.class }, new Object[] { 2 } );
+	 * System.out.println( says );	// outputs: "yipp"
+	 *
+	 * 
+	 * 
+	 * Dog d_Null = null;
+	 * String says = ObjectUtils.ternary( d_Null, "bark", "not-null", new Class&lt;?>[] { Integer.class }, new Object[] { 1 } );
+	 * System.out.println( says );	// outputs: "not-null"
+	 * 
+	 * </pre></code>
 	 * 
 	 * @param testNotNull The test to see if it is <code>null</code>
 	 * @param functionName The name of the function to apply to the non-null test case
