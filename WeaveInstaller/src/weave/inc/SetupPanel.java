@@ -21,12 +21,15 @@ package weave.inc;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import weave.Globals;
+
 @SuppressWarnings("serial")
-public class SetupPanel extends JPanel implements ISetupPanel 
+public class SetupPanel extends JPanel implements ISetupPanel
 {
 	public static final int LEFT_PANEL_WIDTH 	= 150;
 	public static final int LEFT_PANEL_HEIGHT 	= 375;
@@ -37,10 +40,16 @@ public class SetupPanel extends JPanel implements ISetupPanel
 	public static final int RIGHT_PANEL_WIDTH 	= 450;
 	public static final int RIGHT_PANEL_HEIGHT 	= 375;
 	
+	public static Map<String, Object> globalHashMap;
 	
-	protected int 					currentPanel ;
-	protected int 					maxPanels 	 ;
-	public 	  ArrayList<JPanel> 	panels 		 = new ArrayList<JPanel>();
+	public ArrayList<JPanel> panels = new ArrayList<JPanel>();
+	protected int currentPanel;
+	protected int maxPanels;
+	
+	public SetupPanel()
+	{
+		globalHashMap = Globals.globalHashMap;
+	}
 	
 	public int getCurrentPanelIndex() {
 		return currentPanel;

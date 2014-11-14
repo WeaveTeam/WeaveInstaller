@@ -34,7 +34,6 @@ import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
-import weave.utils.FileUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
@@ -82,21 +81,14 @@ public class Jetty extends Config
 	
 	@Override public boolean loadConfig() 
 	{
-		int lockPID;
 		boolean result = ConfigManager.getConfigManager().setContainer(_instance);
-		
-		TraceUtils.trace(TraceUtils.STDOUT, "-> result: " + (result ? "TRUE":"FALSE"));
 		
 		try {
 			if( !Settings.LOCK_FILE.exists() )
 				return false;
 			
-			lockPID = Integer.parseInt(FileUtils.getFileContents(Settings.LOCK_FILE));
-			TraceUtils.trace(TraceUtils.STDOUT, "-> lockPID: " + lockPID);
-
 			if( result ) {
-				if( !Settings.isActivePID(lockPID) )
-					startServer();
+				startServer();
 				super.loadConfig();
 			}
 			else
@@ -105,9 +97,6 @@ public class Jetty extends Config
 						"Another plugin might already be loaded.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -130,6 +119,9 @@ public class Jetty extends Config
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
+
+				TraceUtils.trace(TraceUtils.STDOUT, "-> Starting " + getConfigName() + " server..........");
+
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
 					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDOUT).getName());
@@ -206,12 +198,13 @@ public class Jetty extends Config
 	}
 	public Map<String, List<String>> stopServer()
 	{
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Stopping " + getConfigName() + " server..........");
+
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
 			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
 												"jetty.base=\"" + basePath + "\" " +
 												"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
-
 			return ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

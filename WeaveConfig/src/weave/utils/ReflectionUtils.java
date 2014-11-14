@@ -19,6 +19,7 @@
 
 package weave.utils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,11 +28,72 @@ import weave.Globals;
 
 public class ReflectionUtils extends Globals
 {
+	@Reflectable
+	public static String getAllMethods(String pkg, String clazz) throws ClassNotFoundException
+	{
+		StringBuilder sb = new StringBuilder();
+		Class<?> c = Class.forName(pkg + "." + clazz);
+		Class<?> interfaces[] = c.getInterfaces();
+
+		while( c != null )
+		{
+			sb.append("Simple: " + c.getSimpleName() + "\n");
+			sb.append("Name: " + c.getName() + "\n");
+			sb.append("Canonical: " + c.getCanonicalName() + "\n");
+			sb.append("[\n");
+			Method[] methods = c.getDeclaredMethods();
+			for( int i = 0; i < methods.length; i++ )
+			{
+				Annotation[] annotations = methods[i].getAnnotations();
+				sb.append("\t[ ");
+				for( int j = 0; j < annotations.length; j++ ) 
+					sb.append(annotations[j] + " ");
+				sb.append("] ");
+				sb.append(methods[i].toString() + "\n");
+			}
+			sb.append("]\n\n");
+			
+			interfaces = c.getInterfaces();
+			for( int i = 0; i < interfaces.length; i++ ) {
+				sb.append(interfaces[i].getCanonicalName() + "\n");
+				sb.append(ObjectUtils.toString(interfaces[i].getDeclaredMethods()) + "\n\n");
+			}
+			
+			c = c.getSuperclass();
+		}
+		
+		return sb.toString();
+	}
+	
+	@Reflectable
+	public static String getAllFields(String pkg, String clazz) throws ClassNotFoundException
+	{
+		StringBuilder sb = new StringBuilder();
+		Class<?> c = Class.forName(pkg + "." + clazz);
+		Class<?> interfaces[] = c.getInterfaces();
+		
+		while( c != null )
+		{
+			sb.append(c.getCanonicalName() + "\n");
+			sb.append(ObjectUtils.toString(c.getDeclaredFields()) + "\n\n");
+			
+			interfaces = c.getInterfaces();
+			for( int i = 0; i < interfaces.length; i++ ) {
+				sb.append(interfaces[i].getCanonicalName() + "\n");
+				sb.append(ObjectUtils.toString(interfaces[i].getDeclaredFields()) + "\n\n");
+			}
+			
+			c = c.getSuperclass();
+		}
+		return sb.toString();
+	}
+	
+	
 	/**
 	 * Get a static field of a class.
 	 * 
 	 * @param pkg The fully qualified package name of a class
-	 * @param clzz The class name
+	 * @param clazz The class name
 	 * @param field The variable field you want to access
 	 * @return The value of the field
 	 * 
@@ -43,21 +105,25 @@ public class ReflectionUtils extends Globals
 	 * @throws ClassNotFoundException
 	 * @throws NoSuchFieldException 
 	 */
-	public static Object reflectField(String pkg, String clzz, String field) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException
+	public static Object reflectField(String pkg, String clazz, String field) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException
 	{
 		Field f = null;
-		Class<?> c = Class.forName(pkg + "." + clzz);
+		Class<?> c = Class.forName(pkg + "." + clazz);
 		
 		while( c != null )
 		{
 			try {
 				f = c.getDeclaredField(field);
+				
+				if( !f.isAnnotationPresent(Reflectable.class) && StringUtils.beginsWith(c.getCanonicalName(), "weave") )
+					throw new IllegalAccessException(clazz + "." + field);
+				
 				return f.get(null);
 			} catch (NoSuchFieldException e) {
 				c = c.getSuperclass();
 			}
 		}
-		throw new NoSuchFieldException(clzz + "." + field);
+		throw new NoSuchFieldException(clazz + "." + field);
 	}
 
 	
@@ -84,6 +150,10 @@ public class ReflectionUtils extends Globals
 		{
 			try {
 				f = c.getDeclaredField(field);
+				
+				if( !f.isAnnotationPresent(Reflectable.class) && StringUtils.beginsWith(c.getCanonicalName(), "weave") )
+					throw new IllegalAccessException(instance.getClass().getName() + "." + field);
+				
 				return f.get(instance);
 			} catch (NoSuchFieldException e) {
 				c = c.getSuperclass();
@@ -100,7 +170,7 @@ public class ReflectionUtils extends Globals
 	 * statically run outside of any instance of the class.
 	 * 
 	 * @param pkg The fully qualified package name of the class
-	 * @param clzz The class name
+	 * @param clazz The class name
 	 * @param function The function you want to call on the class
 	 * @return The result of calling the function
 	 * 
@@ -111,9 +181,9 @@ public class ReflectionUtils extends Globals
 	 * @throws InvocationTargetException
 	 * @throws ClassNotFoundException
 	 */
-	public static Object reflectMethod(String pkg, String clzz, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
+	public static Object reflectMethod(String pkg, String clazz, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
 	{
-		return reflectMethod(pkg, clzz, function, new Class<?>[] {}, new Object[] {});
+		return reflectMethod(pkg, clazz, function, new Class<?>[] {}, new Object[] {});
 	}
 	
 	
@@ -124,7 +194,7 @@ public class ReflectionUtils extends Globals
 	 * of any instance of the class.
 	 *  
 	 * @param pkg The fully qualified package name of a class
-	 * @param clzz The class name
+	 * @param clazz The class name
 	 * @param function The function you want to call on the class
 	 * @param argClassList The function signature
 	 * @param args The arguments to supply to the function
@@ -137,21 +207,25 @@ public class ReflectionUtils extends Globals
 	 * @throws InvocationTargetException
 	 * @throws ClassNotFoundException
 	 */
-	public static Object reflectMethod(String pkg, String clzz, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
+	public static Object reflectMethod(String pkg, String clazz, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
 	{
 		Method m = null;
-		Class<?> c = Class.forName(pkg + "." + clzz);
+		Class<?> c = Class.forName(pkg + "." + clazz);
 		
 		while( c != null )
 		{
 			try {
 				m = c.getDeclaredMethod(function, argClassList);
+				
+				if( !m.isAnnotationPresent(Reflectable.class) && StringUtils.beginsWith(c.getCanonicalName(), "weave") )
+					throw new IllegalAccessException(clazz + "." + function + "()");
+				
 				return m.invoke(null, args);
 			} catch (NoSuchMethodException e) {
 				c = c.getSuperclass();
 			}
 		}
-		throw new NoSuchMethodException(clzz + "." + function + "()");
+		throw new NoSuchMethodException(clazz + "." + function + "()");
 	}
 	
 	
@@ -197,15 +271,19 @@ public class ReflectionUtils extends Globals
 	public static Object reflectMethod(Object instance, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		Method m = null;
-		Class<?> clazz = instance.getClass();
+		Class<?> c = instance.getClass();
 		
-		while( clazz != null )
+		while( c != null )
 		{
 			try {
-				m = clazz.getDeclaredMethod(function, argClassList);
+				m = c.getDeclaredMethod(function, argClassList);
+				
+				if( !m.isAnnotationPresent(Reflectable.class) && StringUtils.beginsWith(c.getCanonicalName(), "weave") )
+					throw new IllegalAccessException(instance.getClass().getName() + "." + function + "()");
+				
 				return m.invoke(instance, args);
 			} catch (NoSuchMethodException e) {
-				clazz = clazz.getSuperclass();
+				c = c.getSuperclass();
 			}
 		}
 		throw new NoSuchMethodException(instance.getClass().getName() + "." + function + "()");

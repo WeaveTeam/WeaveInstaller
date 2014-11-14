@@ -170,6 +170,8 @@ public class Installer extends JFrame
 			@Override public void windowIconified(WindowEvent e) 	{/*	System.out.println("Iconified...");		*/}
 			@Override public void windowOpened(WindowEvent e) 		{/*	System.out.println("Opened...");		*/}
 		});
+		
+		Globals.globalHashMap.put("Installer", installer);
 	}
 	
 	public Installer() throws Exception
@@ -368,7 +370,6 @@ public class Installer extends JFrame
 		parent.add(SP_welcome);
 		switchToWelcomeSetupPanels();
 	}
-	//============================================================================================================
 	public void switchToWelcomeSetupPanels()
 	{
 		if( setupPanels.containsKey(PRE_SETUP) )
@@ -409,6 +410,7 @@ public class Installer extends JFrame
 		} else
 			switchToWelcomeSetupPanels(rightPanel);
 	}
+	//============================================================================================================
 	
 	
 	
@@ -433,7 +435,6 @@ public class Installer extends JFrame
 		parent.add(SP_config);
 		switchToConfigSetupPanel();
 	}
-	//============================================================================================================
 	public void switchToConfigSetupPanel()
 	{
 		if( setupPanels.containsKey(CFG_SETUP) )
@@ -519,7 +520,6 @@ public class Installer extends JFrame
 		parent.add(SP_home);
 		switchToHomeSetupPanel();
 	}
-	//============================================================================================================
 	public void switchToHomeSetupPanel()
 	{
 		if( setupPanels.containsKey(HOME_SETUP) )

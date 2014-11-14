@@ -46,7 +46,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.jimmc.jshortcut.JShellLink;
-import weave.configs.Config;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
@@ -55,6 +54,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
+import weave.utils.Reflectable;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
 import weave.utils.SyscallCreatorUtils;
@@ -62,49 +62,49 @@ import weave.utils.TraceUtils;
 
 public class Settings extends Globals
 {
-	public static final String PROJECT_NAME				= "Weave";
-	public static final String PROJECT_PROTOCOL			= "weave://";
-	public static final String PROJECT_EXTENSION		= ".weave";
+	@Reflectable public static final String PROJECT_NAME		= "Weave";
+	@Reflectable public static final String PROJECT_PROTOCOL	= "weave://";
+	@Reflectable public static final String PROJECT_EXTENSION	= ".weave";
 	
 	
 	/*
 	 * Remote API URLs for POST methods
 	 */
-	public static final String OICWEAVE_HOST			= "oicweave.org";
-	public static final String OICWEAVE_URL				= "http://" + OICWEAVE_HOST + "/";
-	public static final String UPDATE_CONFIG			= OICWEAVE_URL + ".weave/config.txt";
-	public static final String UPDATE_FILES				= OICWEAVE_URL + ".weave/files.txt";
+	@Reflectable public static final String OICWEAVE_HOST		= "oicweave.org";
+	@Reflectable public static final String OICWEAVE_URL		= "http://" + OICWEAVE_HOST + "/";
+				 public static final String UPDATE_CONFIG		= OICWEAVE_URL + ".weave/config.txt";
+				 public static final String UPDATE_FILES		= OICWEAVE_URL + ".weave/files.txt";
 	
-	public static final String API_GET_IP				= OICWEAVE_URL + "api/ip.php";
-	public static final String API_STATS_LOG			= OICWEAVE_URL + "api/log.php";
-	public static final String API_STATS_LIVE			= OICWEAVE_URL + "api/noop.php";
-	public static final String API_BUG_REPORT			= OICWEAVE_URL + "api/bug_report.php";
+				 public static final String API_GET_IP			= OICWEAVE_URL + "api/ip.php";
+				 public static final String API_STATS_LOG		= OICWEAVE_URL + "api/log.php";
+				 public static final String API_STATS_LIVE		= OICWEAVE_URL + "api/noop.php";
+				 public static final String API_BUG_REPORT		= OICWEAVE_URL + "api/bug_report.php";
 
 	
 	/*
 	 * Weave Installer
 	 */
-	public static final String SERVER_NAME				= PROJECT_NAME + " Server Assistant";
-	public static final String SERVER_VER				= "2.0 BETA";
-	public static final String SERVER_TITLE 			= SERVER_NAME + " v" + SERVER_VER;
-	public static final String SERVER_JAR				= "Server.jar";
+	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
+	@Reflectable public static final String SERVER_VER			= "2.0 BETA";
+	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
+	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
 	/*
 	 * Weave Updater
 	 */
-	public static final String UPDATER_NAME				= PROJECT_NAME + " Updater";
-	public static final String UPDATER_VER				= "1.1";
-	public static final String UPDATER_TITLE			= UPDATER_NAME + " v" + UPDATER_VER;
-	public static final String UPDATER_JAR				= "Updater.jar";
-	public static final String UDPATER_NEW_JAR			= "Updater_new.jar";
+	@Reflectable public static final String UPDATER_NAME		= PROJECT_NAME + " Updater";
+	@Reflectable public static final String UPDATER_VER			= "1.1";
+	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
+	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
+	@Reflectable public static final String UDPATER_NEW_JAR		= "Updater_new.jar";
 	
 	/*
 	 * Weave Launcher
 	 */
-	public static final String LAUNCHER_NAME			= PROJECT_NAME + " Launcher";
-	public static final String LAUNCHER_VER				= "1.0";
-	public static final String LAUNCHER_TITLE			= LAUNCHER_NAME + " v" + LAUNCHER_VER;
-	public static final String LAUNCHER_JAR				= "Launcher.jar";
+	@Reflectable public static final String LAUNCHER_NAME		= PROJECT_NAME + " Launcher";
+	@Reflectable public static final String LAUNCHER_VER		= "1.0";
+	@Reflectable public static final String LAUNCHER_TITLE		= LAUNCHER_NAME + " v" + LAUNCHER_VER;
+	@Reflectable public static final String LAUNCHER_JAR		= "Launcher.jar";
 	
 	/*
 	 * OS specific settings
@@ -145,7 +145,7 @@ public class Settings extends Globals
 	private static Map<String, Object> SETTINGS_MAP 	= null;
 	public static Map<UPDATE_TYPE, Integer> UPDATE_MAP	= null;
 
-	public static enum UPDATE_TYPE						{ START, DAY, WEEK, NEVER };
+	public static enum UPDATE_TYPE						{ START, HOUR, DAY, WEEK, NEVER };
 	public static UPDATE_TYPE UPDATE_FREQ				= UPDATE_TYPE.START;
 	public static boolean UPDATE_OVERRIDE				= false;
 	
@@ -224,6 +224,7 @@ public class Settings extends Globals
 		UPDATE_MAP = new EnumMap<UPDATE_TYPE, Integer>(UPDATE_TYPE.class);
 		UPDATE_MAP.put(UPDATE_TYPE.NEVER, 	-1);
 		UPDATE_MAP.put(UPDATE_TYPE.START, 	0);
+		UPDATE_MAP.put(UPDATE_TYPE.HOUR, 	1000 * 60 * 60);
 		UPDATE_MAP.put(UPDATE_TYPE.DAY, 	1000 * 60 * 60 * 24);
 		UPDATE_MAP.put(UPDATE_TYPE.WEEK, 	1000 * 60 * 60 * 24 * 7);
 	}
@@ -561,6 +562,7 @@ public class Settings extends Globals
 	 * @param host the host to query
 	 * @param port	the port to check
 	 */
+	@Reflectable 
 	public static Boolean isServiceUp(String host, Integer port)
 	{
 		Boolean b = false;
@@ -647,7 +649,7 @@ public class Settings extends Globals
 		rpcServer.stop();
 	}
 	
-	
+	@Reflectable 
 	public static void enableWeaveProtocol(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
 		if( OS != OS_TYPE.WINDOWS )
@@ -680,6 +682,7 @@ public class Settings extends Globals
 		DLLInterface.refresh();
 	}
 	
+	@Reflectable 
 	public static void enableWeaveExtension(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
 		if( OS != OS_TYPE.WINDOWS )
@@ -746,6 +749,7 @@ public class Settings extends Globals
 	 * @return OS as a string
 	 * @see findOS()
 	 */
+	@Reflectable 
 	public static String getOS()
 	{
 		if( OS == OS_TYPE.WINDOWS )
@@ -766,6 +770,7 @@ public class Settings extends Globals
 	 * @see findOS()
 	 * @see getOS()
 	 */
+	@Reflectable 
 	public static String getExactOS()
 	{
 		return EXACT_OS;
@@ -821,15 +826,6 @@ public class Settings extends Globals
 		return false;
 	}
 
-	public static String testAPIStr(Boolean b, String name, Integer age) {
-		return "Hello " + name + " you are " + age + "? " + (b ? "TRUE":"FALSE");
-	}
-	public static int testAPINum() {
-		return 1;
-	}
-	public static Config testAPICustom() {
-		return new Config();
-	}
 	
 	/**
 	 * Removes any temporary directories created by the tool

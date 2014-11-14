@@ -49,6 +49,8 @@ public class WelcomeSetupPanel extends SetupPanel
 			add(panel);
 		}
 		hidePanels();
+		
+		globalHashMap.put("WelcomeSetupPanel", WelcomeSetupPanel.this);
 	}
 
 	public JPanel createWelcomePanel() 

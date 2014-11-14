@@ -29,6 +29,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
@@ -175,7 +176,7 @@ public class ServerListener extends Globals
 				
 				String pkg = queryObj.getString("package");
 				String clzz = queryObj.getString("class");
-				String func = queryObj.getString("function");
+				String call = queryObj.getString("call");
 				if( queryObj.has("signature") )
 					jsonSigs = queryObj.getJSONArray("signature");
 				if( queryObj.has("args") )
@@ -210,38 +211,22 @@ public class ServerListener extends Globals
 				
 				Object o = null;
 				
-				if( sigs != null && args != null ) 
-				{
-					// Run a function on an object
-					o = ReflectionUtils.reflectMethod(pkg, clzz, func, sigs, args);
-					if( o == null )
-						out.write("NULL");
-					else if( o instanceof String )
-						out.write( (String)ObjectUtils.ternary(o, "NULL") );
-					else if( o instanceof Integer )
-						out.write( "" + ObjectUtils.ternary(o, 0) );
-					else if( o instanceof Boolean )
-						out.write("" + ObjectUtils.ternary(o, "FALSE"));
-					else
-						out.write("No case for type: " + o.getClass().getSimpleName());
-					out.newLine();
-					out.flush();
-				}
+				if( sigs != null && args != null )
+					o = ReflectionUtils.reflectMethod(pkg, clzz, call, sigs, args);
 				else
-				{
-					// Get a variable from an object
-					o = ReflectionUtils.reflectField(pkg, clzz, func);
-					if( o == null )
-						out.write("NULL");
-					else if( o instanceof String )
-						out.write( (String)ObjectUtils.ternary(o, "NULL") );
-					else if( o instanceof Integer )
-						out.write( "" + ObjectUtils.ternary(o, 0) );
-					else
-						out.write("No case for type: " + o.getClass().getSimpleName());
-					out.newLine();
-					out.flush();
-				}
+					o = ReflectionUtils.reflectField(pkg, clzz, call);
+
+				if( o == null )						out.write( "NULL" );
+				else if( o instanceof String )		out.write( (String)ObjectUtils.ternary(o, "NULL") );
+				else if( o instanceof Integer || 
+						 o instanceof Double || 
+						 o instanceof Float )		out.write( "" + ObjectUtils.ternary(o, 0) );
+				else if( o instanceof Boolean )		out.write( "" + ObjectUtils.ternary(o, "FALSE") );
+				else if( o instanceof Map<?, ?> )	out.write( ObjectUtils.toString(o) );
+				else								out.write( "No case for type: " + o.getClass().getSimpleName() );
+				out.newLine();
+				out.flush();
+
 			} catch (Exception e) {
 				TraceUtils.trace(TraceUtils.STDERR, e);
 				try {

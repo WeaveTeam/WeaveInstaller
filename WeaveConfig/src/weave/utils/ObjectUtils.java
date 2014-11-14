@@ -20,6 +20,8 @@
 package weave.utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import weave.Globals;
 
@@ -28,7 +30,7 @@ public class ObjectUtils extends Globals
 	/**
 	 * Shorthand ternary operation to simplify testing
 	 * 
-	 * @param test The test to see if it is null
+	 * @param testNotNull The test to see if it is null
 	 * @param failDefault The fail-safe default value
 	 * @return This will return the test value if it is non-null, otherwise it will return the default
 	 */
@@ -147,5 +149,33 @@ public class ObjectUtils extends Globals
 			if( args[i] != null )
 				return args[i];
 		return null;
+	}
+	
+	public static String toString(Object o)
+	{
+		int i = 0;
+		StringBuilder sb = new StringBuilder();
+		
+		if( o instanceof Map<?,?> )
+		{
+			Map<?,?> m = (Map<?, ?>)o;
+			sb.append("{\n");
+			for( Entry<?, ?> e : m.entrySet() )
+				sb.append("\t\"" + e.getKey() + "\" : \"" + e.getValue() + "\"" + (i++ != m.size()-1 ? ",":"") + "\n");
+			sb.append("}");
+		}
+		else if( o instanceof Object[] )
+		{
+			Object[] arr = (Object[])o;
+			sb.append("[\n");
+			for( int j = 0; j < arr.length; j++ )
+				sb.append("\t\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? ",":"") + "\n");
+			sb.append("]");
+		}
+		else
+		{
+			sb.append(o.toString());
+		}
+		return sb.toString();
 	}
 }

@@ -20,6 +20,7 @@
 package weave.ui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -40,6 +41,8 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -48,6 +51,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -78,7 +82,7 @@ import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
 
 @SuppressWarnings("serial")
-public class HomeSetupPanel extends SetupPanel
+public class HomeSetupPanel extends SetupPanel 
 {
 	private boolean refreshProgramatically = false;
 	public JTabbedPane tabbedPane;
@@ -100,8 +104,12 @@ public class HomeSetupPanel extends SetupPanel
 	
 	// ============== Tab 3 ============== //
 	public JScrollPane settingsScrollPane;
-	public TitledBorder settingsUpdatesTitle, settingsStartupTitle;
-	public JButton testExt, testProto;
+	public TitledBorder settingsServerUpdatesTitle, settingsWeaveUpdatesTitle, settingsMaintenanceTitle, settingsProtoExtTitle;
+	public JCheckBox settingsUpdatesAutoInstallCheckbox, settingsUpdatesCheckNewCheckbox;
+	public JComboBox<String> settingsUpdatesCheckNewCombobox;
+	public JCheckBox settingsMaintenanceDeleteLogsCheckbox, settingsMaintenanceDebugCheckbox;
+	public JTextField settingsMaintenanceDeleteLogsTextfield;
+	public JCheckBox settingsExtCheckbox, settingsProtocolCheckbox;
 	
 	
 	// ============== Tab 4 ============== //
@@ -139,6 +147,8 @@ public class HomeSetupPanel extends SetupPanel
 				refreshButton.doClick();
 			}
 		}, 1000);
+		
+		globalHashMap.put("HomeSetupPanel", HomeSetupPanel.this);
 	}
 
 	public JPanel createHomeSetupPanel()
@@ -200,11 +210,33 @@ public class HomeSetupPanel extends SetupPanel
 			}
 		});
 		panel.add(tabbedPane);
-		
-		tabbedPane.setSelectedComponent(tab1);
+
+//		tabbedPane.setEnabledAt(1, false);
+		switchToTab(tab1);
 		
 		return panel;
 	}
+
+	
+	public Boolean switchToTab(String name)
+	{
+		return switchToTab(tabbedPane.indexOfTab(name));
+	}
+	public Boolean switchToTab(Component c)
+	{
+		return switchToTab(tabbedPane.indexOfComponent(c));
+	}
+	public Boolean switchToTab(int index)
+	{
+		try {
+			tabbedPane.setSelectedIndex(index);
+		} catch (IndexOutOfBoundsException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			return false;
+		}
+		return true;
+	}
+	
 	
 	public JPanel createTab(JComponent parent)
 	{
@@ -413,63 +445,160 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = createTab(parent);
 		JPanel innerPanel = new JPanel();
-		JPanel p1 = new JPanel();
-		JPanel p2 = new JPanel();
+		JPanel serverUpdateBox = new JPanel();
+		JPanel weaveUpdateBox = new JPanel();
+		JPanel maintenanceBox = new JPanel();
+		JPanel protoextBox = new JPanel();
 		
 		innerPanel.setLayout(null);
 		innerPanel.setSize(panel.getWidth() - 40, 800);
 		innerPanel.setPreferredSize(new Dimension(parent.getWidth() - 40, 800));
 		innerPanel.setBackground(Color.WHITE);
 		
-		p1.setBounds(10, 10, innerPanel.getWidth() - 50, 150);
-		p1.setBackground(Color.WHITE);
-		p2.setBounds(10, 170, innerPanel.getWidth() - 50, 150);
-		p2.setBackground(Color.WHITE);
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Weave Server Assistant Updates
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		settingsServerUpdatesTitle = BorderFactory.createTitledBorder(null, "Server Assistant Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		serverUpdateBox.setBounds(10, 10, innerPanel.getWidth() - 40, 150);
+		serverUpdateBox.setLayout(null);
+		serverUpdateBox.setBackground(Color.WHITE);
+		serverUpdateBox.setBorder(settingsServerUpdatesTitle);
 		
-		settingsUpdatesTitle = BorderFactory.createTitledBorder(null, "Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-		settingsStartupTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		settingsUpdatesAutoInstallCheckbox = new JCheckBox("Automatically install updates on startup");
+		settingsUpdatesAutoInstallCheckbox.setBounds(10, 20, 300, 30);
+		settingsUpdatesAutoInstallCheckbox.setBackground(Color.WHITE);
+		settingsUpdatesAutoInstallCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		serverUpdateBox.add(settingsUpdatesAutoInstallCheckbox);
 		
-		p1.setBorder(settingsUpdatesTitle);
-		p2.setBorder(settingsStartupTitle);
+		settingsUpdatesCheckNewCheckbox = new JCheckBox("Check for new updates");
+		settingsUpdatesCheckNewCheckbox.setBounds(10, 50, 170, 30);
+		settingsUpdatesCheckNewCheckbox.setBackground(Color.WHITE);
+		settingsUpdatesCheckNewCheckbox.setEnabled(true);
+		settingsUpdatesCheckNewCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
+			}
+		});
+		serverUpdateBox.add(settingsUpdatesCheckNewCheckbox);
 		
-		testExt = new JButton("Enable Extension");
-		testExt.setBounds(10, 10, 100, 25);
-		testExt.addActionListener(new ActionListener() {
+		settingsUpdatesCheckNewCombobox = new JComboBox<String>();
+		settingsUpdatesCheckNewCombobox.setBounds(180, 50, 150, 30);
+		settingsUpdatesCheckNewCombobox.setBackground(Color.WHITE);
+		settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
+		settingsUpdatesCheckNewCombobox.addItem("Every hour");
+		settingsUpdatesCheckNewCombobox.addItem("Every day");
+		settingsUpdatesCheckNewCombobox.addItem("Every week");
+		settingsUpdatesCheckNewCombobox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		serverUpdateBox.add(settingsUpdatesCheckNewCombobox);
+		
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Weave Updates
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		settingsWeaveUpdatesTitle = BorderFactory.createTitledBorder(null, "Weave Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		weaveUpdateBox.setBounds(10, 170, innerPanel.getWidth() - 40, 150);
+		weaveUpdateBox.setLayout(null);
+		weaveUpdateBox.setBackground(Color.WHITE);
+		weaveUpdateBox.setBorder(settingsWeaveUpdatesTitle);
+		
+		
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Maintenance
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		settingsMaintenanceTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+		maintenanceBox.setBounds(10, 330, innerPanel.getWidth() - 40, 150);
+		maintenanceBox.setLayout(null);
+		maintenanceBox.setBackground(Color.WHITE);
+		maintenanceBox.setBorder(settingsMaintenanceTitle);
+		
+		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than                 days");
+		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 300, 25);
+		settingsMaintenanceDeleteLogsCheckbox.setBackground(Color.WHITE);
+		settingsMaintenanceDeleteLogsCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		maintenanceBox.add(settingsMaintenanceDeleteLogsCheckbox);
+		
+		settingsMaintenanceDeleteLogsTextfield = new JTextField();
+		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 20, 30, 30);
+		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.GRAY);
+		maintenanceBox.add(settingsMaintenanceDeleteLogsTextfield);
+		
+		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsTextfield, 0);
+		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsCheckbox, 1);
+
+		
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Protocols & Extensions
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		settingsProtoExtTitle = BorderFactory.createTitledBorder(null, "Protocol & Extension", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.GRAY);
+		protoextBox.setBounds(10, 490, innerPanel.getWidth() - 40, 150);
+		protoextBox.setLayout(null);
+		protoextBox.setBackground(Color.WHITE);
+		protoextBox.setBorder(settingsProtoExtTitle);
+		
+		settingsExtCheckbox = new JCheckBox("Enable Weave Extesion");
+		settingsExtCheckbox.setBounds(10, 20, 300, 30);
+		settingsExtCheckbox.setBackground(Color.WHITE);
+		settingsExtCheckbox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Settings.enableWeaveExtension(true);
+					Settings.enableWeaveExtension(settingsExtCheckbox.isSelected());
 				} catch (IllegalArgumentException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				} catch (IllegalAccessException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				} catch (InvocationTargetException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				}
 			}
 		});
-		p1.add(testExt);
+		protoextBox.add(settingsExtCheckbox);
 		
-		testProto = new JButton("Enable Protocol");
-		testProto.setBounds(10, 40, 100, 25);
-		testProto.addActionListener(new ActionListener() {
+		settingsProtocolCheckbox = new JCheckBox("Enable Weave Protocol");
+		settingsProtocolCheckbox.setBounds(10, 50, 300, 30);
+		settingsProtocolCheckbox.setBackground(Color.WHITE);
+		settingsProtocolCheckbox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Settings.enableWeaveProtocol(true);
+					Settings.enableWeaveProtocol(settingsProtocolCheckbox.isSelected());
 				} catch (IllegalArgumentException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				} catch (IllegalAccessException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				} catch (InvocationTargetException e1) {
-					e1.printStackTrace();
+					TraceUtils.trace(TraceUtils.STDERR, e1);
 				}
 			}
 		});
-		p1.add(testProto);
+		protoextBox.add(settingsProtocolCheckbox);
 		
-		innerPanel.add(p1);
-		innerPanel.add(p2);
+		
+		innerPanel.add(serverUpdateBox);
+		innerPanel.add(weaveUpdateBox);
+		innerPanel.add(maintenanceBox);
+		innerPanel.add(protoextBox);
+		
 		
 		settingsScrollPane = new JScrollPane();
 		settingsScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
@@ -532,9 +661,12 @@ public class HomeSetupPanel extends SetupPanel
 			aboutHTML.setContentType("text/html");
 			aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
 			aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
-								"enable visualization of any available  data by anyone for any purpose.");
+								"enable visualization of any available  data by anyone for any purpose.<br><br><br><br>" +
+								"(c) Institute for Visualization and Perception Research<br>" +
+								"Visit: <a href='" + Settings.OICWEAVE_URL + "'>" + Settings.OICWEAVE_URL + "</a><br>");
 			String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
-										"font-size: " + aboutHTML.getFont().getSize() + "px; }";
+										"font-size: " + aboutHTML.getFont().getSize() + "px; }" +
+								"b { font-size: " + (aboutHTML.getFont().getSize() + 2) + "px; }";
 			((HTMLDocument)aboutHTML.getDocument()).getStyleSheet().addRule(htmlStyle);
 			aboutHTML.addHyperlinkListener(new HyperlinkListener() {
 				@Override

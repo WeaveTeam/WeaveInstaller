@@ -59,7 +59,7 @@ public class RegEdit extends Globals
 		return false;
 	}
 	
-	
+
 	public static boolean writeString(String root, String path, String type, String key, String data)
 	{
 		return doAction("ADD", root, path, type, key, data);

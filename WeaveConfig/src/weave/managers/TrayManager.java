@@ -32,6 +32,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 
 import javax.imageio.ImageIO;
@@ -43,6 +44,7 @@ import weave.Settings;
 import weave.Settings.MODE;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
 
@@ -172,9 +174,11 @@ public class TrayManager extends Globals
 				if( updateAvailable )
 				{
 					updateAvailable = false;
-
+					
 					int n = JOptionPane.showConfirmDialog(null, "There is a newer version of this tool available for download.\n\n" +
-																"Would you like to restart the tool to apply the update?", Settings.PROJECT_NAME + " Update Available!", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+																"Would you like to restart the tool to apply the update?", 
+																Settings.PROJECT_NAME + " Update Available!",
+																JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 					if( n == JOptionPane.YES_OPTION )
 					{
 						try {
@@ -256,7 +260,22 @@ public class TrayManager extends Globals
         aboutItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				JOptionPane.showMessageDialog(null, "This is the about menu popup.");
+				_parent.setVisible(true);
+				_parent.setExtendedState(JFrame.NORMAL);
+				try {
+					ReflectionUtils.reflectMethod(globalHashMap.get("Installer"), "switchToHomeSetupPanel");
+					ReflectionUtils.reflectMethod(globalHashMap.get("HomeSetupPanel"), "switchToTab", new Class<?>[] { String.class }, new String[] { "About" });
+				} catch (NoSuchMethodException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (SecurityException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (IllegalAccessException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (IllegalArgumentException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (InvocationTargetException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
 			}
 		});
         
@@ -303,18 +322,15 @@ public class TrayManager extends Globals
 	
 	private static void setupDefaultEnabled()
 	{
+		boolean b = Settings.isOfflineMode();
+		
 		restoreItem.setEnabled(true);
 		onOffItem.setEnabled(true);
 		quickLinksMenu.setEnabled(true);
 		adminConsoleItem.setEnabled(true);
-		installerWikiItem.setEnabled(true);
+		installerWikiItem.setEnabled(!b);
 		aboutItem.setEnabled(true);
-		updateItem.setEnabled(true);
+		updateItem.setEnabled(!b);
 		exitItem.setEnabled(true);
-
-		if( Settings.isOfflineMode() )
-		{
-			updateItem.setEnabled(false);
-		}
 	}
 }

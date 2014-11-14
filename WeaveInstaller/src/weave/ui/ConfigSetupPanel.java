@@ -103,6 +103,8 @@ public class ConfigSetupPanel extends SetupPanel
 			add(panel);
 		}
 		hidePanels();
+		
+		globalHashMap.put("ConfigSetupPanel", ConfigSetupPanel.this);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
