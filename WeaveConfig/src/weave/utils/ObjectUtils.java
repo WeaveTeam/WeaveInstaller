@@ -55,7 +55,7 @@ public class ObjectUtils extends Globals
 	 * }
 	 * 
 	 * Dog d = new Dog();
-	 * String says = ObjectUtils.ternary( d, "bark", "not-woof" );
+	 * String says = ObjectUtils.ternary( d, "bark", "null-default" );
 	 * System.out.println( says );	// outputs: "woof"
 	 *
 	 * 
@@ -103,14 +103,14 @@ public class ObjectUtils extends Globals
 	 * }
 	 * 
 	 * Dog d = new Dog();
-	 * String says = ObjectUtils.ternary( d, "bark", "not-woof", new Class&lt;?>[] { Integer.class }, new Object[] { 2 } );
+	 * String says = ObjectUtils.ternary( d, "bark", "null dog", new Class&lt;?>[] { Integer.class }, new Object[] { 2 } );
 	 * System.out.println( says );	// outputs: "yipp"
 	 *
 	 * 
 	 * 
 	 * Dog d_Null = null;
-	 * String says = ObjectUtils.ternary( d_Null, "bark", "not-null", new Class&lt;?>[] { Integer.class }, new Object[] { 1 } );
-	 * System.out.println( says );	// outputs: "not-null"
+	 * String says = ObjectUtils.ternary( d_Null, "bark", "null dog", new Class&lt;?>[] { Integer.class }, new Object[] { 1 } );
+	 * System.out.println( says );	// outputs: "null dog"
 	 * 
 	 * </pre></code>
 	 * 
@@ -153,6 +153,11 @@ public class ObjectUtils extends Globals
 	
 	public static String toString(Object o)
 	{
+		return toString(o, ", ");
+	}
+	
+	public static String toString(Object o, String delim)
+	{
 		int i = 0;
 		StringBuilder sb = new StringBuilder();
 		
@@ -167,9 +172,12 @@ public class ObjectUtils extends Globals
 		else if( o instanceof Object[] )
 		{
 			Object[] arr = (Object[])o;
-			sb.append("[\n");
+			sb.append("[" + (delim.contains("\n") ? "\n":" "));
 			for( int j = 0; j < arr.length; j++ )
-				sb.append("\t\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? ",":"") + "\n");
+				if( j == 0 && delim.contains("\t") )
+					sb.append("\t\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim: " "));
+				else
+					sb.append("\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim:" "));
 			sb.append("]");
 		}
 		else

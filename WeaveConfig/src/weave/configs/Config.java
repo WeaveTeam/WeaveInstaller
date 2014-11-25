@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 
 import weave.Globals;
 import weave.managers.ConfigManager;
+import weave.reflect.Reflectable;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
@@ -137,6 +138,8 @@ public class Config extends Globals implements IConfig
 	@Override public String getURL() 					{ return 	_url; }
 	@Override public File getWebappsDirectory() 		{ return 	_webapps; }
 	@Override public File getInstallFile() 				{ return 	_install_file; }
+	
+	@Reflectable
 	@Override public String getInstallVersion()			{ return 	_version; }
 	@Override public int getPort() 						{ return 	_port; }
 	@Override public boolean isConfigLoaded() 			{ return 	_loaded; }

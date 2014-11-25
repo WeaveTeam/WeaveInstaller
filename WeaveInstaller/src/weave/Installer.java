@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,14 +52,13 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import com.jtattoo.plaf.fast.FastLookAndFeel;
-
 import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.Settings.UPDATE_TYPE;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.managers.TrayManager;
+import weave.reflect.Reflectable;
 import weave.ui.ConfigSetupPanel;
 import weave.ui.HomeSetupPanel;
 import weave.ui.WelcomeSetupPanel;
@@ -67,6 +67,8 @@ import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
+
+import com.jtattoo.plaf.fast.FastLookAndFeel;
 
 @SuppressWarnings("serial")
 public class Installer extends JFrame
@@ -85,7 +87,7 @@ public class Installer extends JFrame
 	public WelcomeSetupPanel 			SP_welcome 		= null;
 	public ConfigSetupPanel 			SP_config		= null;
 	public HomeSetupPanel 				SP_home 		= null;
-	public HashMap<String, SetupPanel>	setupPanels		= new HashMap<String, SetupPanel>();
+	public Map<String, SetupPanel>		setupPanels		= new HashMap<String, SetupPanel>();
 
 	// === Bottom Panel === //
 	public SetupPanel					bottomPanel 	= null;
@@ -186,7 +188,7 @@ public class Installer extends JFrame
 		setTitle(Settings.SERVER_TITLE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(TrayManager.trayIconOffline);
+		setIconImage(ImageIO.read(IconManager.ICON_TRAY_LOGO));
 		
 		
 
@@ -370,6 +372,7 @@ public class Installer extends JFrame
 		parent.add(SP_welcome);
 		switchToWelcomeSetupPanels();
 	}
+	@Reflectable
 	public void switchToWelcomeSetupPanels()
 	{
 		if( setupPanels.containsKey(PRE_SETUP) )
@@ -435,6 +438,7 @@ public class Installer extends JFrame
 		parent.add(SP_config);
 		switchToConfigSetupPanel();
 	}
+	@Reflectable
 	public void switchToConfigSetupPanel()
 	{
 		if( setupPanels.containsKey(CFG_SETUP) )
@@ -520,6 +524,7 @@ public class Installer extends JFrame
 		parent.add(SP_home);
 		switchToHomeSetupPanel();
 	}
+	@Reflectable
 	public void switchToHomeSetupPanel()
 	{
 		if( setupPanels.containsKey(HOME_SETUP) )

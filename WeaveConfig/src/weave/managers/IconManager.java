@@ -24,6 +24,8 @@ import java.net.URL;
 public class IconManager
 {
 	public static URL ICON_TRAY_LOGO = IconManager.class.getResource("/resources/icon.png");
+	public static URL ICON_TRAY_LOGO_LARGE = IconManager.class.getResource("/resources/icon_large.png");
+	
 	public static URL ICON_TRAY_ONLINE = IconManager.class.getResource("/resources/icon.png");
 	public static URL ICON_TRAY_OFFLINE = IconManager.class.getResource("/resources/icon.png");
 	public static URL ICON_TRAY_ERROR = IconManager.class.getResource("/resources/icon.png");

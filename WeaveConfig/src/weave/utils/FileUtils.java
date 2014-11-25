@@ -196,6 +196,8 @@ public class FileUtils extends TransferUtils
 	 */
 	public static int copy(File source, File destination, int flags, AsyncObserver observer, int throttle) throws FileNotFoundException, IOException, InterruptedException
 	{
+		long timestamp = 0;
+		
 		// Check to see if either of the file(s) are null and throw an error if they are
 		if( source == null || destination == null )
 			throw new NullPointerException("Source File or Destination File cannot be null");
@@ -222,7 +224,11 @@ public class FileUtils extends TransferUtils
 		}
 		else
 		{
+			if( (flags & PRESERVE) > 0 ) timestamp = source.lastModified();
+			
 			status &= copy(new FileInputStream(source), new FileOutputStream(destination), observer, throttle);
+			
+			if( (flags & PRESERVE) > 0 ) destination.setLastModified(timestamp);
 		}
 		return status;
 	}

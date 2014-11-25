@@ -69,6 +69,7 @@ import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
+import weave.reflect.Reflectable;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -217,15 +218,18 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 
-	
+
+	@Reflectable
 	public Boolean switchToTab(String name)
 	{
 		return switchToTab(tabbedPane.indexOfTab(name));
 	}
+	@Reflectable
 	public Boolean switchToTab(Component c)
 	{
 		return switchToTab(tabbedPane.indexOfComponent(c));
 	}
+	@Reflectable
 	public Boolean switchToTab(int index)
 	{
 		try {
@@ -644,7 +648,7 @@ public class HomeSetupPanel extends SetupPanel
 		try {
 			aboutImage = new JLabel("");
 			aboutImage.setBounds(20, 20, 100, 100);
-			aboutImage.setIcon(new ImageIcon(ImageUtils.scale(ImageIO.read(IconManager.ICON_TRAY_LOGO), aboutImage.getWidth(), ImageUtils.SCALE_WIDTH)));
+			aboutImage.setIcon(new ImageIcon(ImageUtils.scale(ImageIO.read(IconManager.ICON_TRAY_LOGO_LARGE), aboutImage.getWidth(), ImageUtils.SCALE_WIDTH)));
 			
 			aboutTitle = new JLabel(Settings.SERVER_NAME);
 			aboutTitle.setBounds(150, 30, 300, 30);

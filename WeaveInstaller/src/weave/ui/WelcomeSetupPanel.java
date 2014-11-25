@@ -80,7 +80,7 @@ public class WelcomeSetupPanel extends SetupPanel
 		String infoStyle =	"body { font-family: " + info.getFont().getFamily() + "; " + 
 							"font-size: " + info.getFont().getSize() + "px; }";
 		((HTMLDocument)info.getDocument()).getStyleSheet().addRule(infoStyle);
-		info.setText(	"This tool will assist you in quickly setting up Weave on your system.");
+		info.setText("This tool will assist you in quickly setting up Weave on your system.");
 
 		panel.add(welcome);
 		panel.add(info);

@@ -513,7 +513,7 @@ public class Updater extends JFrame
 		if( oldDir.exists() ) {
 			File oldRevs = new File(oldDir, Settings.F_S + "revisions" + Settings.F_S);
 			if( oldRevs.exists() )
-				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY, TransferUtils.OVERWRITE);
+				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 			FileUtils.recursiveDelete(oldDir);
 		}
 	}

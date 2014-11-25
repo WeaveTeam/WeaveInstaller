@@ -88,7 +88,6 @@ public class ConfigManager extends Globals
 	public void initializeConfigs()
 	{
 		load();
-		
 		for( int i = 0; i < availableConfigs.size(); ++i )
 		{
 			for( Map.Entry<String, IConfig> entry : availableConfigs.get(i).entrySet() )
@@ -97,7 +96,6 @@ public class ConfigManager extends Globals
 				config.initConfig();
 			}
 		}
-
 		save();
 	}
 	

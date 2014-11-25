@@ -78,7 +78,8 @@ public class TrayManager extends Globals
 	{
 		TraceUtils.trace(TraceUtils.STDOUT, "-> Initializing System Tray.......");
 		
-		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
+//		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
+		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_LOGO_LARGE);
 		trayIconOffline = ImageIO.read(IconManager.ICON_TRAY_OFFLINE);
 		trayIconError = ImageIO.read(IconManager.ICON_TRAY_ERROR);
 
@@ -112,7 +113,7 @@ public class TrayManager extends Globals
 		popupMenu.add(updateItem);
 		popupMenu.add(exitItem);
 		
-		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.SERVER_NAME);
+		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.SERVER_NAME + "\n Jetty [Online]\nMySQL [Online]\n");
 		trayIcon.setImageAutoSize(true);
 		trayIcon.setPopupMenu(popupMenu);
 		
