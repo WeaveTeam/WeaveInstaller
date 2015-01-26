@@ -127,7 +127,7 @@ public class Jetty extends Config
 					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDOUT).getName());
 					File logStderr = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDERR).getName());
 					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
-											"jetty.logs=\"" + basePath + "/logs/\"" +
+											"jetty.logs=\"" + basePath + "/logs/\" " +
 											"jetty.home=\"" + basePath + "\" " +
 											"jetty.base=\"" + basePath + "\" " +
 											"jetty.port=" + _port + " " +

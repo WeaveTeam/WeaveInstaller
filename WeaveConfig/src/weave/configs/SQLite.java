@@ -30,7 +30,7 @@ public class SQLite extends Config
 	
 	@Override public void initConfig() 
 	{
-		super.initConfig();
+		super.initConfig(0);
 		
 		try {
 			

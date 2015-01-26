@@ -76,7 +76,7 @@ public class test
 				System.out.println("Inside of download background task");
 				
 				try {
-					URL url = new URL("http://oicweave.org/.weave/updates.zip");
+					URL url = new URL("http://iweave.com/.weave/updates.zip");
 					File tmpTxt = new File(Settings.USER_HOME, "asdfasdf.zip");
 					downloadObserver.init(url);
 					DownloadUtils.download(url, tmpTxt, downloadObserver);

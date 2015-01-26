@@ -79,6 +79,8 @@ public class ProcessUtils extends Globals
 		returnMap.put("output", internals.output);
 		returnMap.put("error", internals.error);
 		
+		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		
 		return returnMap;
 	}
 }
@@ -130,13 +132,15 @@ class ProcessStream extends Thread
 					writer.flush();
 				}
 			}
-
-			if( reader != null )	reader.close();
-			if( writer != null )	writer.close();
-			
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
+		} finally {
+			try {
+				if( reader != null ) 	reader.close();
+				if( writer != null )	writer.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 }

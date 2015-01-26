@@ -29,11 +29,15 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -44,6 +48,7 @@ import weave.Settings;
 import weave.Settings.MODE;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.ReflectionUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
@@ -70,6 +75,7 @@ public class TrayManager extends Globals
 	private static MenuItem exitItem 			= null;
 	
 	private static boolean updateAvailable 		= false;
+	private static boolean mouseOverToggle 		= false;
 	
 //	private static enum states					{ ONLINE, OFFLINE, ERROR };
 //	private static states state					= states.OFFLINE;
@@ -113,7 +119,7 @@ public class TrayManager extends Globals
 		popupMenu.add(updateItem);
 		popupMenu.add(exitItem);
 		
-		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.SERVER_NAME + "\n Jetty [Online]\nMySQL [Online]\n");
+		trayIcon = new TrayIcon((Settings.isOfflineMode() ? trayIconOffline : trayIconOnline), Settings.SERVER_NAME);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.setPopupMenu(popupMenu);
 		
@@ -162,7 +168,48 @@ public class TrayManager extends Globals
 			trayIcon == null ) return;
 		systemTray.remove(trayIcon);
 	}
-
+	public static void refreshDefaultTrayToolTip()
+	{
+		if( !SystemTray.isSupported() ) return;
+		
+		try {
+			String servlet = (String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getConfigName", null);
+			String database = (String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveDatabase(), "getConfigName", null);
+			String servletStatus = "N/A", databaseStatus = "N/A";
+			
+			if( servlet == null )
+				servlet = "Not Selected";
+			else
+			{
+				int servletPort = ConfigManager.getConfigManager().getActiveContainer().getPort();
+				servletStatus = Settings.isServiceUp(Settings.LOCALHOST, servletPort) ? "Online" : "Offline";
+			}
+			
+			if( database == null )
+				database = "Not Selected";
+			else 
+			{
+				int databasePort = ConfigManager.getConfigManager().getActiveDatabase().getPort();
+				databaseStatus = Settings.isServiceUp(Settings.LOCALHOST, databasePort) ? "Online" : "Offline";
+			}
+			
+			setTooltip(
+				Settings.SERVER_NAME + "\n" +
+				"Servlet:  " + servlet + " [" + servletStatus + "]\n" + 
+				"Database: " + database + " [" + databaseStatus + "]");
+			
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+	}
 	private static void setupActionListeners()
 	{
 		if( !SystemTray.isSupported() ) return;
@@ -201,6 +248,24 @@ public class TrayManager extends Globals
 					_parent.setExtendedState( _parent.isVisible() ? JFrame.NORMAL : JFrame.ICONIFIED );
 				}
 			}
+		});
+		trayIcon.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				if( !mouseOverToggle )
+				{
+					mouseOverToggle = true;
+					refreshDefaultTrayToolTip();
+					
+					new Timer().schedule(new TimerTask() {
+						@Override 
+						public void run() {
+							mouseOverToggle = false;
+						}
+					}, 10000);
+				}
+			}
+			@Override public void mouseDragged(MouseEvent e) { }
 		});
         
         // Restore Menu Item

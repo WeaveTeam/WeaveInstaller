@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 
 import weave.Globals;
 import weave.Settings;
+import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
 {
@@ -44,6 +45,8 @@ public class RemoteUtils extends Globals
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	public static final String WIKI_HELP_PAGE			= "WikiHelpPage";
 	
+	private static long 	configTimestamp				= 0;
+	private static String[] configFile					= null;
 	
 	private static String[] getConfigFile()
 	{
@@ -53,8 +56,13 @@ public class RemoteUtils extends Globals
 			return null;
 			
 		try {
-			content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
-			return content.split(";");
+			if( configTimestamp < (System.currentTimeMillis() / 1000L) )
+			{
+				content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
+				configFile = content.split(";");
+				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
+			}
+			return configFile;
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -65,6 +73,7 @@ public class RemoteUtils extends Globals
 		return null;
 	}
 	
+	@Reflectable
 	public static String getConfigEntry(String key)
 	{
 		if( Settings.isOfflineMode() )
@@ -87,6 +96,7 @@ public class RemoteUtils extends Globals
 		return null;
 	}
 	
+	@Reflectable
 	public static String[] getRemoteFiles()
 	{
 		String content = "";
@@ -138,5 +148,39 @@ public class RemoteUtils extends Globals
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Use the Remote API to access if a service is up from outside of the network.
+	 * 
+	 * @param host The host/IP of the service
+	 * @param port The port number of the service
+	 * 
+	 * @return <code>true</code> if the service is up, <code>false</code> otherwise
+	 */
+	@Reflectable
+	public static boolean isServiceUp(String host, int port)
+	{
+		if( Settings.isOfflineMode() )
+			return false;
+		
+		URLRequestParams params = new URLRequestParams();
+		params.add("ip", host);
+		params.add("port", "" + port);
+		
+		try {
+			String result = URLRequestUtils.request(URLRequestUtils.GET, Settings.API_SOCKET, params);
+
+			if( result.equals("1") )
+				return true;
+			
+		} catch (IOException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		return false;
 	}
 }

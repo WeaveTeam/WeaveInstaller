@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -29,14 +29,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 
 import weave.Settings;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
+import weave.reflect.Reflectable;
 
 public class FileUtils extends TransferUtils
 {
@@ -368,11 +367,12 @@ public class FileUtils extends TransferUtils
 	 * 
 	 * @param source The source file to move
 	 * @param destination The destination file of where the source will be moved to
-	 * @return <code>true</code> if move is successful, <code>false</code> otherwise
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public static boolean move( String source, String destination ) throws IOException
+	public static int move( String source, String destination ) throws IOException, InterruptedException
 	{
 		return move(source, destination, NO_FLAGS);
 	}
@@ -385,11 +385,12 @@ public class FileUtils extends TransferUtils
 	 * 
 	 * @param source The source file to move
 	 * @param destination The destination file of where the source will be moved to
-	 * @return <code>true</code> if move is successful, <code>false</code> otherwise
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public static boolean move( File source, File destination ) throws IOException
+	public static int move( File source, File destination ) throws IOException, InterruptedException
 	{
 		return move(source, destination, NO_FLAGS);
 	}
@@ -398,17 +399,16 @@ public class FileUtils extends TransferUtils
 	
 	/**
 	 * Move or rename the source file to the destination file.
-	 * An overwrite bit can be set in the flags parameter to overwrite
-	 * the destination file if it already exists.
 	 * 
 	 * @param source The source file to move
 	 * @param destination The destination file of where the source will be moved to
 	 * @param flags Big flags to specify if the file should be overwritten.
-	 * @return <code>true</code> if move is successful, <code>false</code> otherwise
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public static boolean move( String source, String destination, int flags ) throws IOException
+	public static int move( String source, String destination, int flags ) throws IOException, InterruptedException
 	{
 		return move(new File(source), new File(destination), flags);
 	}
@@ -417,39 +417,60 @@ public class FileUtils extends TransferUtils
 	
 	/**
 	 * Move or rename the source file to the destination file.
-	 * An overwrite bit can be set in the flags parameter to overwrite
-	 * the destination file if it already exists.
 	 * 
 	 * @param source The source file to move
-	 * @param destination The destination file of where the source will be moved to
-	 * @param flags Move flags to specify if the file should be overwritten.
-	 * @return <code>true</code> if move is successful, <code>false</code> otherwise
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public static boolean move( File source, File destination, int flags ) throws IOException
+	public static int move( File source, File destination, int flags ) throws FileNotFoundException, IOException, InterruptedException
 	{
-		// check to see if either the source or destination file(s) are null
-		if( source == null || destination == null )
-			throw new NullPointerException("Source File or Destination File cannot be null");
-		
-		// If an error has not been thrown, assert that both the 
-		// source and destination file(s) are non-null
-		assert source != null;
-		assert destination != null;
-		
-		if( destination.exists() )
-		{
-			if( (flags & OVERWRITE) != 0 )
-				recursiveDelete(destination);
-			else
-				throw new FileAlreadyExistsException(destination.getName());
-		}
-		
-		Files.move(source.toPath(), destination.toPath(), StandardCopyOption.ATOMIC_MOVE);
-		return true;
+		return move(source, destination, flags, null);
 	}
 	
+	
+	/**
+	 * Move or rename the source file to the destination file.
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @param observer The observer to provide stats to
+	 * @return Returns the result code <code>COMPLETE, FAILED, CANCELLED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int move( File source, File destination, int flags, AsyncObserver observer ) throws FileNotFoundException, IOException, InterruptedException
+	{
+		return move(source, destination, flags, observer, 0);
+	}
+
+	
+	/**
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @param observer The observer to provide stats to
+	 * @param throttle The max transfer speed
+	 * @return The result code <code>COMPLETE, FAILED, CANCELLED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int move( File source, File destination, int flags, AsyncObserver observer, int throttle ) throws FileNotFoundException, IOException, InterruptedException
+	{
+		int cp = copy(source, destination, flags, observer, throttle);
+		recursiveDelete(source);
+		
+		return cp;
+	}
 	
 
 	/**
@@ -467,7 +488,7 @@ public class FileUtils extends TransferUtils
 	 * 	
 	 * 	FileUtils.getExt( f1 )	=	"txt"
 	 * 	FileUtils.getExt( f2 )	= 	"xml"
-	 * 	FileUtils.getExt( f3 )	=	NULL
+	 * 	FileUtils.getExt( f3 )	=	""
 	 * </pre>
 	 * </code>
 	 * 
@@ -493,7 +514,7 @@ public class FileUtils extends TransferUtils
 	 * 	
 	 * 	FileUtils.getExt( str1 )	=	"txt"
 	 * 	FileUtils.getExt( str2 )	= 	"xml"
-	 * 	FileUtils.getExt( str3 )	=	NULL
+	 * 	FileUtils.getExt( str3 )	=	""
 	 * </pre>
 	 * </code>
 	 * 
@@ -502,30 +523,17 @@ public class FileUtils extends TransferUtils
 	 */
 	public static String getExt(String s)
 	{
-		int idx1 = s.lastIndexOf("/") + 1;
-		int idx2 = s.lastIndexOf(".", idx1) + 1;
-		if( idx2 > 0 )
-			return s.substring( idx2 );
+		int idx1 = s.lastIndexOf("/");
+		int idx2 = s.lastIndexOf(".");
+		if( idx2 > idx1 )
+			return s.substring( idx2 + 1 );
 		
 		// The file does not have an extension
-		return null;
+		return "";
 	}
 
 	
-	public static File getPathRoot(String s)
-	{
-		return getPathRoot(new File(s));
-	}
-	public static File getPathRoot(File f)
-	{
-		File p = f;
-		while( p.getParentFile() != null )
-			p = p.getParentFile();
-		return p;
-	}
-	
-	
-	
+
 	/**
 	 * Get the entire file contents of a file as a string.
 	 * 
@@ -623,8 +631,76 @@ public class FileUtils extends TransferUtils
 		return String.format("%." + i + "f %s", size, s.get(i));
 	}
 	
+	@Reflectable
+	public static boolean setReadable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setReadable(p, a);
+	}
+	@Reflectable
+	public static boolean setWritable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setWritable(p, a);
+	}
+	@Reflectable
+	public static boolean setExecutable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setExecutable(p, a);
+	}
 	
-	
+	@Reflectable
+	public static boolean setPermissions(String path, Integer permissions) throws SecurityException
+	{
+		return setPermissions(new File(path), permissions);
+	}
+	@Reflectable
+	public static boolean setPermissions(File file, Integer permissions) throws SecurityException
+	{
+		boolean perm = true;
+		int u = permissions & 0xF00;
+		int o = permissions & 0x00F;
+		// Other
+		if( o == 0x7 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(true, false);
+			perm &= file.setExecutable(true, false);
+		} else if( o == 0x6 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(true, false);
+			perm &= file.setExecutable(false, false);
+		} else if( o == 0x5 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(true, false); 
+		} else if( o == 0x4 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(false, false); 
+		} else if( o == 0x0 ) {
+			perm &= file.setReadable(false, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(false, false);
+		}
+		// User
+		if( u == 0x700 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(true);
+			perm &= file.setExecutable(true);
+		} else if( u == 0x600 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(true);
+			perm &= file.setExecutable(false);
+		} else if( u == 0x500 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(false);
+			perm &= file.setExecutable(true);
+		} else if( u == 0x400 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(false);
+			perm &= file.setExecutable(false);
+		}
+		
+		return perm;
+	}
 	/*
 	 * FileUtils.getClassPath( class )
 	 * 
@@ -685,6 +761,18 @@ public class FileUtils extends TransferUtils
 			ret += getNumberOfFilesInDirectory(new File(dir, file));
 		
 		return ret;
+	}
+
+	public static File getPathRoot(String s)
+	{
+		return getPathRoot(new File(s));
+	}
+	public static File getPathRoot(File f)
+	{
+		File p = f;
+		while( p.getParentFile() != null )
+			p = p.getParentFile();
+		return p;
 	}
 	
 	public static long getSize(String file)

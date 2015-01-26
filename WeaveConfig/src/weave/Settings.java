@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -36,7 +36,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,22 +69,23 @@ public class Settings extends Globals
 	/*
 	 * Remote API URLs for POST methods
 	 */
-	@Reflectable public static final String OICWEAVE_HOST		= "oicweave.org";
-	@Reflectable public static final String OICWEAVE_URL		= "http://" + OICWEAVE_HOST + "/";
-				 public static final String UPDATE_CONFIG		= OICWEAVE_URL + ".weave/config.txt";
-				 public static final String UPDATE_FILES		= OICWEAVE_URL + ".weave/files.txt";
+	@Reflectable public static final String IWEAVE_HOST			= "iweave.com";
+	@Reflectable public static final String IWEAVE_URL			= "http://" + IWEAVE_HOST + "/";
+				 public static final String UPDATE_CONFIG		= IWEAVE_URL + ".weave/config.txt";
+				 public static final String UPDATE_FILES		= IWEAVE_URL + ".weave/files.txt";
 	
-				 public static final String API_GET_IP			= OICWEAVE_URL + "api/ip.php";
-				 public static final String API_STATS_LOG		= OICWEAVE_URL + "api/log.php";
-				 public static final String API_STATS_LIVE		= OICWEAVE_URL + "api/noop.php";
-				 public static final String API_BUG_REPORT		= OICWEAVE_URL + "api/bug_report.php";
+				 public static final String API_GET_IP			= IWEAVE_URL + "api/ip.php";
+				 public static final String API_SOCKET			= IWEAVE_URL + "api/socket.php";
+				 public static final String API_STATS_LOG		= IWEAVE_URL + "api/log.php";
+				 public static final String API_STATS_LIVE		= IWEAVE_URL + "api/noop.php";
+				 public static final String API_BUG_REPORT		= IWEAVE_URL + "api/bug_report.php";
 
 	
 	/*
 	 * Weave Installer
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0 BETA";
+	@Reflectable public static final String SERVER_VER			= "2.0";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
@@ -96,7 +96,7 @@ public class Settings extends Globals
 	@Reflectable public static final String UPDATER_VER			= "1.1";
 	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
 	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
-	@Reflectable public static final String UDPATER_NEW_JAR		= "Updater_new.jar";
+	@Reflectable public static final String UPDATER_NEW_JAR		= "Updater_new.jar";
 	
 	/*
 	 * Weave Launcher
@@ -143,12 +143,8 @@ public class Settings extends Globals
 	 * Settings File
 	 */
 	private static Map<String, Object> SETTINGS_MAP 	= null;
-	public static Map<UPDATE_TYPE, Integer> UPDATE_MAP	= null;
 
-	public static enum UPDATE_TYPE						{ START, HOUR, DAY, WEEK, NEVER };
-	public static UPDATE_TYPE UPDATE_FREQ				= UPDATE_TYPE.START;
 	public static boolean UPDATE_OVERRIDE				= false;
-	
 	public static boolean CONFIGURED					= false;
 	public static String UNIQUE_ID						= "";
 	public static String LAST_UPDATE_CHECK 				= "Never";
@@ -174,7 +170,7 @@ public class Settings extends Globals
 	/*
 	 * Misc
 	 */
-	public static final String WIKI_HELP_PAGE			= "http://info.oicweave.org/projects/weave/wiki/Installer";
+	public static final String WIKI_HELP_PAGE			= "http://info." + IWEAVE_HOST + "/projects/weave/wiki/Installer";
 	
 	public static boolean canQuit						= true;
 	public static boolean transferCancelled				= false;
@@ -205,8 +201,6 @@ public class Settings extends Globals
 			System.exit(JPanel.ERROR);
 		}
 		
-		initUpdateMap();
-		
 		findOS();
 		createFS();
 		
@@ -219,16 +213,7 @@ public class Settings extends Globals
 		getNetworkInfo(( isOfflineMode() || !isConnectedToInternet() ));
 	}
 	
-	public static void initUpdateMap()
-	{
-		UPDATE_MAP = new EnumMap<UPDATE_TYPE, Integer>(UPDATE_TYPE.class);
-		UPDATE_MAP.put(UPDATE_TYPE.NEVER, 	-1);
-		UPDATE_MAP.put(UPDATE_TYPE.START, 	0);
-		UPDATE_MAP.put(UPDATE_TYPE.HOUR, 	1000 * 60 * 60);
-		UPDATE_MAP.put(UPDATE_TYPE.DAY, 	1000 * 60 * 60 * 24);
-		UPDATE_MAP.put(UPDATE_TYPE.WEEK, 	1000 * 60 * 60 * 24 * 7);
-	}
-	
+
 	/**
 	 * Check to see if the file that holds all the settings exists in the file structure.
 	 * 
@@ -296,7 +281,6 @@ public class Settings extends Globals
 			SETTINGS_MAP.put("UNIQUE_ID", UNIQUE_ID);
 			SETTINGS_MAP.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
 			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
-			SETTINGS_MAP.put("UPDATE_FREQ", UPDATE_FREQ);
 			SETTINGS_MAP.put("UPDATE_OVERRIDE", UPDATE_OVERRIDE);
 			SETTINGS_MAP.put("LAUNCH_MODE", LAUNCH_MODE);
 			
@@ -344,7 +328,6 @@ public class Settings extends Globals
 			UNIQUE_ID = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
 			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
 			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
-			UPDATE_FREQ = 			(UPDATE_TYPE)	ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_FREQ"),			UPDATE_FREQ);
 			UPDATE_OVERRIDE	=		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
 			LAUNCH_MODE = 			(MODE)			ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
 			RPC_PORT = 				(Integer)		ObjectUtils.ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
@@ -599,7 +582,7 @@ public class Settings extends Globals
 				URL url 				= null;
 				HttpURLConnection conn 	= null;
 				try {
-					url = new URL(Settings.OICWEAVE_URL);
+					url = new URL(Settings.IWEAVE_URL);
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
 					conn.setReadTimeout(1500);
@@ -701,11 +684,11 @@ public class Settings extends Globals
 					"Software\\Classes\\weavefile\\DefaultIcon", 
 					RegEdit.REG_EXPAND_SZ, 
 					"", "\"^%APPDATA^%\\.weave\\bin\\file.ico\"");
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER,
-					"Software\\Classes\\weavefile\\shell\\open\\command",
-					RegEdit.REG_EXPAND_SZ, 
-					"", "cmd /C start /MIN java -jar \"^%APPDATA^%\\.weave\\bin\\Launcher.jar\" \"%1\"");
+//			RegEdit.writeString(
+//					RegEdit.HKEY_CURRENT_USER,
+//					"Software\\Classes\\weavefile\\shell\\open\\command",
+//					RegEdit.REG_EXPAND_SZ, 
+//					"", "cmd /C start /MIN java -jar \"^%APPDATA^%\\.weave\\bin\\Launcher.jar\" \"%1\"");
 		}
 		else
 		{
@@ -721,14 +704,35 @@ public class Settings extends Globals
 		
 		DLLInterface.refresh();
 	}
+
 	
+	public static void setDirectoryPermissions()
+	{
+		int i = 0;
+		File[] fileList = BIN_DIRECTORY.listFiles();
+		for( i = 0; i < fileList.length; i++ )
+		{
+			if( FileUtils.getExt(fileList[i]).equals("jar") )
+				FileUtils.setPermissions(fileList[i], 0x755);
+			else if( FileUtils.getExt(fileList[i]).equals("save") )
+				FileUtils.setPermissions(fileList[i], 0x766);
+			else
+				FileUtils.setPermissions(fileList[i], 0x744);
+		}
+		
+		fileList = LOGS_DIRECTORY.listFiles();
+		for( i = 0; i < fileList.length; i++ )
+		{
+			FileUtils.setPermissions(fileList[i], 0x766);
+		}
+	}	
 	
 	/**
 	 * Finds the computer's OS.
 	 * The function sets the value of the data member OS to the corresponding enum OS_TYPE value.
 	 * 
-	 * @see getOS()
-	 * @see getExactOS()
+	 * @see {@link Settings#getOS()}
+	 * @see {@link Settings#getExactOS()}
 	 */
 	public static void findOS()
 	{
@@ -747,7 +751,7 @@ public class Settings extends Globals
 	 * Get the string representation of the base Operating System
 	 * 
 	 * @return OS as a string
-	 * @see findOS()
+	 * @see {@link Settings#findOS()}
 	 */
 	@Reflectable 
 	public static String getOS()
@@ -767,8 +771,8 @@ public class Settings extends Globals
 	 * Get the exact string representation of the base Operating System
 	 * 
 	 * @return Exact OS as a String
-	 * @see findOS()
-	 * @see getOS()
+	 * @see {@link Settings#findOS()}
+	 * @see {@link Settings#getOS()}
 	 */
 	@Reflectable 
 	public static String getExactOS()
@@ -794,6 +798,7 @@ public class Settings extends Globals
 	 * 
 	 * @param pid The PID you want to check
 	 * @return <code>true</code> if the PID is running, <code>false</code> otherwise
+	 * @see {@link Settings#getPID()}
 	 */
 	public static boolean isActivePID(int pid)
 	{

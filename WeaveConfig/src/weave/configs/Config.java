@@ -134,14 +134,20 @@ public class Config extends Globals implements IConfig
 		return true;
 	}
 
+	@Reflectable
 	@Override public String getConfigName() 			{ return 	CONFIG_NAME; }
+	@Reflectable
 	@Override public String getURL() 					{ return 	_url; }
+	@Reflectable
 	@Override public File getWebappsDirectory() 		{ return 	_webapps; }
+	@Reflectable
 	@Override public File getInstallFile() 				{ return 	_install_file; }
 	
 	@Reflectable
 	@Override public String getInstallVersion()			{ return 	_version; }
+	@Reflectable
 	@Override public int getPort() 						{ return 	_port; }
+	@Reflectable
 	@Override public boolean isConfigLoaded() 			{ return 	_loaded; }
 	@Override public void setURL(String s) 				{ 			_url = s; }
 	@Override public void setWebappsDirectory(File f) 	{ 			_webapps = f; }
@@ -149,8 +155,11 @@ public class Config extends Globals implements IConfig
 	@Override public void setInstallVersion(String s)	{			_version = s; }
 	@Override public void setPort(int i) 				{ 			_port = i; }
 
+	@Reflectable
 	@Override public String getDescription() 			{ return 	_description; }
+	@Reflectable
 	@Override public String getWarning()				{ return	_warning; }
+	@Reflectable
 	@Override public BufferedImage getImage() 			{ return 	_icon; }
 	@Override public void setDescription(String s) 		{			_description = s; }
 	@Override public void setWarning(String s)			{			_warning = s; }

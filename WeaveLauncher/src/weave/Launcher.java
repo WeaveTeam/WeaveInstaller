@@ -158,7 +158,7 @@ public class Launcher extends JFrame
 			}
 			else
 			{
-				LaunchUtils.browse(path, delay);
+				LaunchUtils.open(path, delay);
 			}
 
 		} catch (InterruptedException e1) {

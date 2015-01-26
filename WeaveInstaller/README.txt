@@ -81,4 +81,4 @@ latest nightly build of Weave.
 
 
 For help or information please visit:
-http://bugs.oicweave.org/projects/weave/wiki/Installer
+http://info.iweave.com/projects/weave/wiki/Installer

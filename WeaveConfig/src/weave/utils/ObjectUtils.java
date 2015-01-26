@@ -174,8 +174,8 @@ public class ObjectUtils extends Globals
 			Object[] arr = (Object[])o;
 			sb.append("[" + (delim.contains("\n") ? "\n":" "));
 			for( int j = 0; j < arr.length; j++ )
-				if( j == 0 && delim.contains("\t") )
-					sb.append("\t\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim: " "));
+				if( j == 0 )
+					sb.append((delim.contains("\t") ? "\t" : "") + "\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim: " "));
 				else
 					sb.append("\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim:" "));
 			sb.append("]");

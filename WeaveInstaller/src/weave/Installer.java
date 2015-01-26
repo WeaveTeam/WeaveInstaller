@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -53,7 +53,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
-import weave.Settings.UPDATE_TYPE;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
@@ -66,6 +65,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.TraceUtils;
+import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 
 import com.jtattoo.plaf.fast.FastLookAndFeel;
@@ -204,7 +204,7 @@ public class Installer extends JFrame
 		oicLabel.setBounds(10, 10, 125, 57);
 		leftPanel.add(oicLabel);
 
-		final JLabel iweaveLink = new JLabel(Settings.OICWEAVE_HOST);
+		final JLabel iweaveLink = new JLabel(Settings.IWEAVE_HOST);
 		iweaveLink.setBounds(30, SetupPanel.LEFT_PANEL_HEIGHT - 30, 125, 20);
 		iweaveLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		iweaveLink.setFont(new Font(Settings.FONT, Font.PLAIN, 15));
@@ -215,7 +215,7 @@ public class Installer extends JFrame
 			@Override public void mouseEntered(MouseEvent e) {}
 			@Override public void mouseClicked(MouseEvent e) {
 				try {
-					LaunchUtils.browse(Settings.OICWEAVE_URL);
+					LaunchUtils.browse(Settings.IWEAVE_URL);
 				} catch (IOException ex) {
 					TraceUtils.trace(TraceUtils.STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
@@ -249,7 +249,7 @@ public class Installer extends JFrame
 		configureButton.setToolTipText("Edit configuration settings");
 		configureButton.setVisible(false);
 		//////////////////////////////////////////////////////////////////////////////////
-		backButton = new JButton("< Back") ;
+		backButton = new JButton("< Back");
 		backButton.setBounds(260, 10, 100, 30);
 		backButton.setOpaque(true);
 		backButton.setBackground(new Color(0x507AAA));
@@ -290,7 +290,7 @@ public class Installer extends JFrame
 		cancelButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "", JOptionPane.YES_NO_OPTION ) ;
+				int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "Quit", JOptionPane.YES_NO_OPTION ) ;
 				if( response == JOptionPane.YES_OPTION ){
 					System.gc();
 					Settings.shutdown();
@@ -325,9 +325,8 @@ public class Installer extends JFrame
 		setVisible(true);
 		if( !Settings.isOfflineMode() )
 			startTimers();
-		else {
+		else
 			setTitle(getTitle() + " [OFFLINE MODE]");
-		}
 		
 		// Listen for network socket requests
 		Settings.startListenerServer();
@@ -337,9 +336,14 @@ public class Installer extends JFrame
 			@Override
 			public void run() {
 				try {
-					if( updateToNewUpdater() )
+					if( updateToNewUpdater() == TransferUtils.COMPLETE ) {
 						TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating WeaveUpdater..........DONE");
+						Settings.setDirectoryPermissions();
+					}
 				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -532,6 +536,7 @@ public class Installer extends JFrame
 			hideAllPanels();
 			SP_home.setVisible(true);
 			SP_home.showFirstPanel();
+			SP_home.switchToTab(SP_home.getCurrentTabIndex());
 
 			backButton.setEnabled(false);	backButton.setVisible(false);
 			nextButton.setEnabled(false);	nextButton.setVisible(false);
@@ -571,6 +576,9 @@ public class Installer extends JFrame
 					switchToConfigSetupPanel();
 				}
 			});
+			
+			// Refresh the tray tool tip
+			TrayManager.refreshDefaultTrayToolTip();
 
 		} else
 			switchToHomeSetupPanel(rightPanel);
@@ -587,24 +595,19 @@ public class Installer extends JFrame
 	//============================================================================================================
 	public void startTimers()
 	{
-		if( Settings.UPDATE_FREQ == UPDATE_TYPE.DAY ||
-			Settings.UPDATE_FREQ == UPDATE_TYPE.WEEK )
-		{
-			new Timer().schedule(new TimerTask() {
-				@Override public void run() {
-					UpdateUtils.checkForUpdate(UpdateUtils.FROM_EVENT);
-				}
-			}, 	Settings.UPDATE_MAP.get(Settings.UPDATE_FREQ), 
-				Settings.UPDATE_MAP.get(Settings.UPDATE_FREQ));
-		}
+		new Timer().schedule(new TimerTask() {
+			@Override public void run() {
+				UpdateUtils.checkForUpdate(UpdateUtils.FROM_EVENT);
+			}
+		}, 60 * 60 * 1000, 60 * 60 * 1000);
 	}
 	//============================================================================================================
-	private boolean updateToNewUpdater() throws IOException
+	private int updateToNewUpdater() throws IOException, InterruptedException
 	{
 		File oldUpdater = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
-		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
+		File newUpdater = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_NEW_JAR);
 		
-		return ( newUpdater.exists() ? FileUtils.move(newUpdater, oldUpdater, FileUtils.OVERWRITE) : false );
+		return ( newUpdater.exists() ? FileUtils.move(newUpdater, oldUpdater, TransferUtils.OVERWRITE | TransferUtils.PRESERVE) : TransferUtils.COMPLETE );
 	}
 	//============================================================================================================
 	public void hideAllPanels()

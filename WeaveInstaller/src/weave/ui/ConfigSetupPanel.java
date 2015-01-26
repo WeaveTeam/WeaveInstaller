@@ -701,6 +701,7 @@ public class ConfigSetupPanel extends SetupPanel
 			@Override
 			public void onUpdate() {
 				servletProgressBar.setValue(info.percent);
+				servletProgressBar.setString("Downloading..." + info.percent + "%");
 			}
 		};
 		AsyncCallback callback = new AsyncCallback() {
@@ -769,8 +770,7 @@ public class ConfigSetupPanel extends SetupPanel
 				servletProgressBar.setValue(100);
 				if( destination.exists() )
 					JOptionPane.showMessageDialog(null, 
-							config.getConfigName() + " has been installed successfully.\n\n" +
-							"Click Next to continue.",
+							config.getConfigName() + " has been installed successfully.\n\n",
 							"Install Sucessful", JOptionPane.INFORMATION_MESSAGE);
 				else
 					JOptionPane.showMessageDialog(null, 
@@ -916,9 +916,4 @@ public class ConfigSetupPanel extends SetupPanel
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
-	
-	class ConfigInternals
-	{
-		IConfig config;
-	}
 }

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -23,8 +23,22 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,10 +46,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -51,8 +72,11 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -75,6 +99,7 @@ import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TraceUtils;
@@ -93,15 +118,19 @@ public class HomeSetupPanel extends SetupPanel
 	// ============== Tab 1 ============== //
 	public JButton  installButton, refreshButton, 
 					deployButton, deleteButton, 
-					pruneButton, adminButton;
+					cleanButton;
 	public JLabel	downloadLabel;
 	public JProgressBar progressbar;
 	public WeaveStats weaveStats;
-	public RevisionTable revisionTable;
+	public CustomTable revisionTable;
+	public SocketStatus localhostStatus, lanStatus, internetStatus;
 	
 	
 	// ============== Tab 2 ============== //
-	
+	public CustomTable sessionStateTable;
+	public JLabel sessionLabel;
+	public JTextArea dndHelp;
+	public JButton launchSessionState, launchAdminConsoleButton;
 	
 	// ============== Tab 3 ============== //
 	public JScrollPane settingsScrollPane;
@@ -114,7 +143,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	
 	// ============== Tab 4 ============== //
-	public String faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
+	public String faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
 	public JEditorPane troubleshootHTML;
 	public JScrollPane troubleshootScrollPane;
 
@@ -163,8 +192,8 @@ public class HomeSetupPanel extends SetupPanel
 		tabbedPane.setBounds(0, 0, panel.getWidth(), panel.getHeight());
 
 		tabbedPane.addTab("Weave", (tab1 = createTab1(tabbedPane)));
-//		tabbedPane.addTab("Plugins", (tab2 = createTab2(tabbedPane)));
-		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
+		tabbedPane.addTab("Sessions", (tab2 = createTab2(tabbedPane)));
+//		tabbedPane.addTab("Settings", (tab3 = createTab3(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (tab4 = createTab4(tabbedPane)));
 		tabbedPane.addTab("About", (tab5 = createTab5(tabbedPane)));
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -172,10 +201,69 @@ public class HomeSetupPanel extends SetupPanel
 			public void stateChanged(ChangeEvent event)
 			{
 				JPanel selectedPanel = (JPanel) tabbedPane.getSelectedComponent();
-				if( selectedPanel == tab4 )
+				if( selectedPanel == tab2 )
+				{
+					File WEBAPPS, ROOT;
+					
+					try {
+						WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
+						if( WEBAPPS != null && WEBAPPS.exists() )
+						{
+							ROOT = new File(WEBAPPS, "ROOT");
+							if( ROOT.exists() )
+							{
+								int fileCount = 0;
+								String[] files = ROOT.list();
+								
+								for( int i = 0; i < files.length; i++ )
+									if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") )
+										fileCount++;
+								
+								File sessionFile = null;
+								Date modifiedDate = null;
+								Object[][] data = new Object[fileCount][3];
+								
+								sessionStateTable.setData(new Object[1][3]);
+								sessionStateTable.refreshTable();
+								fileCount = 0;
+								
+								for( int i = 0; i < files.length; i++ )
+								{
+									if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") ) {
+										sessionFile = new File(ROOT, files[i]);
+										modifiedDate = new Date(sessionFile.lastModified());
+										data[fileCount][0] = sessionFile.getName();
+										data[fileCount][1] = new SimpleDateFormat("MM/dd/yy h:mm a").format(modifiedDate);
+										data[fileCount][2] = FileUtils.sizeify(sessionFile.length());
+										fileCount++;
+									}
+								}
+								
+								sessionStateTable.setData(data);
+								sessionStateTable.refreshTable();
+							}
+						}
+					} catch (NoSuchMethodException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (SecurityException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (IllegalAccessException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (IllegalArgumentException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (InvocationTargetException e) {
+						TraceUtils.trace(TraceUtils.STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
+				}
+				else if( selectedPanel == tab4 )
 				{
 					try {
-						faqURL = "http://ivpr.oicweave.org/faq.php?" + Calendar.getInstance().getTimeInMillis();
+						faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
 //						System.out.println("page updated to " + faqURL);
 						troubleshootHTML.setPage(faqURL);
 						
@@ -220,6 +308,16 @@ public class HomeSetupPanel extends SetupPanel
 
 
 	@Reflectable
+	public int getCurrentTabIndex()
+	{
+		return tabbedPane.getSelectedIndex();
+	}
+	@Reflectable
+	public String getCurrentTabName()
+	{
+		return tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+	}
+	@Reflectable
 	public Boolean switchToTab(String name)
 	{
 		return switchToTab(tabbedPane.indexOfTab(name));
@@ -233,6 +331,7 @@ public class HomeSetupPanel extends SetupPanel
 	public Boolean switchToTab(int index)
 	{
 		try {
+			tabbedPane.setSelectedIndex(0);
 			tabbedPane.setSelectedIndex(index);
 		} catch (IndexOutOfBoundsException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -271,10 +370,10 @@ public class HomeSetupPanel extends SetupPanel
 				}
 			}
 		});
-		
+		panel.add(refreshButton);
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(330, 45, 100, 30);
+		installButton.setBounds(330, 50, 100, 30);
 		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
 		installButton.setEnabled(false);
 		installButton.addActionListener(new ActionListener() {
@@ -293,33 +392,34 @@ public class HomeSetupPanel extends SetupPanel
 				}
 			}
 		});
+		panel.add(installButton);
 		
 		deployButton = new JButton("Deploy");
-		deployButton.setBounds(330, 140, 100, 30);
+		deployButton.setBounds(330, 150, 100, 30);
 		deployButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
 		deployButton.setVisible(true);
 		deployButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
-				int index = revisionTable.getTable().getSelectedRow();
+				int index = revisionTable.getSelectedIndex();
 				if( index < 0 )
 					return;
 				
 				extractBinaries(Revisions.getRevisionsList().get(index));
 			}
 		});
-		
+		panel.add(deployButton);
 		
 		deleteButton = new JButton("Delete");
-		deleteButton.setBounds(330, 175, 100, 30);
+		deleteButton.setBounds(330, 190, 100, 30);
 		deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
 		deleteButton.setVisible(true);
 		deleteButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
-				int index = revisionTable.getTable().getSelectedRow();
+				int index = revisionTable.getSelectedIndex();
 				if( index < 0 )
 					return;
 				
@@ -349,13 +449,13 @@ public class HomeSetupPanel extends SetupPanel
 				}, 1000);
 			}
 		});
+		panel.add(deleteButton);
 		
-		
-		pruneButton = new JButton("Clean");
-		pruneButton.setBounds(330, 210, 100, 30);
-		pruneButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
-		pruneButton.setVisible(true);
-		pruneButton.addActionListener(new ActionListener() {
+		cleanButton = new JButton("Clean");
+		cleanButton.setBounds(330, 230, 100, 30);
+		cleanButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
+		cleanButton.setVisible(true);
+		cleanButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
@@ -384,13 +484,276 @@ public class HomeSetupPanel extends SetupPanel
 				}, 1000);
 			}
 		});
+		panel.add(cleanButton);
+
+		weaveStats = new WeaveStats();
+		weaveStats.setBounds(10, 10, 300, 75);
+		weaveStats.setVisible(true);
+		panel.add(weaveStats);
 		
+		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+		progressbar.setBounds(10, 90, 420, 15);
+		progressbar.setIndeterminate(true);
+		progressbar.setVisible(false);
+		panel.add(progressbar);
 		
-		adminButton = new JButton("Launch Admin Console");
-		adminButton.setBounds(10, 285, 300, 30);
-		adminButton.setToolTipText("Open up the Admin Console");
-		adminButton.setVisible(true);
-		adminButton.addActionListener(new ActionListener() {
+		downloadLabel = new JLabel();
+		downloadLabel.setBounds(10, 110, 420, 25);
+		downloadLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 12));
+		downloadLabel.setText("");
+		downloadLabel.setVisible(false);
+		panel.add(downloadLabel);
+		
+		revisionTable = new CustomTable(new String[] {"Revision", "Date Downloaded"}, new Object[0][2]);
+		revisionTable.setBounds(10, 150, 300, 150);
+		revisionTable.setVisible(true);
+		panel.add(revisionTable);
+		
+		/*
+		localhostStatus = new SocketStatus("Visible on your computer:", Settings.LOCALHOST, ConfigManager.getConfigManager().getActiveContainer().getPort());
+		localhostStatus.setBounds(10, 270, 400, 20);
+		localhostStatus.setOpaque(true);
+		localhostStatus.setBackground(Color.WHITE);
+		localhostStatus.setVisible(true);
+		localhostStatus.startMonitor();
+		panel.add(localhostStatus);
+		
+		lanStatus = new SocketStatus("Visible on your network:", Settings.LOCAL_IP, ConfigManager.getConfigManager().getActiveContainer().getPort());
+		lanStatus.setBounds(10, 290, 400, 20);
+		lanStatus.setOpaque(true);
+		lanStatus.setBackground(Color.WHITE);
+		lanStatus.setVisible(true);
+		lanStatus.startMonitor();
+		panel.add(lanStatus);
+		
+		internetStatus = new SocketStatus("Visible from the internet:", Settings.REMOTE_IP, ConfigManager.getConfigManager().getActiveContainer().getPort());
+		internetStatus.setBounds(10, 310, 400, 20);
+		internetStatus.setOpaque(true);
+		internetStatus.setBackground(Color.WHITE);
+		internetStatus.setVisible(true);
+		internetStatus.startMonitor(true);
+		panel.add(internetStatus);
+		*/
+		
+		return panel;
+	}
+	public JPanel createTab2(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		
+		sessionStateTable = new CustomTable(new String[] {"Name", "Date", "Size"}, new Object[0][3]);
+		sessionStateTable.setBounds(0, 0, panel.getWidth() - 10, panel.getHeight() / 2);
+		sessionStateTable.setColumnSizes(new int[] { 200, 75, 50 });
+		sessionStateTable.addTableMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) 
+			{
+				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
+				if( selectedFile == null )
+					return;
+				
+				File WEBAPPS, ROOT, sessionState;
+				
+				try {
+					WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
+					if( WEBAPPS == null || !WEBAPPS.exists() )
+						return;
+					
+					ROOT = new File(WEBAPPS, "ROOT");
+					if( !ROOT.exists() )
+						return;
+					
+					sessionState = new File(ROOT, selectedFile);
+					if( !sessionState.exists() )
+						return;
+					
+					
+					if( e.getClickCount() == 1 )
+					{
+						ZipFile zip = new ZipFile(sessionState);
+						Enumeration<? extends ZipEntry> entries = zip.entries();
+						BufferedImage img;
+						while( entries.hasMoreElements() )
+						{
+							ZipEntry entry = entries.nextElement();
+							if( entry.getName().contains("thumbnail") )
+							{
+								img = ImageUtils.fit(ImageIO.read(zip.getInputStream(entry)), sessionLabel.getWidth(), sessionLabel.getHeight());
+								sessionLabel.setIcon(new ImageIcon(img));
+								break;
+							}
+						}
+						zip.close();
+						launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
+					}
+					else if( e.getClickCount() == 2 )
+					{
+						LaunchUtils.browse("http://" + 
+								Settings.LOCALHOST + ":" + 
+								ConfigManager.getConfigManager().getActiveContainer().getPort() +
+								"/weave.html?file=" + 
+								sessionState.getName());
+					}
+				} catch (NoSuchMethodException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (SecurityException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (IllegalAccessException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (IllegalArgumentException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (InvocationTargetException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (ZipException e1) {
+					sessionLabel.setIcon(null);
+				} catch (IOException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (URISyntaxException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				} catch (InterruptedException e1) {
+					TraceUtils.trace(TraceUtils.STDERR, e1);
+				}
+			}
+		});
+		sessionStateTable.addTableFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
+				if( sessionStateTable.getSelectedIndex() == -1 )
+					sessionLabel.setIcon(null);
+			}
+			@Override
+			public void focusGained(FocusEvent e) {
+				launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
+				if( sessionStateTable.getSelectedIndex() == -1 )
+					sessionLabel.setIcon(null);
+			}
+		});
+		new DropTarget(sessionStateTable, new DropTargetListener() {
+			@SuppressWarnings("unchecked")
+			@Override public void drop(DropTargetDropEvent dtde) {
+				dtde.acceptDrop(DnDConstants.ACTION_COPY);
+				
+				Transferable transferable = dtde.getTransferable();
+				DataFlavor[] flavors = transferable.getTransferDataFlavors();
+				File WEBAPPS, ROOT, destination;
+				
+				for( DataFlavor flavor : flavors )
+				{
+					if( flavor.isFlavorJavaFileListType() )
+					{
+						try {
+							List<File> files = (List<File>) transferable.getTransferData(flavor);
+							WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
+							if( WEBAPPS == null || !WEBAPPS.exists() )
+								return;
+							
+							ROOT = new File(WEBAPPS, "ROOT");
+							if( !ROOT.exists() )
+								return;
+							
+							for( File file : files )
+							{
+								destination = new File(ROOT, file.getName());
+								if( file.equals(destination) )
+									continue;
+								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
+							}
+						} catch (UnsupportedFlavorException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (IOException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (NoSuchMethodException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (SecurityException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (IllegalAccessException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (IllegalArgumentException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (InvocationTargetException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						}
+					}
+				}
+				switchToTab(tab2);
+			}
+			@Override public void dropActionChanged(DropTargetDragEvent dtde) { }
+			@Override public void dragOver(DropTargetDragEvent dtde) { }
+			@Override public void dragExit(DropTargetEvent dte) { }
+			@Override public void dragEnter(DropTargetDragEvent dtde) { }
+		});
+		panel.add(sessionStateTable);
+
+		sessionLabel = new JLabel();
+		sessionLabel.setBounds(20, panel.getHeight() / 2 + 10, 200, 125);
+		sessionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		sessionLabel.setVisible(true);
+		panel.add(sessionLabel);
+		
+		dndHelp = new JTextArea();
+		dndHelp.setBounds(240, panel.getHeight() / 2 + 100, 180, 50);
+		dndHelp.setText("You may drag and drop Weave files into the table above.");
+		dndHelp.setLineWrap(true);
+		dndHelp.setWrapStyleWord(true);
+		dndHelp.setVisible(true);
+		panel.add(dndHelp);
+		
+		launchSessionState = new JButton("Open Session");
+		launchSessionState.setBounds(240, panel.getHeight() / 2 + 10, 180, 30);
+		launchSessionState.setToolTipText("Open the selected session state");
+		launchSessionState.setEnabled(false);
+		launchSessionState.setVisible(true);
+		launchSessionState.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
+				if( selectedFile == null )
+					return;
+				
+				File WEBAPPS, ROOT, sessionState;
+				
+				try {
+					WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
+					if( WEBAPPS == null )
+						return;
+					ROOT = new File(WEBAPPS, "ROOT");
+					if( !ROOT.exists() )
+						return;
+					sessionState = new File(ROOT, selectedFile);
+					if( !sessionState.exists() )
+						return;
+					
+					LaunchUtils.browse("http://" + 
+							Settings.LOCALHOST + ":" + 
+							ConfigManager.getConfigManager().getActiveContainer().getPort() +
+							"/weave.html?file=" + 
+							sessionState.getName());
+					
+				} catch (NoSuchMethodException e1) {
+				} catch (SecurityException e1) {
+				} catch (IllegalAccessException e1) {
+				} catch (IllegalArgumentException e1) {
+				} catch (InvocationTargetException e1) {
+				} catch (IOException e1) {
+				} catch (URISyntaxException e1) {
+				} catch (InterruptedException e1) {
+				}
+			}
+		});
+		panel.add(launchSessionState);
+
+		launchAdminConsoleButton = new JButton("Open Admin Console");
+		launchAdminConsoleButton.setBounds(240, panel.getHeight() / 2 + 50, 180, 30);
+		launchAdminConsoleButton.setToolTipText("Launch the Admin Console in your browser");
+		launchAdminConsoleButton.setVisible(true);
+		launchAdminConsoleButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
@@ -405,44 +768,8 @@ public class HomeSetupPanel extends SetupPanel
 				}
 			}
 		});
+		panel.add(launchAdminConsoleButton);
 		
-
-		weaveStats = new WeaveStats();
-		weaveStats.setBounds(10, 10, 300, 75);
-		weaveStats.setVisible(true);
-		
-		progressbar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
-		progressbar.setBounds(10, 85, 420, 15);
-		progressbar.setIndeterminate(true);
-		progressbar.setVisible(false);
-		
-		downloadLabel = new JLabel();
-		downloadLabel.setBounds(10, 105, 420, 25);
-		downloadLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 12));
-		downloadLabel.setText("");
-		downloadLabel.setVisible(false);
-		
-		revisionTable = new RevisionTable();
-		revisionTable.setBounds(10, 140, 300, 135);
-		revisionTable.setVisible(true);
-		
-		
-		panel.add(weaveStats);
-		panel.add(revisionTable);
-		panel.add(progressbar);
-		panel.add(downloadLabel);
-		panel.add(refreshButton);
-		panel.add(installButton);
-		panel.add(deployButton);
-		panel.add(deleteButton);
-		panel.add(pruneButton);
-		panel.add(adminButton);
-		
-		return panel;
-	}
-	public JPanel createTab2(JComponent parent)
-	{
-		JPanel panel = createTab(parent);
 		return panel;
 	}
 	public JPanel createTab3(JComponent parent)
@@ -528,8 +855,8 @@ public class HomeSetupPanel extends SetupPanel
 		maintenanceBox.setBackground(Color.WHITE);
 		maintenanceBox.setBorder(settingsMaintenanceTitle);
 		
-		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than                 days");
-		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 300, 25);
+		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than ");
+		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 180, 25);
 		settingsMaintenanceDeleteLogsCheckbox.setBackground(Color.WHITE);
 		settingsMaintenanceDeleteLogsCheckbox.addActionListener(new ActionListener() {
 			@Override
@@ -540,8 +867,9 @@ public class HomeSetupPanel extends SetupPanel
 		maintenanceBox.add(settingsMaintenanceDeleteLogsCheckbox);
 		
 		settingsMaintenanceDeleteLogsTextfield = new JTextField();
-		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 20, 30, 30);
-		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.GRAY);
+		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 21, 25, 26);
+		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.WHITE);
+		settingsMaintenanceDeleteLogsTextfield.setBorder(new LineBorder(Color.BLACK, 1));
 		maintenanceBox.add(settingsMaintenanceDeleteLogsTextfield);
 		
 		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsTextfield, 0);
@@ -667,7 +995,7 @@ public class HomeSetupPanel extends SetupPanel
 			aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
 								"enable visualization of any available  data by anyone for any purpose.<br><br><br><br>" +
 								"(c) Institute for Visualization and Perception Research<br>" +
-								"Visit: <a href='" + Settings.OICWEAVE_URL + "'>" + Settings.OICWEAVE_URL + "</a><br>");
+								"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
 			String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
 										"font-size: " + aboutHTML.getFont().getSize() + "px; }" +
 								"b { font-size: " + (aboutHTML.getFont().getSize() + 2) + "px; }";
@@ -717,7 +1045,7 @@ public class HomeSetupPanel extends SetupPanel
 					"No Connection", 
 					JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
-			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 		url = new URL(urlStr);
@@ -732,7 +1060,7 @@ public class HomeSetupPanel extends SetupPanel
 					"Error", 
 					JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
-			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 		
@@ -743,7 +1071,7 @@ public class HomeSetupPanel extends SetupPanel
 					"There is no active servlet selected.\n\n" + 
 					"Please configure a servlet to use, then try again.", "Error", JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
-			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 
@@ -753,7 +1081,7 @@ public class HomeSetupPanel extends SetupPanel
 			JOptionPane.showMessageDialog(null, 
 					"Webapps folder for " + actvContainer.getConfigName() + " is not set.", "Error", JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
-			pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
 		}
 		
@@ -1071,7 +1399,6 @@ public class HomeSetupPanel extends SetupPanel
 		task.execute();
 	}
 	
-	
 	private void refreshInterface() throws InterruptedException, MalformedURLException
 	{
 		TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing User Interface......");
@@ -1093,8 +1420,40 @@ public class HomeSetupPanel extends SetupPanel
 		progressbar.setValue(0);
 		setButtonsEnabled(true);
 		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
-		pruneButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-		revisionTable.updateTableData();
+		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+		
+		// Update revision table data
+		ArrayList<File> revisionList = Revisions.getRevisionsList();
+		Object[][] revisionData = new Object[revisionList.size()][2];
+		File file = null;
+		Date date = new Date();
+		String revisionName = "";
+		
+		try {
+			for( int i = 0; i < revisionList.size(); i++ )
+			{
+				file = revisionList.get(i);
+				revisionName = Revisions.getRevisionVersion(file.getName());
+				date.setTime(file.lastModified());
+	
+				String configVer = (String)ObjectUtils.ternary(
+									ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
+				revisionData[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
+				revisionData[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
+			}
+		} catch (NoSuchMethodException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (SecurityException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalAccessException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (IllegalArgumentException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		} catch (InvocationTargetException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+		}
+		revisionTable.setData(revisionData);
+		revisionTable.refreshTable();
 	}
 	
 	private void setButtonsEnabled(boolean enabled)
@@ -1103,6 +1462,6 @@ public class HomeSetupPanel extends SetupPanel
 		installButton.setEnabled(enabled);
 		deployButton.setEnabled(enabled);
 		deleteButton.setEnabled(enabled);
-		pruneButton.setEnabled(enabled);
+		cleanButton.setEnabled(enabled);
 	}
 }

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -43,7 +43,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import sun.java2d.HeadlessGraphicsEnvironment;
-import weave.Settings.UPDATE_TYPE;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
@@ -75,7 +74,6 @@ public class Updater extends JFrame
 	public 	JButton			cancelButton	= null;
 	
 	private boolean			isUpdate		= false;
-	private boolean			shouldUpdate	= false;
 	
 	private final String _TMP_UPDATE_ZIPFILE_NAME = "updates.zip";
 	
@@ -226,7 +224,8 @@ public class Updater extends JFrame
 
 			staticLabel.setText(Settings.UPDATER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
-			
+
+			Settings.setDirectoryPermissions();
 			LaunchUtils.launchWeaveInstaller(1000);
 			
 			Settings.shutdown();
@@ -254,9 +253,8 @@ public class Updater extends JFrame
 		// we should update at this time
 		TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for updates...........");
 		isUpdate = UpdateUtils.isUpdateAvailable();
-		shouldUpdate = Settings.UPDATE_FREQ == UPDATE_TYPE.START;
 		
-		if( isUpdate && ( shouldUpdate || Settings.UPDATE_OVERRIDE ) )
+		if( isUpdate || Settings.UPDATE_OVERRIDE )
 		{
 			TraceUtils.put(TraceUtils.STDOUT, "AVAILABLE");
 			
@@ -340,7 +338,10 @@ public class Updater extends JFrame
 							if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
 									"Would you like to launch anyway?", "Download Cancelled", 
 									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE))
+							{
+								Settings.setDirectoryPermissions();
 								LaunchUtils.launchWeaveInstaller();
+							}
 							Settings.shutdown();
 							break;
 						case TransferUtils.FAILED:
@@ -433,7 +434,7 @@ public class Updater extends JFrame
 			}
 		};
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing udpate..............");
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
 		
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
@@ -451,6 +452,7 @@ public class Updater extends JFrame
 			
 			StatsUtils.noop();
 			upgradeOldStuff();
+			Settings.setDirectoryPermissions();
 			
 			String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
 			if( ver != null )

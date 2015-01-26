@@ -49,13 +49,25 @@ public class LaunchUtils extends Globals
 	}
 	public static Boolean browse(URI path, int delay) throws IOException, InterruptedException
 	{
-		if( Desktop.isDesktopSupported() )
-		{
-			Thread.sleep(delay);
-			Desktop.getDesktop().browse(path);
-			return true;
-		}
-		return false;
+		if( !Desktop.isDesktopSupported() )
+			return false;
+		
+		Thread.sleep(delay);
+		Desktop.getDesktop().browse(path);
+		return true;
+	}
+	public static Boolean open(String path, int delay) throws IOException, InterruptedException
+	{
+		return open(new File(path), delay);
+	}
+	public static Boolean open(File file, int delay) throws IOException, InterruptedException
+	{
+		if( !Desktop.isDesktopSupported() )
+			return false;
+		
+		Thread.sleep(delay);
+		Desktop.getDesktop().open(file);
+		return true;
 	}
 	
 	private static Boolean launch(File f, int delay) throws IOException, InterruptedException
@@ -63,7 +75,7 @@ public class LaunchUtils extends Globals
 		File launcher = new File(Settings.BIN_DIRECTORY, Settings.LAUNCHER_JAR);
 		
 		if( !launcher.exists() ) {
-			TraceUtils.traceln(TraceUtils.STDOUT, "!! Program not found: \"" + launcher.getCanonicalPath() + "\"");
+			TraceUtils.traceln(TraceUtils.STDOUT, "!! Program not found: \"" + launcher.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null, "Launch Utilities could not be found.\n\n" + 
 												"If this problem persists, please make sure\n" + 
 												"you are running the latest version of the tool.", "Missing File", JOptionPane.ERROR_MESSAGE);
@@ -81,8 +93,8 @@ public class LaunchUtils extends Globals
 			return true;
 		}
 		
-		String[] command = SyscallCreatorUtils.generate("java -jar \"" + launcher.getCanonicalPath() + "\" \"" + f.getCanonicalPath() + "\" \"" + delay + "\"");
-		ProcessUtils.run(command);
+		String[] command = SyscallCreatorUtils.generate("java -jar \"" + launcher.getAbsolutePath().replace("\\", "/") + "\" \"" + f.getAbsolutePath().replace("\\", "/") + "\" \"" + delay + "\"");
+		ProcessUtils.run(command, TraceUtils.getLogFile(TraceUtils.STDOUT), TraceUtils.getLogFile(TraceUtils.STDERR));
 		
  		return true;
 	}
@@ -95,7 +107,7 @@ public class LaunchUtils extends Globals
 	{
 		File updater = null;
 		File WU		 = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_JAR);
-		File WUN	 = new File(Settings.BIN_DIRECTORY, Settings.UDPATER_NEW_JAR);
+		File WUN	 = new File(Settings.BIN_DIRECTORY, Settings.UPDATER_NEW_JAR);
 		
 		if( WU.exists() )
 			updater = WU;

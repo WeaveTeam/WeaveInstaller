@@ -23,8 +23,6 @@ package weave.dll;
 public class DLLInterface 
 {
 	static {
-//		System.setProperty("java.library.path", Settings.BIN_DIRECTORY.getAbsolutePath());
-		
 		// Load 32 or 64 bit version of DLL depending on system arch
 		System.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model"));
 	}
