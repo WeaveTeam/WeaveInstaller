@@ -387,8 +387,7 @@ public class Updater extends JFrame
 		Settings.downloadLocked = true;
 		Settings.transferCancelled = false;
 		
-		task.addCallback(callback);
-		task.execute();
+		task.addCallback(callback).execute();
 	}
 	
 	private void installUpdate(final File zipFile)
@@ -439,8 +438,7 @@ public class Updater extends JFrame
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
 		
-		task.addCallback(callback);
-		task.execute();
+		task.addCallback(callback).execute();
 	}
 	
 	private void finish()

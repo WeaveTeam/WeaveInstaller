@@ -36,21 +36,25 @@ import weave.utils.TraceUtils;
 public class Config extends Globals implements IConfig
 {
 	public static final String WEBAPPS 		= "WEBAPPS";
+	public static final String HOST			= "HOST";
 	public static final String PORT			= "PORT";
 	public static final String VERSION		= "VERSION";
 	public static final String ACTIVE		= "ACTIVE";
 	
 	public static final int _WEBAPPS		= ( 1 << 1 );
-	public static final int _PORT 			= ( 1 << 2 );
-	public static final int _VERSION		= ( 1 << 3 );
-	public static final int _ACTIVE			= ( 1 << 4 );
+	public static final int _HOST			= ( 1 << 2 );
+	public static final int _PORT 			= ( 1 << 3 );
+	public static final int _VERSION		= ( 1 << 4 );
+	public static final int _ACTIVE			= ( 1 << 5 );
 	
 	protected String 	CONFIG_NAME 	= "";
 
-	protected String 	_url 			= null;
+	protected String	_homepage		= null;
+	protected String 	_downloadURL 	= null;
 	protected File 		_webapps 		= null;
 	protected File 		_install_file 	= null;
 	protected String	_version		= null;
+	protected String 	_host			= "";
 	protected int 		_port 			= 0;
 	protected boolean 	_loaded			= false;
 
@@ -66,14 +70,17 @@ public class Config extends Globals implements IConfig
 		CONFIG_NAME = name;
 	}
 	
-	public Config(String name, int port) {
+	public Config(String name, String host, int port) {
 		CONFIG_NAME = name;
+		_host = host;
 		_port = port;
 	}
 	
-	public Config(String name, String url, int port) {
+	public Config(String name, String homepage, String url, String host, int port) {
 		CONFIG_NAME = name;
-		_url = url;
+		_homepage = homepage;
+		_downloadURL = url;
+		_host = host;
 		_port = port;
 	}
 	
@@ -86,24 +93,39 @@ public class Config extends Globals implements IConfig
 		
 		Class<?>[] argClasses 	= { Object.class };
 		Object[] argsWebapps 	= { WEBAPPS };
+		Object[] argsHost		= { HOST };
 		Object[] argsPort 		= { PORT };
 		Object[] argsVersion 	= { VERSION };
 		Object[] argsActive 	= { ACTIVE };
 		
 		try {
-			if( (i & _WEBAPPS) != 0 )
-				setWebappsDirectory((String)ObjectUtils.ternary(
-						savedCFG, "get", "", argClasses, argsWebapps));
-			
-			if( (i & _PORT) != 0 )
-				setPort(Integer.parseInt((String)ObjectUtils.ternary(
-						savedCFG, "get", ""+_port, argClasses, argsPort)));
+			if( (i & _WEBAPPS) != 0 ) {
+				String d = "";
+				String s = (String)ObjectUtils.ternary(savedCFG, "get", d, argClasses, argsWebapps);
+				setWebappsDirectory((s == null) ? d : s);
+			}
 
-			if( (i & _VERSION) != 0 )
-				setInstallVersion((String)ObjectUtils.ternary(
-						savedCFG, "get", "", argClasses, argsVersion));
-				
-			if( (Boolean)ObjectUtils.ternary(savedCFG, "get", false, argClasses, argsActive) )
+			if( (i & _HOST) != 0 ) {
+				String d = "localhost";
+				String s = (String)ObjectUtils.ternary(savedCFG, "get", d, argClasses, argsHost); 
+				setHost((s == null) ? d : s);
+			}
+			
+			if( (i & _PORT) != 0 ) {
+				String d = ""+_port;
+				String s = (String)ObjectUtils.ternary(savedCFG, "get", d, argClasses, argsPort);
+				setPort((s == null) ? d : s);
+			}
+
+			if( (i & _VERSION) != 0 ) {
+				String d = "";
+				String s = (String)ObjectUtils.ternary(savedCFG, "get", "", argClasses, argsVersion);
+				setInstallVersion((s == null) ? d : s);
+			}
+			
+			Boolean d = false;
+			Boolean b = (Boolean)ObjectUtils.ternary(savedCFG, "get", d, argClasses, argsActive); 
+			if( (b == null) ? d : b )
 				loadConfig();
 				
 		} catch (NoSuchMethodException e) {
@@ -137,7 +159,9 @@ public class Config extends Globals implements IConfig
 	@Reflectable
 	@Override public String getConfigName() 			{ return 	CONFIG_NAME; }
 	@Reflectable
-	@Override public String getURL() 					{ return 	_url; }
+	@Override public String getHomepageURL()			{ return 	_homepage; }
+	@Reflectable
+	@Override public String getDownloadURL() 			{ return 	_downloadURL; }
 	@Reflectable
 	@Override public File getWebappsDirectory() 		{ return 	_webapps; }
 	@Reflectable
@@ -146,13 +170,17 @@ public class Config extends Globals implements IConfig
 	@Reflectable
 	@Override public String getInstallVersion()			{ return 	_version; }
 	@Reflectable
+	@Override public String getHost()					{ return	_host; }
+	@Reflectable
 	@Override public int getPort() 						{ return 	_port; }
 	@Reflectable
 	@Override public boolean isConfigLoaded() 			{ return 	_loaded; }
-	@Override public void setURL(String s) 				{ 			_url = s; }
+	@Override public void setHomepageURL(String s)		{			_homepage = s; }
+	@Override public void setDownloadURL(String s) 		{ 			_downloadURL = s; }
 	@Override public void setWebappsDirectory(File f) 	{ 			_webapps = f; }
 	@Override public void setInstallFile(File f) 		{ 			_install_file = f; }
 	@Override public void setInstallVersion(String s)	{			_version = s; }
+	@Override public void setHost(String h)				{			_host = h; }
 	@Override public void setPort(int i) 				{ 			_port = i; }
 
 	@Reflectable
@@ -190,6 +218,7 @@ public class Config extends Globals implements IConfig
 		String ret = "\nIConfig: " + getConfigName() + "\n";
 		try {
 			ret += ("\tWebapps: " + (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "Not Set") + "\n");
+			ret += ("\tHost: " + getHost() + "\n");
 			ret += ("\tPort: " + getPort() + "\n");
 			ret += ("\tLoaded: " + ( isConfigLoaded() ? "TRUE" : "FALSE") + "\n");
 		} catch (NoSuchMethodException e) {

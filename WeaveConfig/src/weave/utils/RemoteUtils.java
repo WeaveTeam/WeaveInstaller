@@ -92,7 +92,7 @@ public class RemoteUtils extends Globals
 			if( s.contains(key) )
 				return s.substring(s.indexOf(":")+1).trim();
 		
-		BugReportUtils.autoSubmitBugReport(new Exception("Error: " + key + " does not exist in RemoteUtils"));
+		BugReportUtils.autoSubmitBugReport(new Exception("Error: \"" + key + "\" does not exist in RemoteUtils"));
 		return null;
 	}
 	
@@ -171,9 +171,7 @@ public class RemoteUtils extends Globals
 		try {
 			String result = URLRequestUtils.request(URLRequestUtils.GET, Settings.API_SOCKET, params);
 
-			if( result.equals("1") )
-				return true;
-			
+			return result.equals("1");
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

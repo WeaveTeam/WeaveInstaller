@@ -10,20 +10,20 @@ import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.TraceUtils;
 
-public class SQLite extends Config
+public class SQLiteConfig extends Config
 {
 	public static final String NAME = "SQLite";
-	private static SQLite _instance = null;
 	
-	public static SQLite getConfig()
+	private static SQLiteConfig _instance = null;
+	public static SQLiteConfig getConfig()
 	{
 		if( _instance == null )
-			_instance = new SQLite();
+			_instance = new SQLiteConfig();
 		return _instance;
 	}
 	
 	
-	public SQLite()
+	public SQLiteConfig()
 	{
 		super(NAME);
 	}
@@ -52,8 +52,8 @@ public class SQLite extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + getConfigName() + " plugin.\n" + 
-					"Another plugin might already be loaded.", 
+					"There was an error loading the " + getConfigName() + " config.\n" + 
+					"Another config might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 		return result;
 	}

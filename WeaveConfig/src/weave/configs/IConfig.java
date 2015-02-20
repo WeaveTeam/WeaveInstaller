@@ -32,8 +32,11 @@ public interface IConfig
 	
 	public String getConfigName();
 	
-	public String getURL();
-	public void setURL(String s);
+	public String getHomepageURL();
+	public void setHomepageURL(String s);
+	
+	public String getDownloadURL();
+	public void setDownloadURL(String s);
 	
 	public String getDescription();
 	public void setDescription(String s);
@@ -54,6 +57,9 @@ public interface IConfig
 	public String getInstallVersion();
 	public void setInstallVersion(String s);
 	
+	public String getHost();
+	public void setHost(String h);
+
 	public int getPort();
 	public void setPort(int i);
 	public void setPort(String s);

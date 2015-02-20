@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -29,35 +29,37 @@ import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.TraceUtils;
 
-public class MySQL extends Config
+public class PostgreSQLConfig extends Config 
 {
-	public static final String NAME = "MySQL";
-	public static final String URL = "http://dev.mysql.com/downloads/mysql/";
-	public static final int PORT = 3306;
+	public static final String NAME = "PostgreSQL";
+	public static final String HOMEPAGE = "http://www.postgresql.org/download/";
+	public static final String URL = HOMEPAGE;
+	public static final String HOST = "localhost";
+	public static final int PORT = 5432;
 	
-	public static MySQL _instance 		= null;
-	public static MySQL getConfig()
+	public static PostgreSQLConfig _instance = null;
+	public static PostgreSQLConfig getConfig()
 	{
 		if( _instance == null )
-			_instance = new MySQL();
+			_instance = new PostgreSQLConfig();
 		return _instance;
 	}
 	
-	public MySQL()
+	public PostgreSQLConfig()
 	{
-		super(NAME, URL, PORT);
+		super(NAME, HOMEPAGE, URL, HOST, PORT);
 	}
 
 	@Override public void initConfig()
 	{
-		super.initConfig(_PORT);
+		super.initConfig(_HOST | _PORT);
 		
 		try {
 			
-			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
+			setDescription(getConfigName() + " is a powerful, open source object-relational database system. It has more than 15 years of active development and a proven architecture that has earned it a strong reputation for reliability, data integrity, and correctness.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
-						"<a href='" + getURL() + "'>here.</a></b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
+						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
+			setImage(ImageIO.read(IconManager.IMAGE_POSTGRESQL));
 
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -74,8 +76,8 @@ public class MySQL extends Config
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + getConfigName() + " plugin.\n" + 
-					"Another plugin might already be loaded.", 
+					"There was an error loading the " + getConfigName() + " config.\n" + 
+					"Another config might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 		return result;
 	}

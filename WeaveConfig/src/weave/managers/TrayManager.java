@@ -46,9 +46,10 @@ import javax.swing.JOptionPane;
 import weave.Globals;
 import weave.Settings;
 import weave.Settings.MODE;
+import weave.async.AsyncTask;
+import weave.configs.IConfig;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.ReflectionUtils;
 import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
@@ -172,43 +173,42 @@ public class TrayManager extends Globals
 	{
 		if( !SystemTray.isSupported() ) return;
 		
-		try {
-			String servlet = (String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getConfigName", null);
-			String database = (String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveDatabase(), "getConfigName", null);
-			String servletStatus = "N/A", databaseStatus = "N/A";
-			
-			if( servlet == null )
-				servlet = "Not Selected";
-			else
-			{
-				int servletPort = ConfigManager.getConfigManager().getActiveContainer().getPort();
-				servletStatus = Settings.isServiceUp(Settings.LOCALHOST, servletPort) ? "Online" : "Offline";
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				try {
+					IConfig servlet = (IConfig) ConfigManager.getConfigManager().getActiveContainer();
+					IConfig database = (IConfig) ConfigManager.getConfigManager().getActiveDatabase();
+					
+					String servletName = "Not Selected", databaseName = "Not Selected";
+					String servletStatus = "N/A", databaseStatus = "N/A";
+					
+					if( servlet != null )
+					{
+						servletName = servlet.getConfigName();
+						servletStatus = Settings.isServiceUp(servlet.getHost(), servlet.getPort()) ? "Online" : "Offline";
+					}
+					
+					if( database != null )
+					{
+						databaseName = database.getConfigName();
+						databaseStatus = Settings.isServiceUp(database.getHost(), database.getPort()) ? "Online" : "Offline";
+					}
+					
+					setTooltip(
+						Settings.SERVER_NAME + "\n" +
+						"Servlet:  " + servletName + " [" + servletStatus + "]\n" + 
+						"Database: " + databaseName + " [" + databaseStatus + "]");
+					
+				} catch (SecurityException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				} catch (IllegalArgumentException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+				}
+				return null;
 			}
-			
-			if( database == null )
-				database = "Not Selected";
-			else 
-			{
-				int databasePort = ConfigManager.getConfigManager().getActiveDatabase().getPort();
-				databaseStatus = Settings.isServiceUp(Settings.LOCALHOST, databasePort) ? "Online" : "Offline";
-			}
-			
-			setTooltip(
-				Settings.SERVER_NAME + "\n" +
-				"Servlet:  " + servlet + " [" + servletStatus + "]\n" + 
-				"Database: " + database + " [" + databaseStatus + "]");
-			
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
+		};
+		task.execute();
 	}
 	private static void setupActionListeners()
 	{

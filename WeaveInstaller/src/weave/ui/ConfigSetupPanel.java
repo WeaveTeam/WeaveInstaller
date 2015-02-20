@@ -52,8 +52,8 @@ import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.configs.IConfig;
-import weave.configs.Jetty;
-import weave.configs.SQLite;
+import weave.configs.JettyConfig;
+import weave.configs.SQLiteConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.utils.BugReportUtils;
@@ -74,12 +74,14 @@ public class ConfigSetupPanel extends SetupPanel
 	public JEditorPane			servletDesc, 		databaseDesc,		reviewDesc;
 	public JEditorPane			servletWarning,		databaseWarning;
 
-	public JLabel				servletWebappsLabel,	servletPortLabel,			databasePortLabel;
+	public JLabel				servletWebappsLabel, servletPortLabel, databaseHostLabel, databasePortLabel;
+	public JTextField			servletWebappsInput, servletPortInput, databaseHostInput, databasePortInput;
+
 	public JLabel				reviewServletTitleLabel, reviewDatabaseTitleLabel;
-	public JLabel				reviewServletPortLabel,	reviewServletWebappsLabel, 	reviewDatabasePortLabel;
+	public JLabel				reviewServletWebappsLabel, reviewServletPortLabel, reviewDatabaseHostLabel, reviewDatabasePortLabel;
+	public JTextField			reviewServletWebappsInput, reviewServletPortInput, reviewDatabaseHostInput, reviewDatabasePortInput;
+	
 	public JProgressBar			servletProgressBar;
-	public JTextField			servletBrowserPath,		servletPortInput,			databasePortInput;
-	public JTextField			reviewServletPortInput, reviewServletWebappsInput, 	reviewDatabasePortInput;
 	public JFileChooser			servletFileChooser;
 	public JButton				servletBrowserButton;
 
@@ -119,9 +121,9 @@ public class ConfigSetupPanel extends SetupPanel
 		int activeServletIndex = 0;
 		
 		// Title
-		JLabel title = new JLabel("Select Servlet");
+		JLabel title = new JLabel("Select Application Server");
 		title.setFont(new Font(Settings.FONT, Font.BOLD, 15));
-		title.setBounds(20, 20, 140, 30);
+		title.setBounds(20, 20, 220, 30);
 		panel.add(title);
 		
 		// Servlet Combobox
@@ -236,7 +238,7 @@ public class ConfigSetupPanel extends SetupPanel
 
 		// Servlet Port
 		servletPortLabel = new JLabel("Port:");
-		servletPortLabel.setBounds(20, 280, 90, 25);
+		servletPortLabel.setBounds(20, 320, 90, 25);
 		servletPortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		servletPortLabel.setVisible(true);
 		panel.add(servletPortLabel);
@@ -244,7 +246,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet Port Input
 		servletPortInput = new JTextField();
-		servletPortInput.setBounds(100, 280, 220, 25);
+		servletPortInput.setBounds(100, 320, 220, 25);
 		servletPortInput.setEditable(true);
 		servletPortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 14));
 		servletPortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
@@ -254,7 +256,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet directory label
 		servletWebappsLabel = new JLabel("Webapps:");
-		servletWebappsLabel.setBounds(20, 320, 90, 25);
+		servletWebappsLabel.setBounds(20, 280, 90, 25);
 		servletWebappsLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		panel.add(servletWebappsLabel);
 		
@@ -265,16 +267,16 @@ public class ConfigSetupPanel extends SetupPanel
 		servletFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		servletFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		
-		servletBrowserPath = new JTextField();
-		servletBrowserPath.setBounds(100, 320, 220, 25);
-		servletBrowserPath.setEditable(false);
-		servletBrowserPath.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
-		servletBrowserPath.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
-		servletBrowserPath.setVisible(true);
-		panel.add(servletBrowserPath);
+		servletWebappsInput = new JTextField();
+		servletWebappsInput.setBounds(100, 280, 220, 25);
+		servletWebappsInput.setEditable(false);
+		servletWebappsInput.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		servletWebappsInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
+		servletWebappsInput.setVisible(true);
+		panel.add(servletWebappsInput);
 		
 		servletBrowserButton = new JButton("Browse");
-		servletBrowserButton.setBounds(330, 320, 90, 25);
+		servletBrowserButton.setBounds(330, 280, 90, 25);
 		servletBrowserButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -287,7 +289,7 @@ public class ConfigSetupPanel extends SetupPanel
 					File selectedFolder = servletFileChooser.getSelectedFile();
 					if( (new File(selectedFolder, "ROOT")).exists() )
 					{
-						servletBrowserPath.setText(selectedFolder.getAbsolutePath());
+						servletWebappsInput.setText(selectedFolder.getAbsolutePath());
 						config.setWebappsDirectory(selectedFolder);
 					}
 					else
@@ -425,18 +427,34 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(databaseWarning);
 
 		
+		// Database host label
+		databaseHostLabel = new JLabel("Host:");
+		databaseHostLabel.setBounds(20, 280, 90, 25);
+		databaseHostLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
+		databaseHostLabel.setVisible(true);
+		panel.add(databaseHostLabel);
+		
+		// Database host input
+		databaseHostInput = new JTextField();
+		databaseHostInput.setBounds(100, 280, 220, 25);
+		databaseHostInput.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		databaseHostInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+		databaseHostInput.setMargin(new Insets(2, 2, 2, 2));
+		databaseHostInput.setVisible(true);
+		panel.add(databaseHostInput);
+		
 		// Database port label
 		databasePortLabel = new JLabel("Port:");
-		databasePortLabel.setBounds(20, 280, 90, 25);
+		databasePortLabel.setBounds(20, 320, 90, 25);
 		databasePortLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		databasePortLabel.setVisible(true);
 		panel.add(databasePortLabel);
 		
 		// Database port input
 		databasePortInput = new JTextField();
-		databasePortInput.setBounds(100, 280, 220, 25);
+		databasePortInput.setBounds(100, 320, 220, 25);
 		databasePortInput.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
-		databasePortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(0, 0, 0)));
+		databasePortInput.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
 		databasePortInput.setMargin(new Insets(2, 2, 2, 2));
 		databasePortInput.setVisible(true);
 		panel.add(databasePortInput);
@@ -463,7 +481,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(title);
 		
 		reviewServletTitleLabel = new JLabel();
-		reviewServletTitleLabel.setBounds(20, 50, 80, 25);
+		reviewServletTitleLabel.setBounds(20, 50, 200, 25);
 		reviewServletTitleLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		reviewServletTitleLabel.setVisible(true);
 		panel.add(reviewServletTitleLabel);
@@ -474,32 +492,32 @@ public class ConfigSetupPanel extends SetupPanel
 		reviewServletImage.setVisible(true);
 		panel.add(reviewServletImage);
 		
-		reviewServletPortLabel = new JLabel("Port: ");
-		reviewServletPortLabel.setBounds(20, 90, 70, 25);
-		reviewServletPortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
-		reviewServletPortLabel.setVisible(true);
-		panel.add(reviewServletPortLabel);
-		
-		reviewServletPortInput = new JTextField();
-		reviewServletPortInput.setBounds(90, 90, 100, 25);
-		reviewServletPortInput.setVisible(true);
-		reviewServletPortInput.setEditable(false);
-		panel.add(reviewServletPortInput);
-
 		reviewServletWebappsLabel = new JLabel("Webapps: ");
-		reviewServletWebappsLabel.setBounds(20, 120, 70, 25);
+		reviewServletWebappsLabel.setBounds(20, 90, 70, 25);
 		reviewServletWebappsLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewServletWebappsLabel.setVisible(true);
 		panel.add(reviewServletWebappsLabel);
 		
 		reviewServletWebappsInput = new JTextField();
-		reviewServletWebappsInput.setBounds(90, 120, 230, 25);
+		reviewServletWebappsInput.setBounds(90, 90, 170, 25);
 		reviewServletWebappsInput.setVisible(true);
 		reviewServletWebappsInput.setEditable(false);
 		panel.add(reviewServletWebappsInput);
+
+		reviewServletPortLabel = new JLabel("Port: ");
+		reviewServletPortLabel.setBounds(20, 120, 70, 25);
+		reviewServletPortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		reviewServletPortLabel.setVisible(true);
+		panel.add(reviewServletPortLabel);
 		
+		reviewServletPortInput = new JTextField();
+		reviewServletPortInput.setBounds(90, 120, 170, 25);
+		reviewServletPortInput.setVisible(true);
+		reviewServletPortInput.setEditable(false);
+		panel.add(reviewServletPortInput);
+
 		reviewDatabaseTitleLabel = new JLabel();
-		reviewDatabaseTitleLabel.setBounds(20, 170, 80, 25);
+		reviewDatabaseTitleLabel.setBounds(20, 170, 200, 25);
 		reviewDatabaseTitleLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		reviewDatabaseTitleLabel.setVisible(true);
 		panel.add(reviewDatabaseTitleLabel);
@@ -509,21 +527,33 @@ public class ConfigSetupPanel extends SetupPanel
 		reviewDatabaseImage.setVerticalAlignment(JLabel.TOP);
 		reviewDatabaseImage.setVisible(true);
 		panel.add(reviewDatabaseImage);
+
+		reviewDatabaseHostLabel = new JLabel("Host: ");
+		reviewDatabaseHostLabel.setBounds(20, 200, 70, 25);
+		reviewDatabaseHostLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		reviewDatabaseHostLabel.setVisible(true);
+		panel.add(reviewDatabaseHostLabel);
+		
+		reviewDatabaseHostInput = new JTextField();
+		reviewDatabaseHostInput.setBounds(90, 200, 170, 25);
+		reviewDatabaseHostInput.setVisible(true);
+		reviewDatabaseHostInput.setEditable(false);
+		panel.add(reviewDatabaseHostInput);
 		
 		reviewDatabasePortLabel = new JLabel("Port: ");
-		reviewDatabasePortLabel.setBounds(20, 200, 70, 25);
+		reviewDatabasePortLabel.setBounds(20, 230, 70, 25);
 		reviewDatabasePortLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
 		reviewDatabasePortLabel.setVisible(true);
 		panel.add(reviewDatabasePortLabel);
 		
 		reviewDatabasePortInput = new JTextField();
-		reviewDatabasePortInput.setBounds(90, 200, 100, 25);
+		reviewDatabasePortInput.setBounds(90, 230, 170, 25);
 		reviewDatabasePortInput.setVisible(true);
 		reviewDatabasePortInput.setEditable(false);
 		panel.add(reviewDatabasePortInput);
 		
 		reviewDesc = new JEditorPane();
-		reviewDesc.setBounds(20, 270, 410, 80);
+		reviewDesc.setBounds(20, 290, 410, 80);
 		reviewDesc.setBackground(Color.WHITE);
 		reviewDesc.setEditable(false);
 		reviewDesc.setContentType("text/html");
@@ -557,9 +587,9 @@ public class ConfigSetupPanel extends SetupPanel
 					JOptionPane.showMessageDialog(null, "Port must be a number.", "Error", JOptionPane.ERROR_MESSAGE);
 					return false;
 				}
-				if( servletBrowserPath.isVisible() )
+				if( servletWebappsInput.isVisible() )
 				{
-					String str = servletBrowserPath.getText();
+					String str = servletWebappsInput.getText();
 					if( str == null || str.length() == 0 ) {
 						JOptionPane.showMessageDialog(null, "Webapps path must be specified below.", "Error", JOptionPane.WARNING_MESSAGE);
 						return false;
@@ -620,11 +650,11 @@ public class ConfigSetupPanel extends SetupPanel
 			case 0:
 				config = ConfigManager.getConfigManager().getConfigByName(servletCombo.getSelectedItem());
 				config.setPort(servletPortInput.getText());
-				if( servletBrowserPath.isVisible() )
-					config.setWebappsDirectory(servletBrowserPath.getText());
+				if( servletWebappsInput.isVisible() )
+					config.setWebappsDirectory(servletWebappsInput.getText());
 				
 				// Special Jetty case
-				if( config.getConfigName().equals(Jetty.NAME) )
+				if( config.getConfigName().equals(JettyConfig.NAME) )
 				{
 					if( !config.getWebappsDirectory().exists() )
 					{
@@ -677,6 +707,8 @@ public class ConfigSetupPanel extends SetupPanel
 	
 			case 1:
 				config = ConfigManager.getConfigManager().getConfigByName(databaseCombo.getSelectedItem());
+				if( databaseHostInput.isVisible() )
+					config.setHost(databaseHostInput.getText());
 				if( databasePortInput.isVisible() )
 					config.setPort(databasePortInput.getText());
 				break;
@@ -694,7 +726,7 @@ public class ConfigSetupPanel extends SetupPanel
 	
 	private void download(final IConfig config) throws MalformedURLException
 	{
-		final URL url = new URL(config.getURL());
+		final URL url = new URL(config.getDownloadURL());
 		final File destination = new File(Settings.DOWNLOADS_DIRECTORY, config.getConfigName() + ".zip");
 		
 		final AsyncObserver observer = new AsyncObserver() {
@@ -728,7 +760,7 @@ public class ConfigSetupPanel extends SetupPanel
 				Object o = TransferUtils.FAILED;
 				try {
 					observer.init(url);
-					o = DownloadUtils.download(url, destination, observer, TransferUtils.MB);
+					o = DownloadUtils.download(url, destination, observer, 3 * TransferUtils.MB);
 				} catch (IOException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -750,8 +782,7 @@ public class ConfigSetupPanel extends SetupPanel
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		task.addCallback(callback);
-		task.execute();
+		task.addCallback(callback).execute();
 	}
 	
 	private void extract(final File source, final IConfig config)
@@ -815,8 +846,7 @@ public class ConfigSetupPanel extends SetupPanel
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
-		task.addCallback(callback);
-		task.execute();
+		task.addCallback(callback).execute();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -839,8 +869,8 @@ public class ConfigSetupPanel extends SetupPanel
 			if( reviewServletPortInput != null )
 				reviewServletPortInput.setText("" + servletConfig.getPort());
 			if( reviewServletWebappsInput != null ) {
-				reviewServletWebappsLabel.setVisible(servletBrowserPath.isVisible());
-				reviewServletWebappsInput.setVisible(servletBrowserPath.isVisible());
+				reviewServletWebappsLabel.setVisible(servletWebappsInput.isVisible());
+				reviewServletWebappsInput.setVisible(servletWebappsInput.isVisible());
 				reviewServletWebappsInput.setText(servletConfig.getWebappsDirectory().getCanonicalPath());
 			}
 		
@@ -853,6 +883,11 @@ public class ConfigSetupPanel extends SetupPanel
 										databaseConfig.getImage(),
 										reviewDatabaseImage.getWidth(),
 										ImageUtils.SCALE_WIDTH)));
+			if( reviewDatabaseHostInput != null ) {
+				reviewDatabaseHostLabel.setVisible(databasePortInput.isVisible());
+				reviewDatabaseHostInput.setVisible(databasePortInput.isVisible());
+				reviewDatabaseHostInput.setText(databaseConfig.getHost());
+			}
 			if( reviewDatabasePortInput != null ) {
 				reviewDatabasePortLabel.setVisible(databasePortInput.isVisible());
 				reviewDatabasePortInput.setVisible(databasePortInput.isVisible());
@@ -879,17 +914,17 @@ public class ConfigSetupPanel extends SetupPanel
 			servletDesc.setText(servlet.getDescription());
 		if( servletWarning != null )
 			servletWarning.setText(servlet.getWarning());
-		if( servletBrowserPath != null )
-			servletBrowserPath.setText(
+		if( servletWebappsInput != null )
+			servletWebappsInput.setText(
 					( servlet.getWebappsDirectory() != null ) ?
 							servlet.getWebappsDirectory().getAbsolutePath() :
 							"" );
 		if( servletPortInput != null )
 			servletPortInput.setText(Integer.toString(servlet.getPort()));
 		
-		boolean visible = !servlet.getConfigName().equals(Jetty.NAME);
+		boolean visible = !servlet.getConfigName().equals(JettyConfig.NAME);
 		servletWebappsLabel.setVisible(visible);
-		servletBrowserPath.setVisible(visible);
+		servletWebappsInput.setVisible(visible);
 		servletBrowserButton.setVisible(visible);
 	}
 	private void updateDatabaseInfo(IConfig database)
@@ -907,10 +942,14 @@ public class ConfigSetupPanel extends SetupPanel
 			databaseDesc.setText(database.getDescription());
 		if( databaseWarning != null )
 			databaseWarning.setText(database.getWarning());
+		if( databaseHostInput != null )
+			databaseHostInput.setText(database.getHost());
 		if( databasePortInput != null )
 			databasePortInput.setText(Integer.toString(database.getPort()));
 		
-		boolean visible = !database.getConfigName().equals(SQLite.NAME);
+		boolean visible = !database.getConfigName().equals(SQLiteConfig.NAME);
+		databaseHostLabel.setVisible(visible);
+		databaseHostInput.setVisible(visible);
 		databasePortLabel.setVisible(visible);
 		databasePortInput.setVisible(visible);
 	}

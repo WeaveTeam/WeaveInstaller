@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -29,60 +29,62 @@ import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.TraceUtils;
 
-public class Tomcat extends Config
+public class MySQLConfig extends Config
 {
-	public static final String NAME = "Tomcat";
-	public static final String URL = "http://tomcat.apache.org/";
-	public static final int PORT = 8080;
+	public static final String NAME = "MySQL";
+	public static final String HOMEPAGE = "http://dev.mysql.com/downloads/mysql/";
+	public static final String URL = HOMEPAGE;
+	public static final String HOST = "localhost";
+	public static final int PORT = 3306;
 	
-	public static Tomcat _instance 	= null;
-	public static Tomcat getConfig()
+	public static MySQLConfig _instance = null;
+	public static MySQLConfig getConfig()
 	{
 		if( _instance == null )
-			_instance = new Tomcat();
+			_instance = new MySQLConfig();
 		return _instance;
 	}
 	
-	public Tomcat()
+	public MySQLConfig()
 	{
-		super(NAME, URL, PORT);
+		super(NAME, HOMEPAGE, URL, HOST, PORT);
 	}
-	
+
 	@Override public void initConfig()
 	{
-		super.initConfig(_WEBAPPS | _PORT | _VERSION);
+		super.initConfig(_HOST | _PORT);
 		
 		try {
 			
-			setDescription(	"Apache Tomcat is an open source web server and servlet container " +
-							"that provides a pure Java HTTP web server environment for " +
-							"Java code to run in.");
-			setWarning("<center><b>" + getConfigName() + " requires the use of its external application " +
-						"found <a href='" + getURL() + "'>here.</a></b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
+			setDescription(getConfigName() + " is a widely used open-source relational database management system.");
+			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
+						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
+			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
 
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
+		} catch (NumberFormatException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 	}
-
 	@Override public boolean loadConfig() 
 	{
-		boolean result = ConfigManager.getConfigManager().setContainer(_instance); 
+		boolean result = ConfigManager.getConfigManager().setDatabase(_instance); 
 		if( result )
 			super.loadConfig();
 		else
 			JOptionPane.showMessageDialog(null, 
-					"There was an error loading the " + getConfigName() + " plugin.\n" + 
-					"Another plugin might already be loaded.", 
+					"There was an error loading the " + getConfigName() + " config.\n" + 
+					"Another config might already be loaded.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 		return result;
 	}
 
-	@Override public boolean unloadConfig() 
+	@Override public boolean unloadConfig()
 	{
-		boolean result = ConfigManager.getConfigManager().setContainer(null);
+		boolean result = ConfigManager.getConfigManager().setDatabase(null);
 		super.unloadConfig();
 		return result;
 	}

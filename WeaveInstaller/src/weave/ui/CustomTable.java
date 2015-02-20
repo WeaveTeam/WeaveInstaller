@@ -44,12 +44,12 @@ public class CustomTable extends JPanel
 	public CustomTable()
 	{
 		setLayout(new GridLayout());
-		
+
 		columnNames = new String[0];
 		data = new Object[0][0];
-		
-		generateTable();
-		refreshTable();
+
+		setColumnNames(columnNames);
+		setData(data).refreshTable();
 	}
 	
 	public CustomTable(String[] columnNames, Object[][] data)
@@ -57,10 +57,7 @@ public class CustomTable extends JPanel
 		setLayout(new GridLayout());
 		
 		setColumnNames(columnNames);
-		setData(data);
-		
-		generateTable();
-		refreshTable();
+		setData(data).refreshTable();
 	}
 	public int getSelectedIndex()
 	{
@@ -79,19 +76,23 @@ public class CustomTable extends JPanel
 		
 		return ret;
 	}
-	public void setColumnNames(String[] names)
+	public CustomTable setColumnNames(String[] names)
 	{
 		this.columnNames = names;
+		generateTable();
+		return this;
 	}
-	public void setColumnSizes(int[] sizes)
+	public CustomTable setColumnSizes(int[] sizes)
 	{
 		for( int i = 0; i < columnNames.length; i++ )
 			table.getColumnModel().getColumn(i).setPreferredWidth(sizes[i]);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		return this;
 	}
-	public void setData(Object[][] data)
+	public CustomTable setData(Object[][] data)
 	{
 		this.data = data;
+		return this;
 	}
 	public void addTableMouseListener(MouseListener l)
 	{

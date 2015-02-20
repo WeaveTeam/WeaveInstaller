@@ -41,33 +41,33 @@ import weave.utils.SyscallCreatorUtils;
 import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 
-public class Jetty extends Config
+public class JettyConfig extends Config
 {
 	public static final String NAME = "Jetty";
+	public static final String HOST = "localhost";
 	public static final int PORT = 8084;
 	
-	public static Jetty _instance 	= null;
-	
-	public static Jetty getConfig()
+	public static JettyConfig _instance = null;
+	public static JettyConfig getConfig()
 	{
 		if( _instance == null )
-			_instance = new Jetty();
+			_instance = new JettyConfig();
 		return _instance;
 	}
 	
-	public Jetty()
+	public JettyConfig()
 	{
-		super(NAME, PORT);
+		super(NAME, HOST, PORT);
 	}
 
 	@Override public void initConfig()
 	{
-		super.initConfig(_PORT | _VERSION);
+		super.initConfig(_HOST | _PORT | _VERSION);
 		
 		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
 		try {
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
-			setURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
+			setDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation.");
 			setWarning(	"<center><b>" + getConfigName() + " is a plugin that will run inside the tool and does not require external configuration.<br>" + 
 						"This is the appropriate choice for new users.</b></center>");
@@ -93,8 +93,8 @@ public class Jetty extends Config
 			}
 			else
 				JOptionPane.showMessageDialog(null, 
-						"There was an error loading the " + getConfigName() + " plugin.\n" + 
-						"Another plugin might already be loaded.", 
+						"There was an error loading the " + getConfigName() + " config.\n" + 
+						"Another config might already be loaded.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -182,7 +182,7 @@ public class Jetty extends Config
 		
 		// If the service is already running, try to stop it first.
 		// Might have been caused by a previous improper shutdown
-		if( Settings.isServiceUp(Settings.LOCALHOST, getPort()) )
+		if( Settings.isServiceUp(getHost(), getPort()) )
 		{
 			stopTask.addCallback(stopCallback);
 			stopTask.execute();

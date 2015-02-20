@@ -16,6 +16,7 @@ public class URLRequestUtils extends Globals
 {
 	public static final String GET = "GET";
 	public static final String POST = "POST";
+	public static final int TIMEOUT = 3000;
 	
 	public static String request(String method, String urlStr) throws IOException, InterruptedException
 	{
@@ -48,6 +49,7 @@ public class URLRequestUtils extends Globals
 				conn.setUseCaches(false);
 				conn.setRequestProperty("Content-Type", "multipart/form-data");
 				conn.setRequestProperty("charset", "utf-8");
+				conn.setConnectTimeout(TIMEOUT);
 				conn.connect();
 				
 				response = new StringBuilder();
@@ -66,6 +68,7 @@ public class URLRequestUtils extends Globals
 				conn.setUseCaches(false);
 				conn.setRequestProperty("Content-Type", "multipart/form-data");
 				conn.setRequestProperty("charset", "UTF-8");
+				conn.setConnectTimeout(TIMEOUT);
 				conn.connect();
 				
 				if( params != null )
@@ -111,7 +114,8 @@ public class URLRequestUtils extends Globals
 		try {
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setInstanceFollowRedirects(true);
-			conn.setRequestMethod("GET");
+			conn.setRequestMethod(GET);
+			conn.setConnectTimeout(TIMEOUT);
 			conn.connect();
 			
 			return conn.getHeaderField(field);

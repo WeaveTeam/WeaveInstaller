@@ -79,8 +79,6 @@ public class ProcessUtils extends Globals
 		returnMap.put("output", internals.output);
 		returnMap.put("error", internals.error);
 		
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
-		
 		return returnMap;
 	}
 }

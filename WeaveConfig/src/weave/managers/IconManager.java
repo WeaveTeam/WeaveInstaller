@@ -38,4 +38,5 @@ public class IconManager
 	public static URL IMAGE_SQLITE = IconManager.class.getResource("/resources/sqlite.png");
 	public static URL IMAGE_MYSQL = IconManager.class.getResource("/resources/mysql.png");
 	public static URL IMAGE_ORACLE = IconManager.class.getResource("/resources/oracle.png");
+	public static URL IMAGE_POSTGRESQL = IconManager.class.getResource("/resources/postgresql.png");
 }

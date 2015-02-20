@@ -34,10 +34,12 @@ import weave.Globals;
 import weave.Settings;
 import weave.configs.Config;
 import weave.configs.IConfig;
-import weave.configs.Jetty;
-import weave.configs.MySQL;
-import weave.configs.SQLite;
-import weave.configs.Tomcat;
+import weave.configs.JettyConfig;
+import weave.configs.MySQLConfig;
+import weave.configs.OracleConfig;
+import weave.configs.PostgreSQLConfig;
+import weave.configs.SQLiteConfig;
+import weave.configs.TomcatConfig;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.TraceUtils;
@@ -70,14 +72,16 @@ public class ConfigManager extends Globals
 		
 		Map<String, IConfig> map = null;
 		
-		for( int i = 1; i <= 4; i++ )
+		for( int i = 1; i <= 6; i++ )
 		{
 			map = new HashMap<String, IConfig>();
 			switch( i ) {
-				case 1: map.put(SERVLET, Jetty.getConfig());	break;
-				case 2: map.put(SERVLET, Tomcat.getConfig()); 	break;
-				case 3: map.put(DATABASE, SQLite.getConfig()); 	break;
-				case 4: map.put(DATABASE, MySQL.getConfig());	break;
+				case 1: map.put(SERVLET, JettyConfig.getConfig());		break;
+				case 2: map.put(SERVLET, TomcatConfig.getConfig()); 		break;
+				case 3: map.put(DATABASE, SQLiteConfig.getConfig()); 		break;
+				case 4: map.put(DATABASE, MySQLConfig.getConfig());		break;
+				case 5: map.put(DATABASE, PostgreSQLConfig.getConfig());	break;
+				case 6: map.put(DATABASE, OracleConfig.getConfig());		break;
 			}
 			availableConfigs.add(map);
 		}
@@ -241,6 +245,7 @@ public class ConfigManager extends Globals
 					Map<String, Object> values = new HashMap<String, Object>();
 					
 					values.put(Config.WEBAPPS, 	ObjectUtils.ternary(config.getWebappsDirectory(), "getCanonicalPath", null));
+					values.put(Config.HOST, 	config.getHost());
 					values.put(Config.PORT,		"" + config.getPort());
 					values.put(Config.VERSION, 	config.getInstallVersion());
 					values.put(Config.ACTIVE, 	config.isConfigLoaded());
@@ -252,7 +257,6 @@ public class ConfigManager extends Globals
 			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(Settings.CONFIG_FILE));
 			outstream.writeObject(CONFIGS_MAP);
 			outstream.close();
-			TraceUtils.put(TraceUtils.STDOUT, "DONE");
 		} catch (IOException e) {
 			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
 			TraceUtils.trace(TraceUtils.STDERR, e);
@@ -284,6 +288,7 @@ public class ConfigManager extends Globals
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		}
+		TraceUtils.put(TraceUtils.STDOUT, "DONE");
 		return true;
 	}
 	
