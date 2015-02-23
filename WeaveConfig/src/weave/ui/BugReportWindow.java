@@ -81,6 +81,7 @@ public class BugReportWindow extends JFrame
 		_instance.setSize(400, 300); 	// 394 x 272 (inner)
 		_instance.setResizable(false);
 		_instance.setLayout(null);
+		_instance.setBackground(new Color(0xF0F0F0));
 		_instance.setTitle("Bug Reporter");
 		_instance.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		_instance.setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);

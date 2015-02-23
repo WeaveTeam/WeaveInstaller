@@ -266,39 +266,46 @@ public class HomeSetupPanel extends SetupPanel
 				}
 				else if( selectedTab == troubleshootTab )
 				{
-					try {
-						faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
-//						System.out.println("page updated to " + faqURL);
-						troubleshootHTML.setPage(faqURL);
-						
-						// Remove all link listeners
-						for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )
-							troubleshootHTML.removeHyperlinkListener(h);
-						// Add new link listener
-						troubleshootHTML.addHyperlinkListener(new HyperlinkListener() {
-							@Override
-							public void hyperlinkUpdate(HyperlinkEvent e) {
-								if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
-								{
-									try {
-										LaunchUtils.browse(e.getURL().toURI());
-									} catch (IOException ex) {
-										TraceUtils.trace(TraceUtils.STDERR, ex);
-										BugReportUtils.showBugReportDialog(ex);
-									} catch (InterruptedException ex) {
-										TraceUtils.trace(TraceUtils.STDERR, ex);
-										BugReportUtils.showBugReportDialog(ex);
-									} catch (URISyntaxException ex) {
-										TraceUtils.trace(TraceUtils.STDERR, ex);
-										BugReportUtils.showBugReportDialog(ex);
+					AsyncTask task = new AsyncTask() {
+						@Override
+						public Object doInBackground() {
+							try {
+								faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
+//								System.out.println("page updated to " + faqURL);
+								troubleshootHTML.setPage(faqURL);
+								
+								// Remove all link listeners
+								for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )
+									troubleshootHTML.removeHyperlinkListener(h);
+								// Add new link listener
+								troubleshootHTML.addHyperlinkListener(new HyperlinkListener() {
+									@Override
+									public void hyperlinkUpdate(HyperlinkEvent e) {
+										if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+										{
+											try {
+												LaunchUtils.browse(e.getURL().toURI());
+											} catch (IOException ex) {
+												TraceUtils.trace(TraceUtils.STDERR, ex);
+												BugReportUtils.showBugReportDialog(ex);
+											} catch (InterruptedException ex) {
+												TraceUtils.trace(TraceUtils.STDERR, ex);
+												BugReportUtils.showBugReportDialog(ex);
+											} catch (URISyntaxException ex) {
+												TraceUtils.trace(TraceUtils.STDERR, ex);
+												BugReportUtils.showBugReportDialog(ex);
+											}
+										}
 									}
-								}
+								});
+							} catch (IOException e) {
+								TraceUtils.trace(TraceUtils.STDERR, e);
+								troubleshootHTML.setText("FAQ is currently offline.");
 							}
-						});
-					} catch (IOException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					}
+							return null;
+						}
+					};
+					task.execute();
 				}
 			}
 		});
@@ -1011,22 +1018,17 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = createTab(parent);
 
-		try {
-			troubleshootHTML = new JEditorPane();
-			troubleshootHTML.setPage(faqURL);
-			troubleshootHTML.setBounds(0, 0, panel.getWidth() - 20, panel.getHeight() - 20);
-			troubleshootHTML.setBackground(Color.WHITE);
-			troubleshootHTML.setEditable(false);
-			troubleshootHTML.setVisible(true);
-			
-			troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-			troubleshootScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
-			troubleshootScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-			troubleshootScrollPane.setVisible(true);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		}
+		troubleshootHTML = new JEditorPane();
+		troubleshootHTML.setBounds(0, 0, panel.getWidth() - 20, panel.getHeight() - 20);
+		troubleshootHTML.setBackground(Color.WHITE);
+		troubleshootHTML.setEditable(false);
+		troubleshootHTML.setText("FAQ is currently offline.");
+		troubleshootHTML.setVisible(true);
+
+		troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		troubleshootScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
+		troubleshootScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		troubleshootScrollPane.setVisible(true);
 
 		panel.add(troubleshootScrollPane);
 		
