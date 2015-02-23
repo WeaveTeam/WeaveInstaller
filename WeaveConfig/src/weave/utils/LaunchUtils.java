@@ -56,6 +56,10 @@ public class LaunchUtils extends Globals
 		Desktop.getDesktop().browse(path);
 		return true;
 	}
+	public static Boolean open(String path) throws IOException, InterruptedException 
+	{
+		return open(path, 100);
+	}
 	public static Boolean open(String path, int delay) throws IOException, InterruptedException
 	{
 		return open(new File(path), delay);

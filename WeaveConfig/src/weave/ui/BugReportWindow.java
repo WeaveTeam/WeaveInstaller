@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -34,7 +34,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -124,10 +123,8 @@ public class BugReportWindow extends JFrame
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					if( TraceUtils.getLogFile(TraceUtils.STDERR).exists() )
-						LaunchUtils.browse(TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath());
+						LaunchUtils.open(TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath());
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				} catch (URISyntaxException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
 				} catch (InterruptedException e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
