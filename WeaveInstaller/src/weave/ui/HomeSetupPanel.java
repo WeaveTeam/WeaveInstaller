@@ -82,6 +82,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.HTMLDocument;
 
 import weave.Revisions;
@@ -103,9 +105,11 @@ import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.StringUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
+import weave.utils.URLRequestUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
 
@@ -136,6 +140,8 @@ public class HomeSetupPanel extends SetupPanel
 	// ============== Plugins Tab ============== //
 	public CustomTable pluginsTable;
 	public JEditorPane pluginsPane;
+	public JScrollPane pluginsScrollPane;
+	public JButton pluginsInstallButton;
 	
 	// ============== Settings Tab ============== //
 	public JScrollPane settingsScrollPane;
@@ -263,6 +269,11 @@ public class HomeSetupPanel extends SetupPanel
 						TraceUtils.trace(TraceUtils.STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
+				}
+				else if( selectedTab == pluginsTab )
+				{
+					if( pluginsTable.getSelectedIndex() == -1 )
+						pluginsTable.setSelectedIndex(0);
 				}
 				else if( selectedTab == troubleshootTab )
 				{
@@ -518,59 +529,6 @@ public class HomeSetupPanel extends SetupPanel
 		revisionTable.setBounds(10, 150, 300, 150);
 		revisionTable.setVisible(true);
 		panel.add(revisionTable);
-		
-		return panel;
-	}
-	
-	public JPanel createPluginsTab(JComponent parent)
-	{
-		JPanel panel = createTab(parent);
-		
-		pluginsTable = new CustomTable(new String[] { "Name" }, new Object[0][1]);
-		pluginsTable.setBounds(0, 0, panel.getWidth() / 3, panel.getHeight() - 30);
-		pluginsTable.setBackground(Color.GREEN);
-		pluginsTable.addTableMouseListener(new MouseListener() {
-			@Override public void mouseReleased(MouseEvent e) {	}
-			@Override public void mousePressed(MouseEvent e) { }
-			@Override public void mouseExited(MouseEvent e) { }
-			@Override public void mouseEntered(MouseEvent e) { }
-			@Override public void mouseClicked(MouseEvent e) {
-				String pluginName = (String) pluginsTable.getSelectedRow()[0];
-				if( pluginName == null )
-					return;
-				
-				IPlugin selectedPlugin = PluginManager.getPluginManager().getPluginByName(pluginName);
-				if( selectedPlugin == null )
-					return;
-				
-				pluginsPane.setText("<b>" + selectedPlugin.getPluginName() + "</b><br><br><br>" + 
-									"<b>Version:</b> " + selectedPlugin.getPluginVersion() + "<br>" +
-									"<b>Homepage:</b>" + selectedPlugin.getPluginURL() + "<br><br>" + 
-									selectedPlugin.getPluginDescription());
-			}
-		});
-		panel.add(pluginsTable);
-		
-		pluginsPane = new JEditorPane();
-		pluginsPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 15, 2 * panel.getHeight() / 3);
-		pluginsPane.setBackground(Color.GRAY);
-		pluginsPane.setEditable(false);
-		pluginsPane.setContentType("text/html");
-		pluginsPane.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
-		
-		String htmlStyle = "body { 	font-family: " + pluginsPane.getFont().getFamily() + "; " +
-									"font-size: " + pluginsPane.getFont().getSize() + "px; } " +
-							"b { font-size: " + (pluginsPane.getFont().getSize() + 1) + "px; }";
-		((HTMLDocument)pluginsPane.getDocument()).getStyleSheet().addRule(htmlStyle);
-		panel.add(pluginsPane);
-
-		
-		
-		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
-		Object[][] data = new Object[plugins.size()][1];
-		for( int i = 0; i < plugins.size(); i++ )
-			data[i][0] = plugins.get(i).getPluginName();
-		pluginsTable.setData(data).refreshTable();
 		
 		return panel;
 	}
@@ -842,6 +800,118 @@ public class HomeSetupPanel extends SetupPanel
 		
 		return panel;
 	}
+	
+	public JPanel createPluginsTab(JComponent parent)
+	{
+		JPanel panel = createTab(parent);
+		
+		pluginsTable = new CustomTable(new String[] { "Name" }, new Object[0][1]);
+		pluginsTable.setBounds(0, 0, panel.getWidth() / 3, panel.getHeight() - 30);
+		pluginsTable.addTableSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				String pluginName = (String) pluginsTable.getSelectedRow()[0];
+				if( pluginName == null )
+					return;
+				
+				IPlugin selectedPlugin = PluginManager.getPluginManager().getPluginByName(pluginName);
+				if( selectedPlugin == null )
+					return;
+				
+				try {
+					String size = URLRequestUtils.getContentHeader(selectedPlugin.getPluginDownloadURL(), "Content-Length");
+							
+					if( size != null )
+						size = FileUtils.sizeify(size);
+					else
+						size = "Download not found";
+					
+					pluginsPane.setText("<b>" + selectedPlugin.getPluginName() + "</b><br><hr><br>" + 
+										"<b>Homepage:</b> <a href=\"" + selectedPlugin.getPluginHomepageURL() + "\">" + StringUtils.truncate(selectedPlugin.getPluginHomepageURL(), 34) + "</a><br>" +
+										"<b>Size:</b> " + size + "<br><br>" +  
+										selectedPlugin.getPluginDescription());
+					
+					pluginsInstallButton.setEnabled(!selectedPlugin.isPluginInstalled());
+					
+				} catch (MalformedURLException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (InterruptedException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				}
+			}
+		});
+		panel.add(pluginsTable);
+		
+		pluginsPane = new JEditorPane();
+		pluginsPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, 2 * panel.getHeight() / 3);
+		pluginsPane.setBackground(Color.WHITE);
+		pluginsPane.setEditable(false);
+		pluginsPane.setContentType("text/html");
+		pluginsPane.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
+		
+		String htmlStyle = "body { 	font-family: " + pluginsPane.getFont().getFamily() + "; " +
+									"font-size: " + pluginsPane.getFont().getSize() + "px; } " +
+							"b { font-size: " + (pluginsPane.getFont().getSize() + 1) + "px; }";
+		((HTMLDocument)pluginsPane.getDocument()).getStyleSheet().addRule(htmlStyle);
+		pluginsPane.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+				{
+					try {
+						LaunchUtils.browse(e.getURL().toURI());
+					} catch (IOException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (URISyntaxException ex) {
+						TraceUtils.trace(TraceUtils.STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					}
+				}
+			}
+		});
+		
+		pluginsScrollPane = new JScrollPane(pluginsPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		pluginsScrollPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, 2 * panel.getHeight() / 3);
+		pluginsScrollPane.setBorder(BorderFactory.createEmptyBorder());
+		pluginsScrollPane.setBackground(Color.WHITE);
+		panel.add(pluginsScrollPane);
+
+		
+		pluginsInstallButton = new JButton("Install");
+		pluginsInstallButton.setBounds(panel.getWidth() / 3 + 20, 2 * panel.getHeight() / 3 + 20, 100, 25);
+		pluginsInstallButton.setToolTipText("Install this plugin");
+		pluginsInstallButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String pluginName = (String) pluginsTable.getSelectedRow()[0];
+				if( pluginName == null )
+					return;
+				
+				IPlugin selectedPlugin = PluginManager.getPluginManager().getPluginByName(pluginName);
+				if( selectedPlugin == null )
+					return;
+				
+				
+			}
+		});
+		panel.add(pluginsInstallButton);
+		
+		
+		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
+		Object[][] data = new Object[plugins.size()][1];
+		for( int i = 0; i < plugins.size(); i++ )
+			data[i][0] = plugins.get(i).getPluginName();
+		pluginsTable.setData(data).refreshTable();
+		
+		return panel;
+	}
+	
 	public JPanel createTab4(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
@@ -1022,7 +1092,8 @@ public class HomeSetupPanel extends SetupPanel
 		troubleshootHTML.setBounds(0, 0, panel.getWidth() - 20, panel.getHeight() - 20);
 		troubleshootHTML.setBackground(Color.WHITE);
 		troubleshootHTML.setEditable(false);
-		troubleshootHTML.setText("FAQ is currently offline.");
+		troubleshootHTML.setContentType("text/html");
+		troubleshootHTML.setText("<br><center>Loading....</center>");
 		troubleshootHTML.setVisible(true);
 
 		troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -1134,7 +1205,8 @@ public class HomeSetupPanel extends SetupPanel
 		if( actvContainer == null ) {
 			JOptionPane.showMessageDialog(null, 
 					"There is no active servlet selected.\n\n" + 
-					"Please configure a servlet to use, then try again.", "Error", JOptionPane.ERROR_MESSAGE);
+					"Please configure a servlet to use, then try again.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
 			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;
@@ -1144,7 +1216,8 @@ public class HomeSetupPanel extends SetupPanel
 		File cfgWebapps = actvContainer.getWebappsDirectory();
 		if( cfgWebapps == null || !cfgWebapps.exists() ) {
 			JOptionPane.showMessageDialog(null, 
-					"Webapps folder for " + actvContainer.getConfigName() + " is not set.", "Error", JOptionPane.ERROR_MESSAGE);
+					"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
 			setButtonsEnabled(true);
 			cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 			return;

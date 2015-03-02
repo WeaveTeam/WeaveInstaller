@@ -27,7 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -116,7 +118,7 @@ public class ZipUtils extends TransferUtils
 		
 		int result = COMPLETE;
 		ZipFile zip = new ZipFile(zipFile);
-		Enumeration<?> enu = zip.entries();
+		Enumeration<? extends ZipEntry> enu = zip.entries();
 		ZipEntry zipEntry = null;
 		
 		while (enu.hasMoreElements()) 
@@ -139,6 +141,27 @@ public class ZipUtils extends TransferUtils
 		return result;
 	}
 
+	public static List<String> getZipEntries(File zipFile) throws ZipException, IOException
+	{
+		if( zipFile == null )
+			throw new NullPointerException("Zipfile cannot be null");
+		
+		assert zipFile != null;
+		
+		List<String> fileList = new ArrayList<String>();
+		ZipFile zip = new ZipFile(zipFile);
+		Enumeration<? extends ZipEntry> enu = zip.entries();
+		ZipEntry entry = null;
+		
+		while(enu.hasMoreElements())
+		{
+			entry = (ZipEntry) enu.nextElement();
+			fileList.add(entry.getName());
+		}
+		zip.close();
+		
+		return fileList;
+	}
 
 	/**
 	 * Check how many entries are in a zip file.<br>

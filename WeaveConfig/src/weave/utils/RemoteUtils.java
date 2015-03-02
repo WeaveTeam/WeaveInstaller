@@ -43,7 +43,6 @@ public class RemoteUtils extends Globals
 	public static final String AWS_VERSION				= "AnalystVersion";
 	
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
-	public static final String WIKI_HELP_PAGE			= "WikiHelpPage";
 	
 	private static long 	configTimestamp				= 0;
 	private static String[] configFile					= null;
@@ -62,7 +61,6 @@ public class RemoteUtils extends Globals
 				configFile = content.split(";");
 				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
 			}
-			return configFile;
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -70,7 +68,7 @@ public class RemoteUtils extends Globals
 			TraceUtils.trace(TraceUtils.STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		return null;
+		return configFile;
 	}
 	
 	@Reflectable
@@ -79,15 +77,6 @@ public class RemoteUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 
-		if( !Settings.isConnectedToInternet ) {
-			JOptionPane.showConfirmDialog(null, 
-				"A connection to the internet could not be established.\n\n" +
-				"Please connect to the internet and try again.", 
-				"No Connection", 
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-			return null;
-		}
-		
 		for( String s : getConfigFile() )
 			if( s.contains(key) )
 				return s.substring(s.indexOf(":")+1).trim();

@@ -592,9 +592,9 @@ public class FileUtils extends TransferUtils
 	 * @param size The value to convert
 	 * @return The size as a human readable string
 	 */
-	public static String sizeify( long size )
+	public static String sizeify(long size)
 	{
-		return sizeify( (double)size );
+		return sizeify((double)size);
 	}
 	
 
@@ -605,20 +605,33 @@ public class FileUtils extends TransferUtils
 	 * @param size The value to convert
 	 * @return The size as a human readable string
 	 */
-	public static String sizeify( int size )
+	public static String sizeify(int size)
 	{
 		return sizeify( (double)size );
 	}
-	
-	
 
+	
+	
 	/**
 	 * Get a human readable size of a value.
 	 * 
 	 * @param size The value to convert
 	 * @return The size as a human readable string
 	 */
-	public static String sizeify( double size )
+	public static String sizeify(String size)
+	{
+		return sizeify(Double.parseDouble(size));
+	}
+	
+
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
+	public static String sizeify(double size)
 	{
 		int i = 0;
 		List<String> s = Arrays.asList("B", "KB", "MB", "GB", "TB");

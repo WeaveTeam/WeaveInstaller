@@ -44,6 +44,7 @@ import weave.utils.TransferUtils;
 public class JettyConfig extends Config
 {
 	public static final String NAME = "Jetty";
+	public static final String HOMEPAGE = "http://eclipse.org/jetty/";
 	public static final String HOST = "localhost";
 	public static final int PORT = 8084;
 	
@@ -67,6 +68,7 @@ public class JettyConfig extends Config
 		File thisPluginDir = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, CONFIG_NAME);
 		try {
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
+			setHomepageURL(HOMEPAGE);
 			setDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation.");
 			setWarning(	"<center><b>" + getConfigName() + " is a plugin that will run inside the tool and does not require external configuration.<br>" + 

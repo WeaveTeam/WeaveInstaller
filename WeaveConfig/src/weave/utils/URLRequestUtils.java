@@ -118,7 +118,8 @@ public class URLRequestUtils extends Globals
 			conn.setConnectTimeout(TIMEOUT);
 			conn.connect();
 			
-			return conn.getHeaderField(field);
+			if( conn.getResponseCode() == 200 )
+				return conn.getHeaderField(field);
 
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

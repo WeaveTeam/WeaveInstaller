@@ -5,14 +5,20 @@ public interface IPlugin
 	public void initPlugin();
 	
 	public String getPluginName();
-	public String getPluginURL();
+	public String getPluginHomepageURL();
+	public String getPluginDownloadURL();
 	public String getPluginVersion();
 	public String getPluginDescription();
-	public String getPluginDirectory();
+	public String getPluginDownloadFile();
+	public String getPluginBaseDirectory();
 	
 	public void setPluginName(String name);
-	public void setPluginURL(String url);
+	public void setPluginHomepageURL(String url);
+	public void setPluginDownloadURL(String url);
 	public void setPluginVersion(String version);
 	public void setPluginDescription(String desc);
-	public void setPluginDirectory(String dir);
+	public void setPluginDownloadFile(String file);
+	public void setPluginBaseDirectory(String dir);
+
+	public Boolean isPluginInstalled();
 }

@@ -17,7 +17,9 @@ public class JettyPlugin extends Plugin
 		super(JettyConfig.NAME);
 		
 		setPluginVersion(JettyConfig.getConfig().getInstallVersion());
-		setPluginURL(JettyConfig.getConfig().getDownloadURL());
+		setPluginHomepageURL(JettyConfig.getConfig().getHomepageURL());
+		setPluginDownloadURL(JettyConfig.getConfig().getDownloadURL());
 		setPluginDescription(JettyConfig.getConfig().getDescription());
+		setPluginBaseDirectory("${PLUGINS_DIR}/" + getPluginName());
 	}
 }

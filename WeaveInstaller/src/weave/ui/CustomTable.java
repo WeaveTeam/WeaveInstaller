@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import weave.Settings;
@@ -76,6 +77,10 @@ public class CustomTable extends JPanel
 		
 		return ret;
 	}
+	public void setSelectedIndex(int i)
+	{
+		table.setRowSelectionInterval(i, i);
+	}
 	public CustomTable setColumnNames(String[] names)
 	{
 		this.columnNames = names;
@@ -101,6 +106,10 @@ public class CustomTable extends JPanel
 	public void addTableFocusListener(FocusListener l)
 	{
 		table.addFocusListener(l);
+	}
+	public void addTableSelectionListener(ListSelectionListener l)
+	{
+		table.getSelectionModel().addListSelectionListener(l);
 	}
 	private void generateTable()
 	{

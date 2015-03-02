@@ -72,4 +72,21 @@ public class StringUtils extends Globals
 		
 		return s;
 	}
+	
+	/**
+	 * Truncates the <code>str</code> to the desired <code>length</code> 
+	 * if the length is longer then the length of <code>str</code>. Otherwise,
+	 * it will just return <code>str</code>. 
+	 * 
+	 * @param str The string to truncate
+	 * @param length The length to truncate the string to
+	 * @return The string tuncated to the desired length
+	 */
+	public static String truncate(String str, int length)
+	{
+		if( str.length() < length )
+			return str;
+		
+		return str.substring(0, length) + "...";
+	}
 }
