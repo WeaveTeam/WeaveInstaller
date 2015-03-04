@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.zip.ZipException;
 
 import weave.Globals;
-import weave.Settings;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.TraceUtils;
@@ -55,15 +54,15 @@ public class Plugin extends Globals implements IPlugin
 	@Override public Boolean isPluginInstalled() 
 	{
 		boolean installed = true;
-		File zipfile = new File(Settings.DOWNLOADS_DIRECTORY, getPluginName() + ".zip");
-		if( !zipfile.exists() )
+		File zipFile = new File(getPluginDownloadFile());
+		if( !zipFile.exists() )
 			return false;
 		
 		try {
 			if( getPluginBaseDirectory() == null )
 				return false; 
 			
-			List<String> list = ZipUtils.getZipEntries(zipfile);
+			List<String> list = ZipUtils.getZipEntries(zipFile);
 			File destination = new File(getPluginBaseDirectory());
 			File tmp = null;
 			
@@ -75,7 +74,6 @@ public class Plugin extends Globals implements IPlugin
 			
 		} catch (ZipException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IOException e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);

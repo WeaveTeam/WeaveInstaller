@@ -1,5 +1,6 @@
 package weave.plugins;
 
+import weave.utils.EnvironmentUtils;
 import weave.utils.RemoteUtils;
 
 public class AnalystWorkstationPlugin extends Plugin 
@@ -20,9 +21,15 @@ public class AnalystWorkstationPlugin extends Plugin
 	{
 		super(NAME);
 		
+		String filename = "";
+		String url = RemoteUtils.getConfigEntry(RemoteUtils.AWS_URL);
+		if( url != null ) 
+			filename = url.substring(url.lastIndexOf("/") + 1);
+		
 		setPluginHomepageURL(HOMEPAGEURL);
-		setPluginDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.AWS_URL));
+		setPluginDownloadURL(url);
 		setPluginDescription(DESCRIPTION);
-		setPluginBaseDirectory("${WEBAPPS}/");
+		setPluginDownloadFile("${" + EnvironmentUtils.DOWNLOAD_DIR + "}/" + filename);
+		setPluginBaseDirectory("${" + EnvironmentUtils.WEBAPPS + "}/");
 	}
 }

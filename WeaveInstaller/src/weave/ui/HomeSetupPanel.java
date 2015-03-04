@@ -142,6 +142,8 @@ public class HomeSetupPanel extends SetupPanel
 	public JEditorPane pluginsPane;
 	public JScrollPane pluginsScrollPane;
 	public JButton pluginsInstallButton;
+	public JProgressBar pluginsProgressBar;
+	public JLabel pluginsProgressLabel;
 	
 	// ============== Settings Tab ============== //
 	public JScrollPane settingsScrollPane;
@@ -845,7 +847,7 @@ public class HomeSetupPanel extends SetupPanel
 		panel.add(pluginsTable);
 		
 		pluginsPane = new JEditorPane();
-		pluginsPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, 2 * panel.getHeight() / 3);
+		pluginsPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, panel.getHeight() / 2);
 		pluginsPane.setBackground(Color.WHITE);
 		pluginsPane.setEditable(false);
 		pluginsPane.setContentType("text/html");
@@ -877,14 +879,14 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		
 		pluginsScrollPane = new JScrollPane(pluginsPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		pluginsScrollPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, 2 * panel.getHeight() / 3);
+		pluginsScrollPane.setBounds(panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3 - 12, panel.getHeight() / 2);
 		pluginsScrollPane.setBorder(BorderFactory.createEmptyBorder());
 		pluginsScrollPane.setBackground(Color.WHITE);
 		panel.add(pluginsScrollPane);
 
 		
 		pluginsInstallButton = new JButton("Install");
-		pluginsInstallButton.setBounds(panel.getWidth() / 3 + 20, 2 * panel.getHeight() / 3 + 20, 100, 25);
+		pluginsInstallButton.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 20, 100, 25);
 		pluginsInstallButton.setToolTipText("Install this plugin");
 		pluginsInstallButton.addActionListener(new ActionListener() {
 			@Override
@@ -897,10 +899,37 @@ public class HomeSetupPanel extends SetupPanel
 				if( selectedPlugin == null )
 					return;
 				
-				
+//				System.out.println("\nName: " + selectedPlugin.getPluginName());
+//				System.out.println("Base Dir: " + selectedPlugin.getPluginBaseDirectory());
+//				System.out.println("DL Link: " + selectedPlugin.getPluginDownloadURL());
+//				System.out.println("DL File: " + selectedPlugin.getPluginDownloadFile());
+				try {
+					downloadPlugin(selectedPlugin.getPluginDownloadURL(), selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
+				} catch (MalformedURLException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (InterruptedException ex) {
+					TraceUtils.trace(TraceUtils.STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				}
 			}
 		});
 		panel.add(pluginsInstallButton);
+		
+		pluginsProgressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+		pluginsProgressBar.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 55, 2 * panel.getWidth() / 3 - 50, 25);
+		pluginsProgressBar.setIndeterminate(true);
+		pluginsProgressBar.setString("");
+		pluginsProgressBar.setValue(0);
+		pluginsProgressBar.setVisible(true);
+		panel.add(pluginsProgressBar);
+		
+		pluginsProgressLabel = new JLabel();
+		pluginsProgressLabel.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 90, 2 * panel.getWidth() / 3 - 40, 25);
+		pluginsProgressLabel.setText("");
+		pluginsProgressLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 9));
+		pluginsProgressLabel.setVisible(true);
+		panel.add(pluginsProgressLabel);
 		
 		
 		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
@@ -1535,6 +1564,311 @@ public class HomeSetupPanel extends SetupPanel
 		task.addCallback(callback).execute();
 	}
 	
+	private void downloadPlugin(final String urlStr, final String zipFile, final String destination) throws MalformedURLException, InterruptedException
+	{
+		final URL url = new URL(urlStr);
+		final File zip = new File(zipFile);
+		
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+
+				Settings.transferCancelled = false;
+				Settings.downloadLocked = false;
+
+				switch( returnCode )
+				{
+					case TransferUtils.COMPLETE:
+						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						pluginsProgressLabel.setText("Download Complete....");
+						pluginsProgressLabel.setForeground(Color.BLACK);
+	
+						extractPlugin(zipFile, destination);
+						break;
+					case TransferUtils.CANCELLED:
+						TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+						pluginsProgressLabel.setText("Cancelling Download....");
+						pluginsProgressLabel.setForeground(Color.BLACK);
+						break;
+					case TransferUtils.FAILED:
+						TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+						pluginsProgressLabel.setText("Download Failed....");
+						pluginsProgressLabel.setForeground(Color.RED);
+
+						try {
+							Thread.sleep(2000);
+							refreshProgramatically = true;
+							refreshInterface();
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						} catch (MalformedURLException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						}
+						break;
+					case TransferUtils.OFFLINE:
+						break;
+				}
+			}
+		};
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				if( info.max == -1 ) {
+					// Unknown max size - progress unavailable
+					pluginsProgressBar.setIndeterminate(true);
+					pluginsProgressLabel.setText( 
+							String.format("Downloading update.... %s @ %s",
+								FileUtils.sizeify(info.cur), 
+								DownloadUtils.speedify(info.speed)) );
+				} else {
+					// Known max size
+					pluginsProgressBar.setIndeterminate(false);
+					pluginsProgressBar.setValue( info.percent );
+					if( info.time > 3600 )
+						pluginsProgressLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									"Calculating ETA...",
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					else if( info.time < 60 )
+						pluginsProgressLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									TimeUtils.format("%s s remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					else
+						pluginsProgressLabel.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)",
+									info.percent, 
+									TimeUtils.format("%m:%ss remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(url);
+					o = DownloadUtils.download(urlStr, zip, observer, 4 * TransferUtils.MB);
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading plugin.............");
+		
+		pluginsProgressLabel.setVisible(true);
+		pluginsProgressBar.setVisible(true);
+		pluginsInstallButton.setEnabled(false);
+		
+		pluginsProgressLabel.setText("Downloading plugin.....");
+		pluginsProgressBar.setIndeterminate(true);
+		
+		Thread.sleep(1000);
+		
+		pluginsProgressBar.setValue(0);
+		pluginsProgressBar.setIndeterminate(false);
+
+		Settings.downloadLocked = true;
+		Settings.transferCancelled = false;
+		
+		task.addCallback(callback).execute();
+	}
+	private void extractPlugin(String zipFile, final String destination)
+	{
+		final File zip = new File(zipFile);
+		
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						pluginsProgressBar.setValue( info.percent / 2 );
+						pluginsProgressLabel.setText( 
+								String.format(
+										"Extracting update.... %d%%", 
+										info.percent / 2 ) );
+					}
+				});
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				switch( returnCode )
+				{
+					case TransferUtils.COMPLETE:
+						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						
+						movePlugin(Settings.UNZIP_DIRECTORY.getAbsolutePath(), destination);
+						break;
+					case TransferUtils.FAILED:
+						break;
+					case TransferUtils.CANCELLED:
+						break;
+					case TransferUtils.OFFLINE:
+						break;
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(zip);
+					o = ZipUtils.extract(zip, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}catch (NullPointerException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					// No bug report
+				} catch (ZipException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		try {
+			if( !Settings.UNZIP_DIRECTORY.exists() )
+				Settings.UNZIP_DIRECTORY.mkdirs();
+			
+			pluginsProgressBar.setVisible(true);
+			pluginsProgressLabel.setVisible(true);
+			
+			pluginsProgressBar.setIndeterminate(true);
+			pluginsProgressLabel.setText("Preparing Extraction....");
+			Thread.sleep(1000);
+			
+			TraceUtils.trace(TraceUtils.STDOUT, "-> Extracting plugin..............");
+			
+			Settings.canQuit = false;
+			
+			pluginsProgressLabel.setText("Extracting plugin....");
+			pluginsProgressBar.setIndeterminate(false);
+		} catch (InterruptedException e) {
+			TraceUtils.trace(TraceUtils.STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		
+		task.addCallback(callback).execute();
+	}
+	private void movePlugin(String source, final String destination)
+	{
+		final File unzippedFile = new File(source);
+		
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				pluginsProgressBar.setValue( 50 + info.percent / 2 );
+				pluginsProgressLabel.setText( 
+						String.format(
+								"Installing plugin.... %d%%", 
+								50 + info.percent / 2 ) );
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				switch( returnCode ) 
+				{
+					case TransferUtils.COMPLETE:
+						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						pluginsProgressLabel.setText("Install complete....");
+						
+						Settings.canQuit = true;
+						System.gc();
+	
+						try {
+							Settings.cleanUp();
+							Thread.sleep(1000);
+							refreshProgramatically = true;
+							refreshInterface();
+						} catch (InterruptedException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						} catch (MalformedURLException e) {
+							TraceUtils.trace(TraceUtils.STDERR, e);
+						}
+						break;
+					case TransferUtils.CANCELLED:
+						break;
+					case TransferUtils.FAILED:
+						break;
+					case TransferUtils.OFFLINE:
+						break;
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				int status = TransferUtils.COMPLETE;
+				String[] files = unzippedFile.list();
+				
+				try {
+					observer.init(unzippedFile);
+
+					for( String file : files )
+					{
+						File s = new File(unzippedFile, file);
+						File d = new File(destination, file);
+						status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+					}
+				} catch (ArithmeticException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (FileNotFoundException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					TraceUtils.trace(TraceUtils.STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return status;
+			}
+		};
+
+		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing plugin..............");
+
+		pluginsProgressLabel.setText("Installing Plugin....");
+		pluginsProgressBar.setIndeterminate(false);
+		
+		task.addCallback(callback).execute();
+	}
+	
 	private void refreshInterface() throws InterruptedException, MalformedURLException
 	{
 		TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing User Interface......");
@@ -1554,6 +1888,14 @@ public class HomeSetupPanel extends SetupPanel
 		progressbar.setIndeterminate(true);
 		progressbar.setString("");
 		progressbar.setValue(0);
+		
+		pluginsProgressLabel.setVisible(false);
+		pluginsProgressLabel.setText("");
+		pluginsProgressBar.setVisible(false);
+		pluginsProgressBar.setIndeterminate(true); 
+		pluginsProgressBar.setString(""); 
+		pluginsProgressBar.setValue(0); 
+
 		setButtonsEnabled(true);
 		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);

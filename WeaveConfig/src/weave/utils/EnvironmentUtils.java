@@ -12,6 +12,10 @@ import weave.managers.ConfigManager;
 
 public class EnvironmentUtils extends Globals
 {
+	public static final String WEBAPPS = "SERVLET_WEBAPPS";
+	public static final String PLUGINS_DIR = "PLUGINS_DIR";
+	public static final String DOWNLOAD_DIR = "DOWNLOAD_DIR";
+	
 	private static Map<String, String> customEnv = null;
 	
 	private static void refresh()
@@ -23,8 +27,9 @@ public class EnvironmentUtils extends Globals
 		else
 			customEnv.clear();
 				
-		customEnv.put("WEBAPPS", servlet.getWebappsDirectory().getAbsolutePath());
-		customEnv.put("PLUGINS_DIR", Settings.DEPLOYED_PLUGINS_DIRECTORY.getAbsolutePath());
+		customEnv.put(WEBAPPS, servlet.getWebappsDirectory().getAbsolutePath());
+		customEnv.put(PLUGINS_DIR, Settings.DEPLOYED_PLUGINS_DIRECTORY.getAbsolutePath());
+		customEnv.put(DOWNLOAD_DIR, Settings.DOWNLOADS_DIRECTORY.getAbsolutePath());
 	}
 	
 	public static String replace(String str)

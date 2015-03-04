@@ -1,6 +1,7 @@
 package weave.plugins;
 
 import weave.configs.JettyConfig;
+import weave.utils.EnvironmentUtils;
 
 public class JettyPlugin extends Plugin
 {
@@ -16,10 +17,16 @@ public class JettyPlugin extends Plugin
 	{
 		super(JettyConfig.NAME);
 		
+		String filename = "";
+		String url = JettyConfig.getConfig().getDownloadURL();
+		if( url != null )
+			filename = url.substring(url.lastIndexOf("/") + 1);
+		
 		setPluginVersion(JettyConfig.getConfig().getInstallVersion());
 		setPluginHomepageURL(JettyConfig.getConfig().getHomepageURL());
-		setPluginDownloadURL(JettyConfig.getConfig().getDownloadURL());
+		setPluginDownloadURL(url);
 		setPluginDescription(JettyConfig.getConfig().getDescription());
-		setPluginBaseDirectory("${PLUGINS_DIR}/" + getPluginName());
+		setPluginDownloadFile("${" + EnvironmentUtils.DOWNLOAD_DIR + "}/" + filename);
+		setPluginBaseDirectory("${" + EnvironmentUtils.PLUGINS_DIR + "}/" + getPluginName());
 	}
 }
