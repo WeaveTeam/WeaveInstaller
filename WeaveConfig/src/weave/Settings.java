@@ -123,6 +123,7 @@ public class Settings extends Globals
 	public static File DOWNLOADS_DIRECTORY				= null;
 	public static File DOWNLOADS_TMP_DIRECTORY			= null;
 	public static File BIN_DIRECTORY					= null;
+	public static File LIBS_DIRECTORY					= null;
 	public static File LOGS_DIRECTORY					= null;
 	public static File REVISIONS_DIRECTORY 				= null;
 	public static File UNZIP_DIRECTORY 					= null;
@@ -404,6 +405,7 @@ public class Settings extends Globals
 		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
 		LOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".lock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
+		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "libs"				+ F_S);
 		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
 		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
 		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + "tmp" 				+ F_S);
@@ -415,6 +417,7 @@ public class Settings extends Globals
 		/* If the folders do not already exist, create them. */
 		if( !WEAVE_ROOT_DIRECTORY.exists() ) 		WEAVE_ROOT_DIRECTORY.mkdirs();
 		if( !BIN_DIRECTORY.exists() )				BIN_DIRECTORY.mkdirs();
+		if( !LIBS_DIRECTORY.exists() )				LIBS_DIRECTORY.mkdirs();
 		if( !LOGS_DIRECTORY.exists() )				LOGS_DIRECTORY.mkdirs();
 		if( !DOWNLOADS_DIRECTORY.exists() )			DOWNLOADS_DIRECTORY.mkdirs();
 		if( !DEPLOYED_PLUGINS_DIRECTORY.exists() )	DEPLOYED_PLUGINS_DIRECTORY.mkdirs();
@@ -468,6 +471,16 @@ public class Settings extends Globals
 		Settings.save();
 	}
 	
+	
+	public static void loadLibrary(String path) throws FileNotFoundException
+	{
+		File lib = new File(LIBS_DIRECTORY, path);
+		
+		if( !lib.exists() )
+			return;
+		
+		System.load(lib.getAbsolutePath());
+	}
 	
 	/**
 	 * Obtain a file lock to allow only 1 instance to be open.

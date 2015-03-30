@@ -178,8 +178,11 @@ public class Installer extends JFrame
 	
 	public Installer() throws Exception
 	{
+		// ======== INITIALIZATION ======== //
+		Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
 		TrayManager.initializeTray(this);
 		ConfigManager.getConfigManager().initializeConfigs();
+		
 
 		// ======== STRUCTURING ========= //
 		setSize(600, 450);

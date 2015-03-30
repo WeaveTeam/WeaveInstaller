@@ -108,7 +108,7 @@ public class ZipUtils extends TransferUtils
 	public static int extract( File zipFile, File destination, int flags, AsyncObserver observer, int throttle ) throws ZipException, IOException, InterruptedException
 	{
 		if( zipFile == null || destination == null )
-			throw new NullPointerException("Zip File or Destination File cannot be null");
+			throw new NullPointerException("Zip File or Destination File is null");
 		
 		assert zipFile != null;
 		assert destination != null;
@@ -144,7 +144,7 @@ public class ZipUtils extends TransferUtils
 	public static List<String> getZipEntries(File zipFile) throws ZipException, IOException
 	{
 		if( zipFile == null )
-			throw new NullPointerException("Zipfile cannot be null");
+			throw new NullPointerException("Zip File is null");
 		
 		assert zipFile != null;
 		
@@ -187,7 +187,7 @@ public class ZipUtils extends TransferUtils
 	public static int getNumberOfEntriesInZip( File zip )
 	{
 		if( zip == null )
-			throw new NullPointerException("Zip file is null");
+			throw new NullPointerException("Zip File is null");
 		
 		assert zip != null;
 		
@@ -222,7 +222,7 @@ public class ZipUtils extends TransferUtils
 		byte[] buffer = new byte[MAGIC_BYTES.length];
 		
 		if( zip == null )
-			throw new NullPointerException("Zip file cannot be null");
+			throw new NullPointerException("Zip file is null");
 		
 		assert zip != null;
 		

@@ -485,7 +485,8 @@ public class Updater extends JFrame
 				if( !shortcut.exists() )
 				{
 					statusLabel.setText("Creating shortcut...");
-					JOptionPane.showConfirmDialog(null, "    A shortcut will be added to your desktop.      \n\n" +
+					JOptionPane.showConfirmDialog(null, 
+							"    A shortcut will be added to your desktop.      \n\n" +
 							"    Please use the shortcut for future use.",
 							Settings.UPDATER_NAME,
 							JOptionPane.OK_CANCEL_OPTION,
@@ -500,7 +501,7 @@ public class Updater extends JFrame
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {
 					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
+//					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		}

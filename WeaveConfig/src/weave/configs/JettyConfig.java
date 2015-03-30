@@ -70,7 +70,7 @@ public class JettyConfig extends Config
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setHomepageURL(HOMEPAGE);
 			setDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
-			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation.");
+			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation&#153.");
 			setWarning(	"<center><b>" + getConfigName() + " is a plugin that will run inside the tool and does not require external configuration.<br>" + 
 						"This is the appropriate choice for new users.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));

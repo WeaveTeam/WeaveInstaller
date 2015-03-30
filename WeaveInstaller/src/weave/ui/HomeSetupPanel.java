@@ -21,7 +21,6 @@ package weave.ui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -76,7 +75,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -271,6 +269,9 @@ public class HomeSetupPanel extends SetupPanel
 						TraceUtils.trace(TraceUtils.STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
+					
+					if( sessionStateTable.getSelectedIndex() == -1 )
+						sessionStateTable.setSelectedIndex(0);
 				}
 				else if( selectedTab == pluginsTab )
 				{
@@ -283,6 +284,12 @@ public class HomeSetupPanel extends SetupPanel
 						@Override
 						public Object doInBackground() {
 							try {
+								if( Settings.isOfflineMode() )
+								{
+									troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
+									return null;
+								}
+								
 								faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
 //								System.out.println("page updated to " + faqURL);
 								troubleshootHTML.setPage(faqURL);
@@ -313,7 +320,7 @@ public class HomeSetupPanel extends SetupPanel
 								});
 							} catch (IOException e) {
 								TraceUtils.trace(TraceUtils.STDERR, e);
-								troubleshootHTML.setText("FAQ is currently offline.");
+								troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
 							}
 							return null;
 						}
@@ -542,12 +549,9 @@ public class HomeSetupPanel extends SetupPanel
 		sessionStateTable = new CustomTable(new String[] {"Name", "Date", "Size"}, new Object[0][3]);
 		sessionStateTable.setBounds(0, 0, panel.getWidth() - 10, panel.getHeight() / 2);
 		sessionStateTable.setColumnSizes(new int[] { 200, 75, 50 });
-		sessionStateTable.addTableMouseListener(new MouseListener() {
-			@Override public void mouseReleased(MouseEvent e) { }
-			@Override public void mousePressed(MouseEvent e) { }
-			@Override public void mouseExited(MouseEvent e) { }
-			@Override public void mouseEntered(MouseEvent e) { }
-			@Override public void mouseClicked(MouseEvent e) 
+		sessionStateTable.addTableSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) 
 			{
 				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
 				if( selectedFile == null )
@@ -568,33 +572,23 @@ public class HomeSetupPanel extends SetupPanel
 					if( !sessionState.exists() )
 						return;
 					
-					
-					if( e.getClickCount() == 1 )
+				
+					ZipFile zip = new ZipFile(sessionState);
+					Enumeration<? extends ZipEntry> entries = zip.entries();
+					BufferedImage img;
+					while( entries.hasMoreElements() )
 					{
-						ZipFile zip = new ZipFile(sessionState);
-						Enumeration<? extends ZipEntry> entries = zip.entries();
-						BufferedImage img;
-						while( entries.hasMoreElements() )
+						ZipEntry entry = entries.nextElement();
+						if( entry.getName().contains("thumbnail") )
 						{
-							ZipEntry entry = entries.nextElement();
-							if( entry.getName().contains("thumbnail") )
-							{
-								img = ImageUtils.fit(ImageIO.read(zip.getInputStream(entry)), sessionLabel.getWidth(), sessionLabel.getHeight());
-								sessionLabel.setIcon(new ImageIcon(img));
-								break;
-							}
+							img = ImageUtils.fit(ImageIO.read(zip.getInputStream(entry)), sessionLabel.getWidth(), sessionLabel.getHeight());
+							sessionLabel.setIcon(new ImageIcon(img));
+							break;
 						}
-						zip.close();
-						launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
 					}
-					else if( e.getClickCount() == 2 )
-					{
-						LaunchUtils.browse("http://" + 
-								Settings.LOCALHOST + ":" + 
-								ConfigManager.getConfigManager().getActiveContainer().getPort() +
-								"/weave.html?file=" + 
-								sessionState.getName());
-					}
+					zip.close();
+					launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
+					
 				} catch (NoSuchMethodException e1) {
 					TraceUtils.trace(TraceUtils.STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
@@ -615,13 +609,17 @@ public class HomeSetupPanel extends SetupPanel
 				} catch (IOException e1) {
 					TraceUtils.trace(TraceUtils.STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
-				} catch (URISyntaxException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (InterruptedException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
 				}
+			}
+		});
+		sessionStateTable.addTableMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) 
+			{
+				
 			}
 		});
 		sessionStateTable.addTableFocusListener(new FocusListener() {
@@ -695,7 +693,7 @@ public class HomeSetupPanel extends SetupPanel
 						}
 					}
 				}
-				switchToTab(pluginsTab);
+				switchToTab(sessionsTab);
 			}
 			@Override public void dropActionChanged(DropTargetDragEvent dtde) { }
 			@Override public void dragOver(DropTargetDragEvent dtde) { }
@@ -812,6 +810,11 @@ public class HomeSetupPanel extends SetupPanel
 		pluginsTable.addTableSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
+				pluginsInstallButton.setEnabled(!Settings.isOfflineMode());
+				pluginsPane.setText("<b>Plugin Name</b><br><hr><br>" + 
+						"<b>Homepage:</b> <br>" +
+						"<b>Size:</b> <br><br>");
+				
 				String pluginName = (String) pluginsTable.getSelectedRow()[0];
 				if( pluginName == null )
 					return;
@@ -819,21 +822,31 @@ public class HomeSetupPanel extends SetupPanel
 				IPlugin selectedPlugin = PluginManager.getPluginManager().getPluginByName(pluginName);
 				if( selectedPlugin == null )
 					return;
-				
+
+				String pluginURL = selectedPlugin.getPluginDownloadURL();
+				if( pluginURL == null ) {
+					pluginsPane.setText("<b>" + selectedPlugin.getPluginName() + "</b><br><hr><br>" + 
+										"<b>Homepage:</b> <a href=\"" + selectedPlugin.getPluginHomepageURL() + "\">" + StringUtils.truncate(selectedPlugin.getPluginHomepageURL(), 34) + "</a><br>" +
+										"<b>Size:</b> Download offline<br><br>" +  
+										selectedPlugin.getPluginDescription());
+					return;
+				}
+					
 				try {
+					System.out.println("Download URL: " + selectedPlugin.getPluginDownloadURL());
 					String size = URLRequestUtils.getContentHeader(selectedPlugin.getPluginDownloadURL(), "Content-Length");
 							
 					if( size != null )
 						size = FileUtils.sizeify(size);
 					else
-						size = "Download not found";
+						size = "Download offline";
 					
 					pluginsPane.setText("<b>" + selectedPlugin.getPluginName() + "</b><br><hr><br>" + 
 										"<b>Homepage:</b> <a href=\"" + selectedPlugin.getPluginHomepageURL() + "\">" + StringUtils.truncate(selectedPlugin.getPluginHomepageURL(), 34) + "</a><br>" +
 										"<b>Size:</b> " + size + "<br><br>" +  
 										selectedPlugin.getPluginDescription());
 					
-					pluginsInstallButton.setEnabled(!selectedPlugin.isPluginInstalled());
+					pluginsInstallButton.setText(selectedPlugin.isPluginInstalled() ? "Reinstall" : "Install");
 					
 				} catch (MalformedURLException ex) {
 					TraceUtils.trace(TraceUtils.STDERR, ex);
@@ -899,12 +912,11 @@ public class HomeSetupPanel extends SetupPanel
 				if( selectedPlugin == null )
 					return;
 				
-//				System.out.println("\nName: " + selectedPlugin.getPluginName());
-//				System.out.println("Base Dir: " + selectedPlugin.getPluginBaseDirectory());
-//				System.out.println("DL Link: " + selectedPlugin.getPluginDownloadURL());
-//				System.out.println("DL File: " + selectedPlugin.getPluginDownloadFile());
 				try {
-					downloadPlugin(selectedPlugin.getPluginDownloadURL(), selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
+					if( pluginsInstallButton.getText().equals("Install") )
+						downloadPlugin(selectedPlugin.getPluginDownloadURL(), selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
+					else
+						extractPlugin(selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
 				} catch (MalformedURLException ex) {
 					TraceUtils.trace(TraceUtils.STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
@@ -944,173 +956,173 @@ public class HomeSetupPanel extends SetupPanel
 	public JPanel createTab4(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
-		JPanel innerPanel = new JPanel();
-		JPanel serverUpdateBox = new JPanel();
-		JPanel weaveUpdateBox = new JPanel();
-		JPanel maintenanceBox = new JPanel();
-		JPanel protoextBox = new JPanel();
-		
-		innerPanel.setLayout(null);
-		innerPanel.setSize(panel.getWidth() - 40, 800);
-		innerPanel.setPreferredSize(new Dimension(parent.getWidth() - 40, 800));
-		innerPanel.setBackground(Color.WHITE);
-		
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Weave Server Assistant Updates
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		settingsServerUpdatesTitle = BorderFactory.createTitledBorder(null, "Server Assistant Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-		serverUpdateBox.setBounds(10, 10, innerPanel.getWidth() - 40, 150);
-		serverUpdateBox.setLayout(null);
-		serverUpdateBox.setBackground(Color.WHITE);
-		serverUpdateBox.setBorder(settingsServerUpdatesTitle);
-		
-		settingsUpdatesAutoInstallCheckbox = new JCheckBox("Automatically install updates on startup");
-		settingsUpdatesAutoInstallCheckbox.setBounds(10, 20, 300, 30);
-		settingsUpdatesAutoInstallCheckbox.setBackground(Color.WHITE);
-		settingsUpdatesAutoInstallCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		serverUpdateBox.add(settingsUpdatesAutoInstallCheckbox);
-		
-		settingsUpdatesCheckNewCheckbox = new JCheckBox("Check for new updates");
-		settingsUpdatesCheckNewCheckbox.setBounds(10, 50, 170, 30);
-		settingsUpdatesCheckNewCheckbox.setBackground(Color.WHITE);
-		settingsUpdatesCheckNewCheckbox.setEnabled(true);
-		settingsUpdatesCheckNewCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
-			}
-		});
-		serverUpdateBox.add(settingsUpdatesCheckNewCheckbox);
-		
-		settingsUpdatesCheckNewCombobox = new JComboBox<String>();
-		settingsUpdatesCheckNewCombobox.setBounds(180, 50, 150, 30);
-		settingsUpdatesCheckNewCombobox.setBackground(Color.WHITE);
-		settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
-		settingsUpdatesCheckNewCombobox.addItem("Every hour");
-		settingsUpdatesCheckNewCombobox.addItem("Every day");
-		settingsUpdatesCheckNewCombobox.addItem("Every week");
-		settingsUpdatesCheckNewCombobox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		serverUpdateBox.add(settingsUpdatesCheckNewCombobox);
-		
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Weave Updates
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		settingsWeaveUpdatesTitle = BorderFactory.createTitledBorder(null, "Weave Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-		weaveUpdateBox.setBounds(10, 170, innerPanel.getWidth() - 40, 150);
-		weaveUpdateBox.setLayout(null);
-		weaveUpdateBox.setBackground(Color.WHITE);
-		weaveUpdateBox.setBorder(settingsWeaveUpdatesTitle);
-		
-		
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Maintenance
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		settingsMaintenanceTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-		maintenanceBox.setBounds(10, 330, innerPanel.getWidth() - 40, 150);
-		maintenanceBox.setLayout(null);
-		maintenanceBox.setBackground(Color.WHITE);
-		maintenanceBox.setBorder(settingsMaintenanceTitle);
-		
-		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than ");
-		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 180, 25);
-		settingsMaintenanceDeleteLogsCheckbox.setBackground(Color.WHITE);
-		settingsMaintenanceDeleteLogsCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		maintenanceBox.add(settingsMaintenanceDeleteLogsCheckbox);
-		
-		settingsMaintenanceDeleteLogsTextfield = new JTextField();
-		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 21, 25, 26);
-		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.WHITE);
-		settingsMaintenanceDeleteLogsTextfield.setBorder(new LineBorder(Color.BLACK, 1));
-		maintenanceBox.add(settingsMaintenanceDeleteLogsTextfield);
-		
-		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsTextfield, 0);
-		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsCheckbox, 1);
-
-		
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Protocols & Extensions
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		settingsProtoExtTitle = BorderFactory.createTitledBorder(null, "Protocol & Extension", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.GRAY);
-		protoextBox.setBounds(10, 490, innerPanel.getWidth() - 40, 150);
-		protoextBox.setLayout(null);
-		protoextBox.setBackground(Color.WHITE);
-		protoextBox.setBorder(settingsProtoExtTitle);
-		
-		settingsExtCheckbox = new JCheckBox("Enable Weave Extesion");
-		settingsExtCheckbox.setBounds(10, 20, 300, 30);
-		settingsExtCheckbox.setBackground(Color.WHITE);
-		settingsExtCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Settings.enableWeaveExtension(settingsExtCheckbox.isSelected());
-				} catch (IllegalArgumentException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (IllegalAccessException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (InvocationTargetException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				}
-			}
-		});
-		protoextBox.add(settingsExtCheckbox);
-		
-		settingsProtocolCheckbox = new JCheckBox("Enable Weave Protocol");
-		settingsProtocolCheckbox.setBounds(10, 50, 300, 30);
-		settingsProtocolCheckbox.setBackground(Color.WHITE);
-		settingsProtocolCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Settings.enableWeaveProtocol(settingsProtocolCheckbox.isSelected());
-				} catch (IllegalArgumentException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (IllegalAccessException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				} catch (InvocationTargetException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
-				}
-			}
-		});
-		protoextBox.add(settingsProtocolCheckbox);
-		
-		
-		innerPanel.add(serverUpdateBox);
-		innerPanel.add(weaveUpdateBox);
-		innerPanel.add(maintenanceBox);
-		innerPanel.add(protoextBox);
-		
-		
-		settingsScrollPane = new JScrollPane();
-		settingsScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
-		settingsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		settingsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		settingsScrollPane.setViewportView(innerPanel);
-		settingsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-		settingsScrollPane.setVisible(true);
-		
-		panel.add(settingsScrollPane);
-		
+//		JPanel innerPanel = new JPanel();
+//		JPanel serverUpdateBox = new JPanel();
+//		JPanel weaveUpdateBox = new JPanel();
+//		JPanel maintenanceBox = new JPanel();
+//		JPanel protoextBox = new JPanel();
+//		
+//		innerPanel.setLayout(null);
+//		innerPanel.setSize(panel.getWidth() - 40, 800);
+//		innerPanel.setPreferredSize(new Dimension(parent.getWidth() - 40, 800));
+//		innerPanel.setBackground(Color.WHITE);
+//		
+//
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		// Weave Server Assistant Updates
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		settingsServerUpdatesTitle = BorderFactory.createTitledBorder(null, "Server Assistant Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+//		serverUpdateBox.setBounds(10, 10, innerPanel.getWidth() - 40, 150);
+//		serverUpdateBox.setLayout(null);
+//		serverUpdateBox.setBackground(Color.WHITE);
+//		serverUpdateBox.setBorder(settingsServerUpdatesTitle);
+//		
+//		settingsUpdatesAutoInstallCheckbox = new JCheckBox("Automatically install updates on startup");
+//		settingsUpdatesAutoInstallCheckbox.setBounds(10, 20, 300, 30);
+//		settingsUpdatesAutoInstallCheckbox.setBackground(Color.WHITE);
+//		settingsUpdatesAutoInstallCheckbox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				
+//			}
+//		});
+//		serverUpdateBox.add(settingsUpdatesAutoInstallCheckbox);
+//		
+//		settingsUpdatesCheckNewCheckbox = new JCheckBox("Check for new updates");
+//		settingsUpdatesCheckNewCheckbox.setBounds(10, 50, 170, 30);
+//		settingsUpdatesCheckNewCheckbox.setBackground(Color.WHITE);
+//		settingsUpdatesCheckNewCheckbox.setEnabled(true);
+//		settingsUpdatesCheckNewCheckbox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
+//			}
+//		});
+//		serverUpdateBox.add(settingsUpdatesCheckNewCheckbox);
+//		
+//		settingsUpdatesCheckNewCombobox = new JComboBox<String>();
+//		settingsUpdatesCheckNewCombobox.setBounds(180, 50, 150, 30);
+//		settingsUpdatesCheckNewCombobox.setBackground(Color.WHITE);
+//		settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
+//		settingsUpdatesCheckNewCombobox.addItem("Every hour");
+//		settingsUpdatesCheckNewCombobox.addItem("Every day");
+//		settingsUpdatesCheckNewCombobox.addItem("Every week");
+//		settingsUpdatesCheckNewCombobox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				
+//			}
+//		});
+//		serverUpdateBox.add(settingsUpdatesCheckNewCombobox);
+//		
+//
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		// Weave Updates
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		settingsWeaveUpdatesTitle = BorderFactory.createTitledBorder(null, "Weave Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+//		weaveUpdateBox.setBounds(10, 170, innerPanel.getWidth() - 40, 150);
+//		weaveUpdateBox.setLayout(null);
+//		weaveUpdateBox.setBackground(Color.WHITE);
+//		weaveUpdateBox.setBorder(settingsWeaveUpdatesTitle);
+//		
+//		
+//
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		// Maintenance
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		settingsMaintenanceTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
+//		maintenanceBox.setBounds(10, 330, innerPanel.getWidth() - 40, 150);
+//		maintenanceBox.setLayout(null);
+//		maintenanceBox.setBackground(Color.WHITE);
+//		maintenanceBox.setBorder(settingsMaintenanceTitle);
+//		
+//		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than ");
+//		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 180, 25);
+//		settingsMaintenanceDeleteLogsCheckbox.setBackground(Color.WHITE);
+//		settingsMaintenanceDeleteLogsCheckbox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				
+//			}
+//		});
+//		maintenanceBox.add(settingsMaintenanceDeleteLogsCheckbox);
+//		
+//		settingsMaintenanceDeleteLogsTextfield = new JTextField();
+//		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 21, 25, 26);
+//		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.WHITE);
+//		settingsMaintenanceDeleteLogsTextfield.setBorder(new LineBorder(Color.BLACK, 1));
+//		maintenanceBox.add(settingsMaintenanceDeleteLogsTextfield);
+//		
+//		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsTextfield, 0);
+//		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsCheckbox, 1);
+//
+//		
+//
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		// Protocols & Extensions
+//		////////////////////////////////////////////////////////////////////////////////////////////////
+//		
+//		settingsProtoExtTitle = BorderFactory.createTitledBorder(null, "Protocol & Extension", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.GRAY);
+//		protoextBox.setBounds(10, 490, innerPanel.getWidth() - 40, 150);
+//		protoextBox.setLayout(null);
+//		protoextBox.setBackground(Color.WHITE);
+//		protoextBox.setBorder(settingsProtoExtTitle);
+//		
+//		settingsExtCheckbox = new JCheckBox("Enable Weave Extesion");
+//		settingsExtCheckbox.setBounds(10, 20, 300, 30);
+//		settingsExtCheckbox.setBackground(Color.WHITE);
+//		settingsExtCheckbox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				try {
+//					Settings.enableWeaveExtension(settingsExtCheckbox.isSelected());
+//				} catch (IllegalArgumentException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				} catch (IllegalAccessException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				} catch (InvocationTargetException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				}
+//			}
+//		});
+//		protoextBox.add(settingsExtCheckbox);
+//		
+//		settingsProtocolCheckbox = new JCheckBox("Enable Weave Protocol");
+//		settingsProtocolCheckbox.setBounds(10, 50, 300, 30);
+//		settingsProtocolCheckbox.setBackground(Color.WHITE);
+//		settingsProtocolCheckbox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				try {
+//					Settings.enableWeaveProtocol(settingsProtocolCheckbox.isSelected());
+//				} catch (IllegalArgumentException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				} catch (IllegalAccessException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				} catch (InvocationTargetException e1) {
+//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//				}
+//			}
+//		});
+//		protoextBox.add(settingsProtocolCheckbox);
+//		
+//		
+//		innerPanel.add(serverUpdateBox);
+//		innerPanel.add(weaveUpdateBox);
+//		innerPanel.add(maintenanceBox);
+//		innerPanel.add(protoextBox);
+//		
+//		
+//		settingsScrollPane = new JScrollPane();
+//		settingsScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
+//		settingsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+//		settingsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//		settingsScrollPane.setViewportView(innerPanel);
+//		settingsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+//		settingsScrollPane.setVisible(true);
+//		
+//		panel.add(settingsScrollPane);
+//		
 		return panel;
 	}
 	public JPanel createTroubleshootTab(JComponent parent)

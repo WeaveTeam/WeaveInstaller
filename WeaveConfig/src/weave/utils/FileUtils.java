@@ -199,7 +199,7 @@ public class FileUtils extends TransferUtils
 		
 		// Check to see if either of the file(s) are null and throw an error if they are
 		if( source == null || destination == null )
-			throw new NullPointerException("Source File or Destination File cannot be null");
+			throw new NullPointerException("Source File or Destination File is null");
 		
 		// If no error was thrown, we can then assert that both files are non-null
 		assert source != null;
@@ -296,7 +296,7 @@ public class FileUtils extends TransferUtils
 		
 		// Check to see if either the input or output stream(s) are null and throw an error if they are
 		if( in == null || out == null )
-			throw new NullPointerException("InputStream or OutputStream cannot be null");
+			throw new NullPointerException("InputStream or OutputStream is null");
 		
 		// If no error is thrown, we can then assert that the streams are non-null.
 		assert in != null;
@@ -672,23 +672,23 @@ public class FileUtils extends TransferUtils
 		int u = permissions & 0xF00;
 		int o = permissions & 0x00F;
 		// Other
-		if( o == 0x7 ) {
+		if( o == 0x007 ) {
 			perm &= file.setReadable(true, false);
 			perm &= file.setWritable(true, false);
 			perm &= file.setExecutable(true, false);
-		} else if( o == 0x6 ) {
+		} else if( o == 0x006 ) {
 			perm &= file.setReadable(true, false);
 			perm &= file.setWritable(true, false);
 			perm &= file.setExecutable(false, false);
-		} else if( o == 0x5 ) {
+		} else if( o == 0x005 ) {
 			perm &= file.setReadable(true, false);
 			perm &= file.setWritable(false, false);
 			perm &= file.setExecutable(true, false); 
-		} else if( o == 0x4 ) {
+		} else if( o == 0x004 ) {
 			perm &= file.setReadable(true, false);
 			perm &= file.setWritable(false, false);
 			perm &= file.setExecutable(false, false); 
-		} else if( o == 0x0 ) {
+		} else if( o == 0x000 ) {
 			perm &= file.setReadable(false, false);
 			perm &= file.setWritable(false, false);
 			perm &= file.setExecutable(false, false);

@@ -103,7 +103,8 @@ public class BugReportWindow extends JFrame
 		titleContainer.setBounds(65, 15, 300, 30);
 		titleContainer.setContentType("text/html");
 		titleContainer.setText(title);
-		titleContainer.setBackground(new Color(0xF0F0F0));
+		titleContainer.setOpaque(false);
+		titleContainer.setBackground(new Color(0,0,0,0));
 		titleContainer.setEditable(false);
 		titleContainer.setVisible(true);
 		
@@ -113,7 +114,8 @@ public class BugReportWindow extends JFrame
 		messageContainer.setBounds(20, 50, 354, 55);
 		messageContainer.setContentType("text/html");
 		messageContainer.setText(message);
-		messageContainer.setBackground(new Color(0xF0F0F0));
+		messageContainer.setOpaque(false);
+		messageContainer.setBackground(new Color(0,0,0,0));
 		messageContainer.setEditable(false);
 		messageContainer.setVisible(true);
 		
@@ -134,7 +136,7 @@ public class BugReportWindow extends JFrame
 		details.setEnabled(true);
 		details.setVisible(true);
 		
-		checkbox.setBounds(20, 110, 190, 25);
+		checkbox.setBounds(20, 110, 250, 25);
 		checkbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {

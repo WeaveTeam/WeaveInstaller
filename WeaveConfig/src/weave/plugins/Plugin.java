@@ -1,15 +1,9 @@
 package weave.plugins;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.zip.ZipException;
 
 import weave.Globals;
-import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
-import weave.utils.TraceUtils;
-import weave.utils.ZipUtils;
 
 public class Plugin extends Globals implements IPlugin
 {
@@ -53,33 +47,34 @@ public class Plugin extends Globals implements IPlugin
 
 	@Override public Boolean isPluginInstalled() 
 	{
-		boolean installed = true;
+//		boolean installed = true;
 		File zipFile = new File(getPluginDownloadFile());
-		if( !zipFile.exists() )
-			return false;
+		return zipFile.exists();
+//		if( !zipFile.exists() )
+//			return false;
 		
-		try {
-			if( getPluginBaseDirectory() == null )
-				return false; 
-			
-			List<String> list = ZipUtils.getZipEntries(zipFile);
-			File destination = new File(getPluginBaseDirectory());
-			File tmp = null;
-			
-			for( int i = 0; i < list.size(); i++ ) 
-			{
-				tmp = new File(destination, list.get(i));
-				installed &= tmp.exists();
-			}
-			
-		} catch (ZipException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			return false;
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		}
-		return installed;
+//		try {
+//			if( getPluginBaseDirectory() == null )
+//				return false; 
+//			
+//			List<String> list = ZipUtils.getZipEntries(zipFile);
+//			File destination = new File(getPluginBaseDirectory());
+//			File tmp = null;
+//			
+//			for( int i = 0; i < list.size(); i++ ) 
+//			{
+//				tmp = new File(destination, list.get(i));
+//				installed &= tmp.exists();
+//			}
+//			
+//		} catch (ZipException e) {
+//			TraceUtils.trace(TraceUtils.STDERR, e);
+//			return false;
+//		} catch (IOException e) {
+//			TraceUtils.trace(TraceUtils.STDERR, e);
+//			BugReportUtils.showBugReportDialog(e);
+//			return false;
+//		}
+//		return installed;
 	}
 }
