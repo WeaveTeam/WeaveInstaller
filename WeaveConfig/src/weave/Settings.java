@@ -19,6 +19,12 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,7 +63,6 @@ import weave.utils.ProcessUtils;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
 import weave.utils.SyscallCreatorUtils;
-import weave.utils.TraceUtils;
 
 public class Settings extends Globals
 {
@@ -270,7 +275,7 @@ public class Settings extends Globals
 	public static boolean save()
 	{
 		try {
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Saving settings file...........");
+			trace(STDOUT, "-> Saving settings file...........");
 			
 			if( !WEAVE_ROOT_DIRECTORY.exists() )
 				WEAVE_ROOT_DIRECTORY.mkdirs();
@@ -288,10 +293,10 @@ public class Settings extends Globals
 			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(SETTINGS_FILE));
 			outstream.writeObject(SETTINGS_MAP);
 			outstream.close();
-			TraceUtils.put(TraceUtils.STDOUT, "DONE");
+			put(STDOUT, "DONE");
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		}
@@ -314,11 +319,11 @@ public class Settings extends Globals
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e); 
+			trace(STDERR, e); 
 		}
 		
 		try {
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Loading settings file..........");
+			trace(STDOUT, "-> Loading settings file..........");
 			
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(SETTINGS_FILE));
 			SETTINGS_MAP = (Map<String, Object>) instream.readObject();
@@ -333,31 +338,31 @@ public class Settings extends Globals
 			LAUNCH_MODE = 			(MODE)			ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
 			RPC_PORT = 				(Integer)		ObjectUtils.ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
 			
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tCONFIGURED: " + CONFIGURED);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tCURRENT_INSTALL_VER: " + CURRENT_INSTALL_VER);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tUPDATE_FREQ: " + UPDATE_FREQ);
-//			TraceUtils.trace(TraceUtils.STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
+//			trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
+//			trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
+//			trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
+//			trace(STDOUT, "\tCURRENT_INSTALL_VER: " + CURRENT_INSTALL_VER);
+//			trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
+//			trace(STDOUT, "\tUPDATE_FREQ: " + UPDATE_FREQ);
+//			trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
 
 		} catch (FileNotFoundException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			JOptionPane.showMessageDialog(null, "Error reading settings file: File not found", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		} catch (ClassNotFoundException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		}
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 		return true;
 	}
 	
@@ -423,10 +428,10 @@ public class Settings extends Globals
 		if( !DEPLOYED_PLUGINS_DIRECTORY.exists() )	DEPLOYED_PLUGINS_DIRECTORY.mkdirs();
 		if( !REVISIONS_DIRECTORY.exists() )			REVISIONS_DIRECTORY.mkdirs();
 
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
-		TraceUtils.traceln(TraceUtils.STDOUT, "######################################");
-		TraceUtils.traceln(TraceUtils.STDOUT, "=== Running Preconfiguration ===");
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Creating File Structure........DONE");
+		traceln(STDOUT, "");
+		traceln(STDOUT, "######################################");
+		traceln(STDOUT, "=== Running Preconfiguration ===");
+		traceln(STDOUT, "-> Creating File Structure........DONE");
 	}
 	
 	
@@ -435,7 +440,7 @@ public class Settings extends Globals
 	 */
 	public static void getNetworkInfo(Boolean offline)
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Getting network info...........");
+		trace(STDOUT, "-> Getting network info...........");
 		try {
 			LOCAL_IP = InetAddress.getLocalHost().getHostAddress();
 			LOCALHOST = "127.0.0.1";
@@ -444,10 +449,10 @@ public class Settings extends Globals
 				REMOTE_IP = RemoteUtils.getIP();
 			
 		} catch (UnknownHostException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 		}
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 	}
 	
 	/**
@@ -492,7 +497,7 @@ public class Settings extends Globals
 	public static boolean getLock() throws InterruptedException
 	{
 		int myPID = getPID();
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Getting lock file..............");
+		traceln(STDOUT, "-> Getting lock file..............");
 
 		if( LOCK_FILE.exists() )
 		{
@@ -500,24 +505,24 @@ public class Settings extends Globals
 				int lockPID = Integer.parseInt(FileUtils.getFileContents(LOCK_FILE));
 				
 				if( isActivePID(lockPID) ) {
-					TraceUtils.put(TraceUtils.STDOUT, "FAILED (ALREADY OPEN)");
+					put(STDOUT, "FAILED (ALREADY OPEN)");
 					return false;
 				}
 				
 				releaseLock();
 				Thread.sleep(500);
-				TraceUtils.put(TraceUtils.STDOUT, "CLEANING");
+				put(STDOUT, "CLEANING");
 				
 				return getLock();
 				
 			} catch (NumberFormatException e) {
-				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-				TraceUtils.trace(TraceUtils.STDERR, e); 
+				put(STDOUT, "FAILED");
+				trace(STDERR, e); 
 				BugReportUtils.showBugReportDialog(e);
 				return false;
 			} catch (IOException e) {
-				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				put(STDOUT, "FAILED");
+				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 				return false;
 			}
@@ -531,12 +536,12 @@ public class Settings extends Globals
 				bw.flush();
 				bw.close();
 			} catch (IOException e) {
-				TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				put(STDOUT, "FAILED");
+				trace(STDERR, e);
 				return false;
 			}
 		}
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 		return true;
 	}
 	
@@ -567,10 +572,10 @@ public class Settings extends Globals
 			sock.close();
 			b = true;
 		} catch (IOException ex) {
-//			TraceUtils.trace(TraceUtils.STDERR, ex);
+//			trace(STDERR, ex);
 		} catch (IllegalArgumentException ex) {
 			JOptionPane.showMessageDialog(null, "Port out of range.");
-//			TraceUtils.trace(TraceUtils.STDERR, ex);
+//			trace(STDERR, ex);
 		}
 		return b;
 	}
@@ -588,7 +593,7 @@ public class Settings extends Globals
 		}
 		final ITC itc = new ITC();
 		
-//		TraceUtils.trace(TraceUtils.STDOUT, "-> Checking Internet Connection...");
+//		trace(STDOUT, "-> Checking Internet Connection...");
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -605,7 +610,7 @@ public class Settings extends Globals
 					// Don't trace error here
 					itc.isConnected = false;
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					itc.isConnected = false;
 				} finally {
 					if( conn != null )
@@ -620,15 +625,15 @@ public class Settings extends Globals
 			t.interrupt();
 			t = null;
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 		
 		isConnectedToInternet = itc.isConnected;
 		
 //		if( itc.isConnected )
-//			TraceUtils.put(TraceUtils.STDOUT, "CONNECTED");
+//			put(STDOUT, "CONNECTED");
 //		else
-//			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+//			put(STDOUT, "FAILED");
 		
 		return itc.isConnected;
 	}
@@ -834,10 +839,10 @@ public class Settings extends Globals
 					return true;
 
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			return false;
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			return false;
 		}
 		
@@ -856,7 +861,7 @@ public class Settings extends Globals
 		boolean success = false;
 		int loop = 0;
 		
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Cleaning...");
+		traceln(STDOUT, "-> Cleaning...");
 		
 		if( DOWNLOADS_TMP_DIRECTORY.exists() )
 		{
@@ -906,7 +911,7 @@ public class Settings extends Globals
 			try {
 				cleanUp();
 			} catch (InterruptedException e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				trace(STDERR, e);
 			}
 		}
 		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.SERVER_NAME) )
@@ -920,7 +925,7 @@ public class Settings extends Globals
 		if( errno != JFrame.ERROR && errno != JFrame.ABORT )
 			releaseLock();
 		
-		TraceUtils.traceln(TraceUtils.STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Shutting Down ===");
+		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Shutting Down ===");
 		System.exit(errno);
 	}
 }

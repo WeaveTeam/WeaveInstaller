@@ -19,6 +19,9 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.io.File;
@@ -34,7 +37,6 @@ import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
-import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
 public class Launcher extends JFrame
@@ -135,15 +137,15 @@ public class Launcher extends JFrame
 
 				if( cfg == null )
 					System.exit(NORMAL);
-				TraceUtils.traceln(TraceUtils.STDOUT, "-> cfg: " + cfg.getConfigName());
+				traceln(STDOUT, "-> cfg: " + cfg.getConfigName());
 				
 				File webapps = cfg.getWebappsDirectory();
 				if( webapps == null )
 					System.exit(NORMAL);
-				TraceUtils.traceln(TraceUtils.STDOUT, "-> webapps: " + webapps.getAbsolutePath());
+				traceln(STDOUT, "-> webapps: " + webapps.getAbsolutePath());
 				
 				File ROOT = new File(webapps, "ROOT");
-				TraceUtils.traceln(TraceUtils.STDOUT, "-> ROOT: " + ROOT.getAbsolutePath());
+				traceln(STDOUT, "-> ROOT: " + ROOT.getAbsolutePath());
 				if( !ROOT.exists() )
 					System.exit(NORMAL);
 				

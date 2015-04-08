@@ -19,6 +19,11 @@
 
 package weave.managers;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.Menu;
@@ -51,7 +56,6 @@ import weave.configs.IConfig;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ReflectionUtils;
-import weave.utils.TraceUtils;
 import weave.utils.UpdateUtils;
 
 public class TrayManager extends Globals
@@ -83,7 +87,7 @@ public class TrayManager extends Globals
 	
 	public static void initializeTray( JFrame p ) throws IOException
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Initializing System Tray.......");
+		trace(STDOUT, "-> Initializing System Tray.......");
 		
 //		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
 		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_LOGO_LARGE);
@@ -91,7 +95,7 @@ public class TrayManager extends Globals
 		trayIconError = ImageIO.read(IconManager.ICON_TRAY_ERROR);
 
 		if( !SystemTray.isSupported() ) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			put(STDOUT, "FAILED");
 			return;
 		}
 		
@@ -131,10 +135,10 @@ public class TrayManager extends Globals
         try {
 			systemTray.add(trayIcon);
 		} catch (AWTException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 	}
 	
 	public static void setTooltip( String text )
@@ -201,9 +205,9 @@ public class TrayManager extends Globals
 						"Database: " + databaseName + " [" + databaseStatus + "]");
 					
 				} catch (SecurityException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (IllegalArgumentException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 				return null;
 			}
@@ -234,10 +238,10 @@ public class TrayManager extends Globals
 							Thread.sleep(50);
 							Settings.shutdown();
 						} catch (IOException ex) {
-							TraceUtils.trace(TraceUtils.STDERR, ex);
+							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						} catch (InterruptedException ex) {
-							TraceUtils.trace(TraceUtils.STDERR, ex);
+							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						}
 					}
@@ -288,8 +292,8 @@ public class TrayManager extends Globals
 				try {
 					LaunchUtils.launchWeaveUpdater();
 					Settings.shutdown();
-				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
-				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (IOException ex) {				trace(STDERR, ex);
+				} catch (InterruptedException ex) {		trace(STDERR, ex);
 				}
 			}
 		});
@@ -300,9 +304,9 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.openAdminConsole();
-				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
-				} catch (URISyntaxException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
-				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
+				} catch (IOException ex) {				trace(STDERR, ex);
+				} catch (URISyntaxException ex) {		trace(STDERR, ex);
+				} catch (InterruptedException ex) {		trace(STDERR, ex);
 				}
 				
 			}
@@ -314,9 +318,9 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE, 100);
-				} catch (IOException ex) {				TraceUtils.trace(TraceUtils.STDERR, ex);
-				} catch (URISyntaxException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);
-				} catch (InterruptedException ex) {		TraceUtils.trace(TraceUtils.STDERR, ex);		
+				} catch (IOException ex) {				trace(STDERR, ex);
+				} catch (URISyntaxException ex) {		trace(STDERR, ex);
+				} catch (InterruptedException ex) {		trace(STDERR, ex);		
 				}
 
 			}
@@ -332,15 +336,15 @@ public class TrayManager extends Globals
 					ReflectionUtils.reflectMethod(globalHashMap.get("Installer"), "switchToHomeSetupPanel");
 					ReflectionUtils.reflectMethod(globalHashMap.get("HomeSetupPanel"), "switchToTab", new Class<?>[] { String.class }, new String[] { "About" });
 				} catch (NoSuchMethodException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (SecurityException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (IllegalAccessException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (IllegalArgumentException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (InvocationTargetException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 			}
 		});

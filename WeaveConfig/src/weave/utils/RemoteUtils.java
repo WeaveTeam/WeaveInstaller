@@ -19,6 +19,9 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.IOException;
 
 import javax.swing.JOptionPane;
@@ -62,10 +65,10 @@ public class RemoteUtils extends Globals
 				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
 			}
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		return configFile;
@@ -106,10 +109,10 @@ public class RemoteUtils extends Globals
 			content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
 			return content.split(";");
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		return null;
@@ -129,10 +132,10 @@ public class RemoteUtils extends Globals
 		try {
 			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP);
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -162,10 +165,10 @@ public class RemoteUtils extends Globals
 
 			return result.equals("1");
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		return false;

@@ -19,6 +19,11 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -64,7 +69,6 @@ import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
-import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 
@@ -117,15 +121,15 @@ public class Installer extends JFrame
 			}
 			
 			
-			TraceUtils.traceln(TraceUtils.STDOUT, "");
-			TraceUtils.traceln(TraceUtils.STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+			traceln(STDOUT, "");
+			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
 			if( !Desktop.isDesktopSupported() || HeadlessGraphicsEnvironment.isHeadless() )
 			{
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! Fault detected !!");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! System does not support Java Desktop Features" );
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
+				traceln(STDOUT, "");
+				traceln(STDOUT, "!! Fault detected !!");
+				traceln(STDOUT, "!! System does not support Java Desktop Features" );
+				traceln(STDOUT, "");
 				Settings.shutdown(ABORT);
 				return;
 			}
@@ -149,12 +153,12 @@ public class Installer extends JFrame
 			
 			installer = new Installer();
 
-		} catch (ClassNotFoundException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InstantiationException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);			
-		} catch (UnsupportedLookAndFeelException e) {	TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);	
-		} catch (IOException e) {						TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);						
-		} catch (Exception e) {							TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);							
+		} catch (ClassNotFoundException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (InstantiationException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);			
+		} catch (UnsupportedLookAndFeelException e) {	trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);	
+		} catch (IOException e) {						trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);						
+		} catch (Exception e) {							trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);							
 		}
 
 		installer.addWindowListener(new WindowListener() {
@@ -220,13 +224,13 @@ public class Installer extends JFrame
 				try {
 					LaunchUtils.browse(Settings.IWEAVE_URL);
 				} catch (IOException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (URISyntaxException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (InterruptedException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
 			}
@@ -273,13 +277,13 @@ public class Installer extends JFrame
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE);
 				} catch (IOException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (InterruptedException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (URISyntaxException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
 			}
@@ -340,14 +344,14 @@ public class Installer extends JFrame
 			public void run() {
 				try {
 					if( updateToNewUpdater() == TransferUtils.COMPLETE ) {
-						TraceUtils.traceln(TraceUtils.STDOUT, "-> Updating WeaveUpdater..........DONE");
+						traceln(STDOUT, "-> Updating WeaveUpdater..........DONE");
 						Settings.setDirectoryPermissions();
 					}
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 			}

@@ -1,5 +1,8 @@
 package weave.configs;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -8,7 +11,6 @@ import javax.swing.JOptionPane;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
-import weave.utils.TraceUtils;
 
 public class OracleConfig extends Config 
 {
@@ -43,10 +45,10 @@ public class OracleConfig extends Config
 			setImage(ImageIO.read(IconManager.IMAGE_ORACLE));
 
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (NumberFormatException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}

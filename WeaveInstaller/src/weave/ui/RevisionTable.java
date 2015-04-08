@@ -19,6 +19,9 @@
 
 package weave.ui;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
@@ -36,7 +39,6 @@ import weave.Revisions;
 import weave.Settings;
 import weave.managers.ConfigManager;
 import weave.utils.ObjectUtils;
-import weave.utils.TraceUtils;
 
 @SuppressWarnings("serial")
 public class RevisionTable extends JPanel
@@ -90,15 +92,15 @@ public class RevisionTable extends JPanel
 				data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 			}
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 
 		// Add row(s) if needed

@@ -19,6 +19,12 @@
 
 package weave.ui;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -105,7 +111,6 @@ import weave.utils.ObjectUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StringUtils;
 import weave.utils.TimeUtils;
-import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 import weave.utils.URLRequestUtils;
 import weave.utils.UpdateUtils;
@@ -254,19 +259,19 @@ public class HomeSetupPanel extends SetupPanel
 							}
 						}
 					} catch (NoSuchMethodException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					} catch (SecurityException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					} catch (IllegalAccessException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					} catch (IllegalArgumentException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					} catch (InvocationTargetException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
 					
@@ -306,20 +311,20 @@ public class HomeSetupPanel extends SetupPanel
 											try {
 												LaunchUtils.browse(e.getURL().toURI());
 											} catch (IOException ex) {
-												TraceUtils.trace(TraceUtils.STDERR, ex);
+												trace(STDERR, ex);
 												BugReportUtils.showBugReportDialog(ex);
 											} catch (InterruptedException ex) {
-												TraceUtils.trace(TraceUtils.STDERR, ex);
+												trace(STDERR, ex);
 												BugReportUtils.showBugReportDialog(ex);
 											} catch (URISyntaxException ex) {
-												TraceUtils.trace(TraceUtils.STDERR, ex);
+												trace(STDERR, ex);
 												BugReportUtils.showBugReportDialog(ex);
 											}
 										}
 									}
 								});
 							} catch (IOException e) {
-								TraceUtils.trace(TraceUtils.STDERR, e);
+								trace(STDERR, e);
 								troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
 							}
 							return null;
@@ -364,7 +369,7 @@ public class HomeSetupPanel extends SetupPanel
 			tabbedPane.setSelectedIndex(0);
 			tabbedPane.setSelectedIndex(index);
 		} catch (IndexOutOfBoundsException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			return false;
 		}
 		return true;
@@ -394,9 +399,9 @@ public class HomeSetupPanel extends SetupPanel
 				try {
 					refreshInterface();
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (MalformedURLException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 			}
 		});
@@ -414,11 +419,11 @@ public class HomeSetupPanel extends SetupPanel
 					setButtonsEnabled(false);
 					downloadBinaries();
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (MalformedURLException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 			}
 		});
@@ -471,9 +476,9 @@ public class HomeSetupPanel extends SetupPanel
 						try {
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						}
 					}
 				}, 1000);
@@ -506,9 +511,9 @@ public class HomeSetupPanel extends SetupPanel
 						try {
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						}
 					}
 				}, 1000);
@@ -590,24 +595,24 @@ public class HomeSetupPanel extends SetupPanel
 					launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
 					
 				} catch (NoSuchMethodException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (SecurityException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (IllegalAccessException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (IllegalArgumentException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (InvocationTargetException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (ZipException e1) {
 					sessionLabel.setIcon(null);
 				} catch (IOException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				}
 			}
@@ -667,28 +672,28 @@ public class HomeSetupPanel extends SetupPanel
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
 							}
 						} catch (UnsupportedFlavorException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (IOException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (NoSuchMethodException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (SecurityException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (IllegalAccessException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (IllegalArgumentException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (InvocationTargetException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
 					}
@@ -749,28 +754,28 @@ public class HomeSetupPanel extends SetupPanel
 							sessionState.getName());
 					
 				} catch (NoSuchMethodException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (SecurityException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (IllegalAccessException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (IllegalArgumentException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (InvocationTargetException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (IOException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (URISyntaxException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				} catch (InterruptedException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 					BugReportUtils.showBugReportDialog(e1);
 				}
 			}
@@ -788,11 +793,11 @@ public class HomeSetupPanel extends SetupPanel
 				try {
 					LaunchUtils.openAdminConsole();
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (URISyntaxException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 			}
 		});
@@ -849,10 +854,10 @@ public class HomeSetupPanel extends SetupPanel
 					pluginsInstallButton.setText(selectedPlugin.isPluginInstalled() ? "Reinstall" : "Install");
 					
 				} catch (MalformedURLException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (InterruptedException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
 			}
@@ -878,13 +883,13 @@ public class HomeSetupPanel extends SetupPanel
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
@@ -918,10 +923,10 @@ public class HomeSetupPanel extends SetupPanel
 					else
 						extractPlugin(selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
 				} catch (MalformedURLException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} catch (InterruptedException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
+					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
 			}
@@ -1077,11 +1082,11 @@ public class HomeSetupPanel extends SetupPanel
 //				try {
 //					Settings.enableWeaveExtension(settingsExtCheckbox.isSelected());
 //				} catch (IllegalArgumentException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				} catch (IllegalAccessException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				} catch (InvocationTargetException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				}
 //			}
 //		});
@@ -1096,11 +1101,11 @@ public class HomeSetupPanel extends SetupPanel
 //				try {
 //					Settings.enableWeaveProtocol(settingsProtocolCheckbox.isSelected());
 //				} catch (IllegalArgumentException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				} catch (IllegalAccessException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				} catch (InvocationTargetException e1) {
-//					TraceUtils.trace(TraceUtils.STDERR, e1);
+//					trace(STDERR, e1);
 //				}
 //			}
 //		});
@@ -1185,13 +1190,13 @@ public class HomeSetupPanel extends SetupPanel
 						try {
 							LaunchUtils.browse(e.getURL().toURI());
 						} catch (IOException ex) {
-							TraceUtils.trace(TraceUtils.STDERR, ex);
+							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						} catch (InterruptedException ex) {
-							TraceUtils.trace(TraceUtils.STDERR, ex);
+							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						} catch (URISyntaxException ex) {
-							TraceUtils.trace(TraceUtils.STDERR, ex);
+							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						}
 					}
@@ -1199,7 +1204,7 @@ public class HomeSetupPanel extends SetupPanel
 			});
 			
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 		
 		panel.add(aboutImage);
@@ -1315,19 +1320,19 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode )
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						downloadLabel.setText("Download Complete....");
 						downloadLabel.setForeground(Color.BLACK);
 	
 						extractBinaries(zipFile);
 						break;
 					case TransferUtils.CANCELLED:
-						TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+						put(STDOUT, "CANCELLED");
 						downloadLabel.setText("Cancelling Download....");
 						downloadLabel.setForeground(Color.BLACK);
 						break;
 					case TransferUtils.FAILED:
-						TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+						put(STDOUT, "FAILED");
 						downloadLabel.setText("Download Failed....");
 						downloadLabel.setForeground(Color.RED);
 
@@ -1336,10 +1341,10 @@ public class HomeSetupPanel extends SetupPanel
 							refreshProgramatically = true;
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
 						break;
@@ -1356,13 +1361,13 @@ public class HomeSetupPanel extends SetupPanel
 					observer.init(url);
 					o = DownloadUtils.download(urlStr, zipFile, observer, 4 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -1372,7 +1377,7 @@ public class HomeSetupPanel extends SetupPanel
 		if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() )
 			Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
+		trace(STDOUT, "-> Downloading update.............");
 		
 		downloadLabel.setVisible(true);
 		progressbar.setVisible(true);
@@ -1416,7 +1421,7 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode )
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						
 						String folderName = Revisions.getRevisionName(zipFile.getAbsolutePath());
 						moveBinaries(new File(Settings.UNZIP_DIRECTORY, folderName));
@@ -1438,19 +1443,19 @@ public class HomeSetupPanel extends SetupPanel
 					observer.init(zipFile);
 					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}catch (NullPointerException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					// No bug report
 				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -1468,14 +1473,14 @@ public class HomeSetupPanel extends SetupPanel
 			downloadLabel.setText("Preparing Extraction....");
 			Thread.sleep(1000);
 			
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Extracting update..............");
+			trace(STDOUT, "-> Extracting update..............");
 			
 			Settings.canQuit = false;
 			
 			downloadLabel.setText("Extracting update....");
 			progressbar.setIndeterminate(false);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -1504,7 +1509,7 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode ) 
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						downloadLabel.setText("Install complete....");
 						
 						Settings.canQuit = true;
@@ -1522,9 +1527,9 @@ public class HomeSetupPanel extends SetupPanel
 							refreshProgramatically = true;
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						}
 						break;
 					case TransferUtils.CANCELLED:
@@ -1552,23 +1557,23 @@ public class HomeSetupPanel extends SetupPanel
 						status &= FileUtils.copy(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
 					}
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (FileNotFoundException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return status;
 			}
 		};
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
+		trace(STDOUT, "-> Installing update..............");
 
 		downloadLabel.setText("Installing Update....");
 		progressbar.setIndeterminate(false);
@@ -1592,19 +1597,19 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode )
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						pluginsProgressLabel.setText("Download Complete....");
 						pluginsProgressLabel.setForeground(Color.BLACK);
 	
 						extractPlugin(zipFile, destination);
 						break;
 					case TransferUtils.CANCELLED:
-						TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+						put(STDOUT, "CANCELLED");
 						pluginsProgressLabel.setText("Cancelling Download....");
 						pluginsProgressLabel.setForeground(Color.BLACK);
 						break;
 					case TransferUtils.FAILED:
-						TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+						put(STDOUT, "FAILED");
 						pluginsProgressLabel.setText("Download Failed....");
 						pluginsProgressLabel.setForeground(Color.RED);
 
@@ -1613,10 +1618,10 @@ public class HomeSetupPanel extends SetupPanel
 							refreshProgramatically = true;
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
 						break;
@@ -1671,19 +1676,19 @@ public class HomeSetupPanel extends SetupPanel
 					observer.init(url);
 					o = DownloadUtils.download(urlStr, zip, observer, 4 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
 			}
 		};
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading plugin.............");
+		trace(STDOUT, "-> Downloading plugin.............");
 		
 		pluginsProgressLabel.setVisible(true);
 		pluginsProgressBar.setVisible(true);
@@ -1729,7 +1734,7 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode )
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						
 						movePlugin(Settings.UNZIP_DIRECTORY.getAbsolutePath(), destination);
 						break;
@@ -1750,19 +1755,19 @@ public class HomeSetupPanel extends SetupPanel
 					observer.init(zip);
 					o = ZipUtils.extract(zip, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}catch (NullPointerException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					// No bug report
 				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -1780,14 +1785,14 @@ public class HomeSetupPanel extends SetupPanel
 			pluginsProgressLabel.setText("Preparing Extraction....");
 			Thread.sleep(1000);
 			
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Extracting plugin..............");
+			trace(STDOUT, "-> Extracting plugin..............");
 			
 			Settings.canQuit = false;
 			
 			pluginsProgressLabel.setText("Extracting plugin....");
 			pluginsProgressBar.setIndeterminate(false);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -1815,7 +1820,7 @@ public class HomeSetupPanel extends SetupPanel
 				switch( returnCode ) 
 				{
 					case TransferUtils.COMPLETE:
-						TraceUtils.put(TraceUtils.STDOUT, "DONE");
+						put(STDOUT, "DONE");
 						pluginsProgressLabel.setText("Install complete....");
 						
 						Settings.canQuit = true;
@@ -1827,9 +1832,9 @@ public class HomeSetupPanel extends SetupPanel
 							refreshProgramatically = true;
 							refreshInterface();
 						} catch (InterruptedException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						} catch (MalformedURLException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
+							trace(STDERR, e);
 						}
 						break;
 					case TransferUtils.CANCELLED:
@@ -1857,23 +1862,23 @@ public class HomeSetupPanel extends SetupPanel
 						status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
 					}
 				} catch (ArithmeticException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (FileNotFoundException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return status;
 			}
 		};
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing plugin..............");
+		trace(STDOUT, "-> Installing plugin..............");
 
 		pluginsProgressLabel.setText("Installing Plugin....");
 		pluginsProgressBar.setIndeterminate(false);
@@ -1883,7 +1888,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	private void refreshInterface() throws InterruptedException, MalformedURLException
 	{
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing User Interface......");
+		traceln(STDOUT, "-> Refreshing User Interface......");
 
 		Settings.canQuit = false;
 		
@@ -1932,15 +1937,15 @@ public class HomeSetupPanel extends SetupPanel
 				revisionData[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 			}
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 		revisionTable.setData(revisionData).refreshTable();
 	}

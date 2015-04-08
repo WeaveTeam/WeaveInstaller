@@ -1,6 +1,9 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +22,7 @@ public class MD5Utils extends Globals
 			try {
 				m = MessageDigest.getInstance("MD5");
 			} catch (NoSuchAlgorithmException e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				trace(STDERR, e);
 				return null;
 			}
 		}

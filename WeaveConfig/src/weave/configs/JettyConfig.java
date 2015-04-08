@@ -19,6 +19,11 @@
 
 package weave.configs;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +43,6 @@ import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.SyscallCreatorUtils;
-import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 
 public class JettyConfig extends Config
@@ -76,7 +80,7 @@ public class JettyConfig extends Config
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
 			
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}
@@ -99,7 +103,7 @@ public class JettyConfig extends Config
 						"Another config might already be loaded.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -122,12 +126,12 @@ public class JettyConfig extends Config
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 
-				TraceUtils.trace(TraceUtils.STDOUT, "-> Starting " + getConfigName() + " server..........");
+				trace(STDOUT, "-> Starting " + getConfigName() + " server..........");
 
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDOUT).getName());
-					File logStderr = new File(basePath + Settings.F_S + "logs" + Settings.F_S, TraceUtils.getLogFile(TraceUtils.STDERR).getName());
+					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, getLogFile(STDOUT).getName());
+					File logStderr = new File(basePath + Settings.F_S + "logs" + Settings.F_S, getLogFile(STDERR).getName());
 					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
 											"jetty.logs=\"" + basePath + "/logs/\" " +
 											"jetty.home=\"" + basePath + "\" " +
@@ -139,25 +143,25 @@ public class JettyConfig extends Config
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (NoSuchMethodException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (SecurityException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IllegalAccessException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IllegalArgumentException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InvocationTargetException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -169,7 +173,7 @@ public class JettyConfig extends Config
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 				startTask.execute();
 			}
@@ -200,7 +204,7 @@ public class JettyConfig extends Config
 	}
 	public Map<String, List<String>> stopServer()
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Stopping " + getConfigName() + " server..........");
+		trace(STDOUT, "-> Stopping " + getConfigName() + " server..........");
 
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
@@ -209,25 +213,25 @@ public class JettyConfig extends Config
 												"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
 			return ProcessUtils.run(STOP);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		return null;

@@ -1,5 +1,8 @@
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,7 +14,6 @@ import java.net.URL;
 
 import weave.Globals;
 import weave.Settings;
-
 public class URLRequestUtils extends Globals
 {
 	public static final String GET = "GET";
@@ -89,13 +91,13 @@ public class URLRequestUtils extends Globals
 			return response.toString();
 			
 		} catch (MalformedURLException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (ProtocolException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -122,7 +124,7 @@ public class URLRequestUtils extends Globals
 				return conn.getHeaderField(field);
 
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 		return null;
 	}

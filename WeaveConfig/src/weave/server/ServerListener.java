@@ -19,6 +19,11 @@
 
 package weave.server;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -59,7 +64,7 @@ public class ServerListener extends Globals
 	
 	public void start()
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Starting RPC Server............");
+		trace(STDOUT, "-> Starting RPC Server............");
 		
 		try {
 			
@@ -67,15 +72,15 @@ public class ServerListener extends Globals
 			connections = new ArrayList<ServerListener.ServerListenerThread>();
 			
 		} catch (BindException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED (Port already in use)");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED (Port already in use)");
+			trace(STDERR, e);
 			JOptionPane.showMessageDialog(null, 
 					"Starting RPC server failed. Port already in use.\n\n" + 
 					"Close any process running on port " + port + " and try again.",
 					"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 		}
 		
 		loopThread = new Thread(new Runnable() {
@@ -94,19 +99,19 @@ public class ServerListener extends Globals
 				} catch (SocketException e) {
 					// DO NOTHING
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 				}
 			}
 		});
 		loopThread.start();
 		
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 	}
 	
 	public void stop()
 	{
 		int i = 0;
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Stopping RPC Server............");
+		trace(STDOUT, "-> Stopping RPC Server............");
 		
 		try {
 			while( !connections.isEmpty() )
@@ -120,14 +125,14 @@ public class ServerListener extends Globals
 			if( ssocket != null ) ssocket.close();
 
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 		}
 		
 		loopThread.interrupt();
 		ssocket = null;
 		loopThread = null;
-		TraceUtils.put(TraceUtils.STDOUT, "DONE (" + i + " remaining connections killed)");
+		put(STDOUT, "DONE (" + i + " remaining connections killed)");
 	}
 	
 	
@@ -148,7 +153,7 @@ public class ServerListener extends Globals
 				in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(clientSock.getOutputStream()));
 			} catch (IOException e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 			}
 		}
@@ -228,13 +233,13 @@ public class ServerListener extends Globals
 				out.flush();
 
 			} catch (Exception e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				trace(STDERR, e);
 				try {
 					out.write(TraceUtils.getStackTrace(e));
 					out.newLine();
 					out.flush();
 				} catch (IOException e1) {
-					TraceUtils.trace(TraceUtils.STDERR, e1);
+					trace(STDERR, e1);
 				}
 			}
 			close();

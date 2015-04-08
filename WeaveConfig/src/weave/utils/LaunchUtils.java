@@ -19,6 +19,11 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,7 +84,7 @@ public class LaunchUtils extends Globals
 		File launcher = new File(Settings.BIN_DIRECTORY, Settings.LAUNCHER_JAR);
 		
 		if( !launcher.exists() ) {
-			TraceUtils.traceln(TraceUtils.STDOUT, "!! Program not found: \"" + launcher.getAbsolutePath() + "\"");
+			traceln(STDOUT, "!! Program not found: \"" + launcher.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null, "Launch Utilities could not be found.\n\n" + 
 												"If this problem persists, please make sure\n" + 
 												"you are running the latest version of the tool.", "Missing File", JOptionPane.ERROR_MESSAGE);
@@ -98,7 +103,7 @@ public class LaunchUtils extends Globals
 		}
 		
 		String[] command = SyscallCreatorUtils.generate("java -jar \"" + launcher.getAbsolutePath().replace("\\", "/") + "\" \"" + f.getAbsolutePath().replace("\\", "/") + "\" \"" + delay + "\"");
-		ProcessUtils.run(command, TraceUtils.getLogFile(TraceUtils.STDOUT), TraceUtils.getLogFile(TraceUtils.STDERR));
+		ProcessUtils.run(command, getLogFile(STDOUT), getLogFile(STDERR));
 		
  		return true;
 	}

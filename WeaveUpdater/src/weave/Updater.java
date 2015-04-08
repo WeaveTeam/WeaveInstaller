@@ -19,6 +19,12 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -55,7 +61,6 @@ import weave.utils.IdentityUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
-import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
@@ -84,14 +89,14 @@ public class Updater extends JFrame
 		} catch (ClassNotFoundException e) {
 			try {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (ClassNotFoundException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
-			} catch (InstantiationException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
-			} catch (IllegalAccessException e1) {			TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
-			} catch (UnsupportedLookAndFeelException e1) {	TraceUtils.trace(TraceUtils.STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (ClassNotFoundException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (InstantiationException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalAccessException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (UnsupportedLookAndFeelException e1) {	trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
 			}
-		} catch (InstantiationException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (UnsupportedLookAndFeelException e) {		TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (InstantiationException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
 		
 		try {
@@ -110,15 +115,15 @@ public class Updater extends JFrame
 			
 			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
 
-			TraceUtils.traceln(TraceUtils.STDOUT, "");
-			TraceUtils.traceln(TraceUtils.STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+			traceln(STDOUT, "");
+			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
 			if( !Desktop.isDesktopSupported() || HeadlessGraphicsEnvironment.isHeadless() )
 			{
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! Fault detected !!");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! System does not support Java Desktop Features" );
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
+				traceln(STDOUT, "");
+				traceln(STDOUT, "!! Fault detected !!");
+				traceln(STDOUT, "!! System does not support Java Desktop Features" );
+				traceln(STDOUT, "");
 				Settings.shutdown(ABORT);
 				return;
 			}
@@ -142,8 +147,8 @@ public class Updater extends JFrame
 			}
 			updater = new Updater();
 			
-		} catch (IOException e) {						TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IOException e) {						trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
 	}
 	
@@ -219,8 +224,8 @@ public class Updater extends JFrame
 		if( Settings.isOfflineMode() )
 		{
 			setTitle(getTitle() + " [OFFLINE MODE]");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Offline Mode Enabled...");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
+			traceln(STDOUT, "-> Offline Mode Enabled...");
+			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
 
 			staticLabel.setText(Settings.UPDATER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
@@ -235,7 +240,7 @@ public class Updater extends JFrame
 		//=================================================
 		// Everything below this is for online launching
 		//=================================================
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Online Mode Enabled...");
+		traceln(STDOUT, "-> Online Mode Enabled...");
 		
 		
 		// Need to check if this WeaveInstaller tool 
@@ -244,19 +249,19 @@ public class Updater extends JFrame
 		if( !Settings.hasUniqueID() ) {
 			Settings.UNIQUE_ID = IdentityUtils.createID();
 			Settings.save();
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
+			traceln(STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
 		}
 		Settings.canQuit = true;
 
 		
 		// Check to see if there is an update available and if 
 		// we should update at this time
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Checking for updates...........");
+		traceln(STDOUT, "-> Checking for updates...........");
 		isUpdate = UpdateUtils.isUpdateAvailable();
 		
 		if( isUpdate || Settings.UPDATE_OVERRIDE )
 		{
-			TraceUtils.put(TraceUtils.STDOUT, "AVAILABLE");
+			put(STDOUT, "AVAILABLE");
 			
 			Settings.UPDATE_OVERRIDE = false;
 			Settings.save();
@@ -265,7 +270,7 @@ public class Updater extends JFrame
 		}
 		else
 		{
-			TraceUtils.put(TraceUtils.STDOUT, "NONE");
+			put(STDOUT, "NONE");
 			finish();
 		}
 	}
@@ -324,7 +329,7 @@ public class Updater extends JFrame
 					switch( returnCode )
 					{
 						case TransferUtils.COMPLETE:
-							TraceUtils.put(TraceUtils.STDOUT, "DONE");
+							put(STDOUT, "DONE");
 							statusLabel.setText("Download complete....");
 							
 							StatsUtils.logUpdate();
@@ -332,7 +337,7 @@ public class Updater extends JFrame
 							installUpdate(destination);
 							break;
 						case TransferUtils.CANCELLED:
-							TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
+							put(STDOUT, "CANCELLED");
 							statusLabel.setText("Cancelling download...");
 							
 							if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
@@ -345,7 +350,7 @@ public class Updater extends JFrame
 							Settings.shutdown();
 							break;
 						case TransferUtils.FAILED:
-							TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+							put(STDOUT, "FAILED");
 							statusLabel.setForeground(Color.RED);
 							statusLabel.setText("Download Failed....");
 							break;
@@ -353,10 +358,10 @@ public class Updater extends JFrame
 							break;
 					}
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 			}
@@ -369,17 +374,17 @@ public class Updater extends JFrame
 					observer.init(url);
 					o = DownloadUtils.download(url, destination, observer, 500 * DownloadUtils.KB);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
 			}
 		};
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
+		trace(STDOUT, "-> Downloading update.............");
 		statusLabel.setText("Downloading update....");
 		statusProgress.setIndeterminate(false);
 		statusProgress.setValue(0);
@@ -408,7 +413,7 @@ public class Updater extends JFrame
 			@Override
 			public void run(Object o) {
 				statusLabel.setText("Install complete....");
-				TraceUtils.put(TraceUtils.STDOUT, "DONE");
+				put(STDOUT, "DONE");
 				finish();
 			}
 		};
@@ -420,20 +425,20 @@ public class Updater extends JFrame
 					observer.init(zipFile);
 					o = ZipUtils.extract(zipFile, Settings.WEAVE_ROOT_DIRECTORY, ZipUtils.OVERWRITE, observer);
 				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
 			}
 		};
 
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
+		trace(STDOUT, "-> Installing update..............");
 		
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
@@ -457,17 +462,17 @@ public class Updater extends JFrame
 				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
 			Thread.sleep(1000);
 			
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.SERVER_NAME);
+			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 	
 			while( !Settings.canQuit ) Thread.sleep(1000);
 	
 			LaunchUtils.launchWeaveInstaller(1000);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 
@@ -497,10 +502,10 @@ public class Updater extends JFrame
 				Settings.createShortcut( overwrite );
 				Thread.sleep(200);
 				try {
-					TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing Windows Explorer...");
+					traceln(STDOUT, "-> Refreshing Windows Explorer...");
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 //					BugReportUtils.showBugReportDialog(e);
 				}
 			}

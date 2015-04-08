@@ -19,6 +19,9 @@
 
 package weave.ui;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
@@ -61,7 +64,6 @@ import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
-import weave.utils.TraceUtils;
 import weave.utils.TransferUtils;
 import weave.utils.ZipUtils;
 
@@ -177,13 +179,13 @@ public class ConfigSetupPanel extends SetupPanel
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
@@ -221,13 +223,13 @@ public class ConfigSetupPanel extends SetupPanel
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
@@ -379,13 +381,13 @@ public class ConfigSetupPanel extends SetupPanel
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
@@ -412,13 +414,13 @@ public class ConfigSetupPanel extends SetupPanel
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
 					} catch (IOException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (InterruptedException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					} catch (URISyntaxException ex) {
-						TraceUtils.trace(TraceUtils.STDERR, ex);
+						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
@@ -696,7 +698,7 @@ public class ConfigSetupPanel extends SetupPanel
 								try {
 									download(config);
 								} catch (MalformedURLException e) {
-									TraceUtils.trace(TraceUtils.STDERR, e);
+									trace(STDERR, e);
 									BugReportUtils.showBugReportDialog(e);
 								}
 							}
@@ -762,10 +764,10 @@ public class ConfigSetupPanel extends SetupPanel
 					observer.init(url);
 					o = DownloadUtils.download(url, destination, observer, 3 * TransferUtils.MB);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -779,7 +781,7 @@ public class ConfigSetupPanel extends SetupPanel
 			servletProgressBar.setIndeterminate(false);
 			servletProgressBar.setValue(0);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		task.addCallback(callback).execute();
@@ -821,13 +823,13 @@ public class ConfigSetupPanel extends SetupPanel
 					observer.init(source);
 					o = ZipUtils.extract(source, destination, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer);
 				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
@@ -842,7 +844,7 @@ public class ConfigSetupPanel extends SetupPanel
 			servletProgressBar.setIndeterminate(false);
 			servletProgressBar.setValue(0);
 		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
@@ -894,7 +896,7 @@ public class ConfigSetupPanel extends SetupPanel
 				reviewDatabasePortInput.setText("" + databaseConfig.getPort());
 			}
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}

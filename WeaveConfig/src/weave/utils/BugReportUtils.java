@@ -19,6 +19,14 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.getStackTrace;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.HeadlessException;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -45,10 +53,10 @@ public class BugReportUtils extends Globals
 {
 	public static void autoSubmitBugReport( final Throwable e )
 	{
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Bug detected !!");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Stack Trace in " + TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath() );
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
+		traceln(STDOUT, "");
+		traceln(STDOUT, "!! Bug detected !!");
+		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
+		traceln(STDOUT, "");
 
 		submitReport(e, "");
 	}
@@ -58,10 +66,10 @@ public class BugReportUtils extends Globals
 		Settings.canQuit = false;
 		
 		final BugReportWindow brw = BugReportWindow.instance(e);
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Bug detected !!");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Stack Trace in " + TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath() );
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
+		traceln(STDOUT, "");
+		traceln(STDOUT, "!! Bug detected !!");
+		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
+		traceln(STDOUT, "");
 		
 		brw.addWindowListener(new WindowListener() {
 			@Override public void windowOpened(WindowEvent arg0) { }
@@ -69,14 +77,14 @@ public class BugReportUtils extends Globals
 			@Override public void windowDeiconified(WindowEvent arg0) { }
 			@Override public void windowDeactivated(WindowEvent arg0) {	}
 			@Override public void windowClosing(WindowEvent arg0) {
-				TraceUtils.trace(TraceUtils.STDOUT, "-> Should send bug report?........");
+				trace(STDOUT, "-> Should send bug report?........");
 				if( brw.CLOSE_OPTION == BugReportWindow.YES_OPTION ) {
-					TraceUtils.put(TraceUtils.STDOUT, "YES");
+					put(STDOUT, "YES");
 					
 					String c = ( brw.data.comment.trim().equals(BugReportWindow.defaultComment) ? "" : brw.data.comment );
 					submitReport( e, c );
 				} else {
-					TraceUtils.put(TraceUtils.STDOUT, "NO");
+					put(STDOUT, "NO");
 				}
 				Settings.canQuit = true;
 			}
@@ -88,10 +96,10 @@ public class BugReportUtils extends Globals
 	
 	private static void submitReport(Throwable e, String comment)
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Sending Bug report.............");
+		trace(STDOUT, "-> Sending Bug report.............");
 
 		try {
-			String stack = TraceUtils.getStackTrace(e);
+			String stack = getStackTrace(e);
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("os", Settings.getExactOS());
 			map.put("updr_ver", Settings.UPDATER_VER);
@@ -122,13 +130,13 @@ public class BugReportUtils extends Globals
 //			System.out.println("");
 			
 		} catch (ClientProtocolException e1) {	
-			TraceUtils.trace(TraceUtils.STDERR, e1);
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			trace(STDERR, e1);
+			put(STDOUT, "FAILED");
 		} catch (IOException e1) {
-			TraceUtils.trace(TraceUtils.STDERR, e1);
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
+			trace(STDERR, e1);
+			put(STDOUT, "FAILED");
 		}
 		
-		TraceUtils.put(TraceUtils.STDOUT, "SENT");
+		put(STDOUT, "SENT");
 	}
 }

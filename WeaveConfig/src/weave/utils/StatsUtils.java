@@ -19,6 +19,9 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -50,10 +53,10 @@ public class StatsUtils extends Globals
 				try {
 					return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_STATS_LOG, params);
 				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
+					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
 				return null;
@@ -80,10 +83,10 @@ public class StatsUtils extends Globals
 					try {
 						return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_STATS_LIVE, params);
 					} catch (IOException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					} catch (InterruptedException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
+						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
 					return null;
@@ -92,19 +95,19 @@ public class StatsUtils extends Globals
 			task.execute();
 			
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}

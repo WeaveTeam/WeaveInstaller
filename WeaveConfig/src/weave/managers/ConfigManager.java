@@ -19,6 +19,12 @@
 
 package weave.managers;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +48,6 @@ import weave.configs.SQLiteConfig;
 import weave.configs.TomcatConfig;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
-import weave.utils.TraceUtils;
 
 public class ConfigManager extends Globals
 {
@@ -192,14 +197,14 @@ public class ConfigManager extends Globals
 	{
 		if( c == null )
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Unloading Config Container....." + ACTIVE_CONTAINER_PLUGIN.getConfigName());
+			traceln(STDOUT, "-> Unloading Config Container....." + ACTIVE_CONTAINER_PLUGIN.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = null;
 			return true;
 		}
 		
 		if( ACTIVE_CONTAINER_PLUGIN == null ) 
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading Config Container......." + c.getConfigName());
+			traceln(STDOUT, "-> Loading Config Container......." + c.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = c;
 			return true;
 		}
@@ -210,14 +215,14 @@ public class ConfigManager extends Globals
 	{
 		if( d == null )
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Unloading Database Container..." + ACTIVE_DATABASE_PLUGIN.getConfigName());
+			traceln(STDOUT, "-> Unloading Database Container..." + ACTIVE_DATABASE_PLUGIN.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = null;
 			return true;
 		}
 		
 		if( ACTIVE_DATABASE_PLUGIN == null ) 
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading Database Container....." + d.getConfigName());
+			traceln(STDOUT, "-> Loading Database Container....." + d.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = d;
 			return true;
 		}
@@ -230,7 +235,7 @@ public class ConfigManager extends Globals
 	public boolean save()
 	{
 		try {
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Saving config file.............");
+			traceln(STDOUT, "-> Saving config file.............");
 			
 			if( !Settings.configsFileExists() )
 				Settings.CONFIG_FILE.createNewFile();
@@ -258,37 +263,37 @@ public class ConfigManager extends Globals
 			outstream.writeObject(CONFIGS_MAP);
 			outstream.close();
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (NoSuchMethodException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (SecurityException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IllegalAccessException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IllegalArgumentException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (InvocationTargetException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		}
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 		return true;
 	}
 	
@@ -299,24 +304,24 @@ public class ConfigManager extends Globals
 			return false;
 		
 		try {
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Loading config file............");
+			traceln(STDOUT, "-> Loading config file............");
 
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(Settings.CONFIG_FILE));
 			CONFIGS_MAP = (Map<String, Map<String, Object>>) instream.readObject();
 			instream.close();
 			
 		} catch (IOException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (ClassNotFoundException e) {
-			TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			put(STDOUT, "FAILED");
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		}
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
+		put(STDOUT, "DONE");
 		return true;
 	}
 	

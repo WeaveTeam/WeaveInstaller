@@ -19,6 +19,9 @@
 
 package weave.configs;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -31,7 +34,6 @@ import weave.managers.ConfigManager;
 import weave.reflect.Reflectable;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
-import weave.utils.TraceUtils;
 
 public class Config extends Globals implements IConfig
 {
@@ -129,19 +131,19 @@ public class Config extends Globals implements IConfig
 				loadConfig();
 				
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 	}
@@ -206,7 +208,7 @@ public class Config extends Globals implements IConfig
 		try {
 			i = Integer.parseInt(s);
 		} catch (NumberFormatException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			JOptionPane.showMessageDialog(null, 
 					"Error parsing port.\n\n" +
 					"\"" + s + "\" is not an integer.", "Parse Error", JOptionPane.ERROR_MESSAGE);
@@ -222,15 +224,15 @@ public class Config extends Globals implements IConfig
 			ret += ("\tPort: " + getPort() + "\n");
 			ret += ("\tLoaded: " + ( isConfigLoaded() ? "TRUE" : "FALSE") + "\n");
 		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		} catch (InvocationTargetException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
 		return ret;
 	}

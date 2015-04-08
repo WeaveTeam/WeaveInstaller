@@ -1,5 +1,8 @@
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -34,7 +37,7 @@ public class URLRequestParams extends Globals
 					.append("=")
 					.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
 			} catch (UnsupportedEncodingException e) {
-				TraceUtils.trace(TraceUtils.STDERR, e);
+				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 			}
 		}
