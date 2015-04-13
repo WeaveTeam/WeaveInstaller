@@ -1,5 +1,7 @@
 package weave.plugins;
 
+import javax.swing.JPanel;
+
 public interface IPlugin
 {
 	public void initPlugin();
@@ -21,4 +23,6 @@ public interface IPlugin
 	public void setPluginBaseDirectory(String dir);
 
 	public Boolean isPluginInstalled();
+	
+	public JPanel getPluginPanel();
 }

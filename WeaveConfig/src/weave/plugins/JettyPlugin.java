@@ -1,5 +1,8 @@
 package weave.plugins;
 
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import weave.configs.JettyConfig;
 import weave.utils.EnvironmentUtils;
 
@@ -28,5 +31,17 @@ public class JettyPlugin extends Plugin
 		setPluginDescription(JettyConfig.getConfig().getDescription());
 		setPluginDownloadFile("${" + EnvironmentUtils.DOWNLOAD_DIR + "}/" + filename);
 		setPluginBaseDirectory("${" + EnvironmentUtils.PLUGINS_DIR + "}/" + getPluginName());
+	}
+	
+	@Override
+	public JPanel getPluginPanel()
+	{
+		JPanel panel = super.getPluginPanel();
+		
+		JLabel l = new JLabel(getPluginName());
+		l.setBounds(40, 40, 150, 25);
+		panel.add(l);
+		
+		return panel;
 	}
 }

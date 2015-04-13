@@ -31,6 +31,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import weave.Settings.OS_TYPE;
 import weave.configs.IConfig;
 import weave.managers.ConfigManager;
 import weave.utils.FileUtils;
@@ -157,6 +158,10 @@ public class Launcher extends JFrame
 						Settings.LOCALHOST + ":" +
 						ConfigManager.getConfigManager().getActiveContainer().getPort() +
 						"/weave.html?file=" + dest.getName(), 0);
+			}
+			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_TYPE.WINDOWS ) 
+			{
+				LaunchUtils.openElevated(path, delay);
 			}
 			else
 			{

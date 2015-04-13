@@ -183,7 +183,16 @@ public class Installer extends JFrame
 	public Installer() throws Exception
 	{
 		// ======== INITIALIZATION ======== //
-		Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
+		try {
+			if( Settings.OS == Settings.OS_TYPE.WINDOWS )
+				Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
+		} catch (UnsatisfiedLinkError e) {
+			// If we can't find the dll then don't error
+		} catch (Exception e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		
 		TrayManager.initializeTray(this);
 		ConfigManager.getConfigManager().initializeConfigs();
 		
@@ -357,6 +366,17 @@ public class Installer extends JFrame
 			}
 		}, 3000);
 
+//		Properties props = System.getProperties();
+//		Map<String, String> mp = new HashMap<String, String>();
+//		
+//		for( String name : props.stringPropertyNames() )
+//			mp.put(name, props.getProperty(name));
+//		
+//		
+//		System.out.println("Environment\n" + ObjectUtils.toString(System.getenv()));
+//		System.out.println("Properties\n" + ObjectUtils.toString(mp));
+		
+		
 		switchToWelcomeSetupPanels(rightPanel);
 	}
 

@@ -177,6 +177,7 @@ public class Settings extends Globals
 	 * Misc
 	 */
 	public static final String WIKI_HELP_PAGE			= "http://info." + IWEAVE_HOST + "/projects/weave/wiki/Installer";
+	public static final String ELEVATE_UTIL				= "elevate.exe";
 	
 	public static boolean canQuit						= true;
 	public static boolean transferCancelled				= false;
@@ -555,6 +556,24 @@ public class Settings extends Globals
 	{
 		if( LOCK_FILE.exists() )
 			return FileUtils.recursiveDelete(LOCK_FILE);
+		return false;
+	}
+	
+	@Reflectable
+	public static Boolean isAdminPrivileged(Integer i)
+	{
+		if( i == 1 )
+		{
+			
+		}
+		else if( i == 2 )
+		{
+			
+		}
+		else if( i == 3 )
+		{
+			
+		}
 		return false;
 	}
 	

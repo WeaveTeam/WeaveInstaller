@@ -1,5 +1,8 @@
 package weave.plugins;
 
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import weave.utils.EnvironmentUtils;
 import weave.utils.RemoteUtils;
 
@@ -31,5 +34,17 @@ public class AnalystWorkstationPlugin extends Plugin
 		setPluginDescription(DESCRIPTION);
 		setPluginDownloadFile("${" + EnvironmentUtils.DOWNLOAD_DIR + "}/" + filename);
 		setPluginBaseDirectory("${" + EnvironmentUtils.WEBAPPS + "}/");
+	}
+	
+	@Override
+	public JPanel getPluginPanel()
+	{
+		JPanel panel = super.getPluginPanel();
+		
+		JLabel l = new JLabel(NAME);
+		l.setBounds(20, 20, 150, 25);
+		panel.add(l);
+		
+		return panel;
 	}
 }

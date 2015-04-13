@@ -2,6 +2,8 @@ package weave.plugins;
 
 import java.io.File;
 
+import javax.swing.JPanel;
+
 import weave.Globals;
 import weave.utils.EnvironmentUtils;
 
@@ -45,6 +47,15 @@ public class Plugin extends Globals implements IPlugin
 	@Override public void setPluginDownloadFile(String file) {	_downloadFile = file; }
 	@Override public void setPluginBaseDirectory(String dir) {	_dir = dir;		}
 
+	@Override public JPanel getPluginPanel()
+	{
+		JPanel panel = new JPanel();
+		
+		panel.setLayout(null);
+		
+		return panel;
+	}
+	
 	@Override public Boolean isPluginInstalled() 
 	{
 //		boolean installed = true;
