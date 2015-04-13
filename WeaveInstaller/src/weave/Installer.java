@@ -134,21 +134,34 @@ public class Installer extends JFrame
 				return;
 			}
 			
-			if( !Settings.isOfflineMode() && !Settings.isConnectedToInternet() )
+			while( true ) 
 			{
-				if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
-						"It appears you have no connection to the internet.\n" +
-						"Would you like to launch in offline mode?", 
-						"No Internet", 
-						JOptionPane.YES_NO_OPTION, 
-						JOptionPane.WARNING_MESSAGE ))
+				if( !Settings.isOfflineMode() && !Settings.isConnectedToInternet() )
 				{
-					Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
-					Settings.save();
-					LaunchUtils.launchWeaveUpdater();
-				} 
-				else
-					Settings.shutdown(ABORT);
+					int ops = JOptionPane.showOptionDialog(null, 
+							"No internet connection could be established at this time.\n" + 
+							"Would you like to launch in offline mode?", "No Internet", 
+							JOptionPane.YES_NO_CANCEL_OPTION, 
+							JOptionPane.WARNING_MESSAGE, 
+							null, new String[] { "Retry", "Yes", "Cancel" },
+							null);
+					
+					if( ops == JOptionPane.YES_OPTION ) 
+					{
+						continue;
+					} 
+					else if( ops == JOptionPane.CANCEL_OPTION || ops == JOptionPane.CLOSED_OPTION )
+					{
+						Settings.shutdown(ABORT);
+					}
+					else
+					{
+						Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
+						Settings.save();
+						LaunchUtils.launchWeaveUpdater();
+					}
+				} else
+					break;
 			}
 			
 			installer = new Installer();

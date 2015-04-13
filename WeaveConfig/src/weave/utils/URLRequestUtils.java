@@ -58,8 +58,6 @@ public class URLRequestUtils extends Globals
 				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				while( (line = reader.readLine()) != null )
 					response.append(line);
-				
-				reader.close();
 			}
 			else if( method.equals(POST) )
 			{
@@ -85,8 +83,6 @@ public class URLRequestUtils extends Globals
 				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				while( (line = reader.readLine()) != null )
 					response.append(line);
-				
-				reader.close();
 			}
 			return response.toString();
 			
@@ -99,6 +95,9 @@ public class URLRequestUtils extends Globals
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
+		} finally {
+			if( reader != null )
+				reader.close();
 		}
 		
 		return null;

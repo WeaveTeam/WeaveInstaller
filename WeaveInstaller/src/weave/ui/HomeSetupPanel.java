@@ -842,60 +842,12 @@ public class HomeSetupPanel extends SetupPanel
 				pluginsPanel.removeAll();
 				pluginsPanel.add(p);
 				
-				
-				
 				pluginsPanel.revalidate();
 				pluginsPanel.repaint();
 			}
 		});
 		
 		panel.add(pluginsTable);
-		
-//		pluginsInstallButton = new JButton("Install");
-//		pluginsInstallButton.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 20, 100, 25);
-//		pluginsInstallButton.setToolTipText("Install this plugin");
-//		pluginsInstallButton.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				String pluginName = (String) pluginsTable.getSelectedRow()[0];
-//				if( pluginName == null )
-//					return;
-//				
-//				IPlugin selectedPlugin = PluginManager.getPluginManager().getPluginByName(pluginName);
-//				if( selectedPlugin == null )
-//					return;
-//				
-//				try {
-//					if( pluginsInstallButton.getText().equals("Install") )
-//						downloadPlugin(selectedPlugin.getPluginDownloadURL(), selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
-//					else
-//						extractPlugin(selectedPlugin.getPluginDownloadFile(), selectedPlugin.getPluginBaseDirectory());
-//				} catch (MalformedURLException ex) {
-//					trace(STDERR, ex);
-//					BugReportUtils.showBugReportDialog(ex);
-//				} catch (InterruptedException ex) {
-//					trace(STDERR, ex);
-//					BugReportUtils.showBugReportDialog(ex);
-//				}
-//			}
-//		});
-//		panel.add(pluginsInstallButton);
-//		
-//		pluginsProgressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
-//		pluginsProgressBar.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 55, 2 * panel.getWidth() / 3 - 50, 25);
-//		pluginsProgressBar.setIndeterminate(true);
-//		pluginsProgressBar.setString("");
-//		pluginsProgressBar.setValue(0);
-//		pluginsProgressBar.setVisible(true);
-//		panel.add(pluginsProgressBar);
-//		
-//		pluginsProgressLabel = new JLabel();
-//		pluginsProgressLabel.setBounds(panel.getWidth() / 3 + 20, panel.getHeight() / 2 + 90, 2 * panel.getWidth() / 3 - 40, 25);
-//		pluginsProgressLabel.setText("");
-//		pluginsProgressLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 9));
-//		pluginsProgressLabel.setVisible(true);
-//		panel.add(pluginsProgressLabel);
-		
 		
 		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
 		Object[][] data = new Object[plugins.size()][1];
@@ -1263,7 +1215,7 @@ public class HomeSetupPanel extends SetupPanel
 				int returnCode = (Integer) o;
 
 				Settings.transferCancelled = false;
-				Settings.downloadLocked = false;
+				Settings.transferLocked = false;
 
 				switch( returnCode )
 				{
@@ -1338,7 +1290,7 @@ public class HomeSetupPanel extends SetupPanel
 		progressbar.setValue(0);
 		progressbar.setIndeterminate(false);
 
-		Settings.downloadLocked = true;
+		Settings.transferLocked = true;
 		Settings.transferCancelled = false;
 		
 		task.addCallback(callback).execute();

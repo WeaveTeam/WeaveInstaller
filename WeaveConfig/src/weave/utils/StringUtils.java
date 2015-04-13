@@ -92,11 +92,11 @@ public class StringUtils extends Globals
 	
 	public static String lpad(String text, String padding, int width)
 	{
-		return repeat(padding, text.length() - width) + text;
+		return repeat(padding, (width - text.length()) / padding.length()) + text;
 	}
 	
 	public static String rpad(String text, String padding, int width)
 	{
-		return text + repeat(padding, text.length() - width);
+		return text + repeat(padding, (width - text.length()) / padding.length());
 	}
 }

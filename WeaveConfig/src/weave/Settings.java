@@ -62,6 +62,7 @@ import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
+import weave.utils.StringUtils;
 import weave.utils.SyscallCreatorUtils;
 
 public class Settings extends Globals
@@ -181,12 +182,13 @@ public class Settings extends Globals
 	
 	public static boolean canQuit						= true;
 	public static boolean transferCancelled				= false;
-	public static boolean downloadLocked				= false;
+	public static boolean transferLocked				= false;
 	public static boolean isConnectedToInternet			= true;
 
 	public static 		String CURRENT_PROGRAM_NAME		= PROJECT_NAME;
 	public static final String FONT						= "Arial";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
+	public static int LOG_PADDING_LENGTH				= 34;
 	public static int recommendPrune					= 6;
 	
 	
@@ -276,7 +278,7 @@ public class Settings extends Globals
 	public static boolean save()
 	{
 		try {
-			trace(STDOUT, "-> Saving settings file...........");
+			trace(STDOUT, StringUtils.rpad("-> Saving settings file", ".", LOG_PADDING_LENGTH));
 			
 			if( !WEAVE_ROOT_DIRECTORY.exists() )
 				WEAVE_ROOT_DIRECTORY.mkdirs();
@@ -324,7 +326,7 @@ public class Settings extends Globals
 		}
 		
 		try {
-			trace(STDOUT, "-> Loading settings file..........");
+			trace(STDOUT, StringUtils.rpad("-> Loading settings file", ".", LOG_PADDING_LENGTH));
 			
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(SETTINGS_FILE));
 			SETTINGS_MAP = (Map<String, Object>) instream.readObject();
@@ -441,7 +443,7 @@ public class Settings extends Globals
 	 */
 	public static void getNetworkInfo(Boolean offline)
 	{
-		trace(STDOUT, "-> Getting network info...........");
+		trace(STDOUT, StringUtils.rpad("-> Getting network info", ".", LOG_PADDING_LENGTH));
 		try {
 			LOCAL_IP = InetAddress.getLocalHost().getHostAddress();
 			LOCALHOST = "127.0.0.1";

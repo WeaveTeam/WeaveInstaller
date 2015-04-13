@@ -7,6 +7,7 @@ import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,6 +24,7 @@ import weave.async.AsyncTask;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
+import weave.utils.StringUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TransferUtils;
 import weave.utils.ZipUtils;
@@ -41,7 +43,7 @@ public class DownloadManager
 				int returnCode = (Integer) o;
 
 				Settings.transferCancelled = false;
-				Settings.downloadLocked = false;
+				Settings.transferLocked = false;
 
 				try {
 					switch( returnCode )
@@ -79,7 +81,8 @@ public class DownloadManager
 							break;
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		};
@@ -137,12 +140,12 @@ public class DownloadManager
 			}
 		};
 
-		trace(STDOUT, "-> Downloading plugin.............");
+		trace(STDOUT, StringUtils.rpad("-> Downloading plugin", ".", Settings.LOG_PADDING_LENGTH));
 		
 		label.setVisible(true);
 		progressbar.setVisible(true);
 		
-		label.setText("Downloading plugin.....");
+		label.setText("Downloading plugin....");
 		progressbar.setIndeterminate(true);
 		
 		Thread.sleep(1000);
@@ -151,7 +154,7 @@ public class DownloadManager
 		progressbar.setIndeterminate(false);
 
 		Settings.transferCancelled = false;
-		Settings.downloadLocked = true;
+		Settings.transferLocked = true;
 
 		task.addCallback(callback).execute();
 	}
@@ -162,29 +165,43 @@ public class DownloadManager
 			@Override
 			public void run(Object o) {
 				int returnCode = (Integer) o;
-				
-				switch( returnCode )
-				{
-					case TransferUtils.COMPLETE:
-						put(STDOUT, "DONE");
-						
-						move(Settings.UNZIP_DIRECTORY, destination, progressbar, label, func);
-						break;
-					case TransferUtils.FAILED:
-						put(STDOUT, "FAILED");
-						label.setText("Extract Failed...");
-						label.setForeground(Color.RED);
-						break;
-					case TransferUtils.CANCELLED:
-						put(STDOUT, "CANCELLED");
-						label.setText("Extract Cancelled...");
-						label.setForeground(Color.BLACK);
-						break;
-					case TransferUtils.OFFLINE:
-						put(STDOUT, "OFFLINE");
-						label.setText("Offline");
-						label.setForeground(Color.BLACK);
-						break;
+
+				try {
+					switch( returnCode )
+					{
+						case TransferUtils.COMPLETE:
+							put(STDOUT, "DONE");
+							
+							move(Settings.UNZIP_DIRECTORY, destination, progressbar, label, func);
+							break;
+						case TransferUtils.FAILED:
+							put(STDOUT, "FAILED");
+							label.setText("Extract Failed...");
+							label.setForeground(Color.RED);
+							
+							Thread.sleep(1000);
+							func.call();
+							break;
+						case TransferUtils.CANCELLED:
+							put(STDOUT, "CANCELLED");
+							label.setText("Extract Cancelled...");
+							label.setForeground(Color.BLACK);
+							
+							Thread.sleep(1000);
+							func.call();
+							break;
+						case TransferUtils.OFFLINE:
+							put(STDOUT, "OFFLINE");
+							label.setText("Offline");
+							label.setForeground(Color.BLACK);
+
+							Thread.sleep(1000);
+							func.call();
+							break;
+					}
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		};
@@ -224,12 +241,97 @@ public class DownloadManager
 				return o;
 			}
 		};
+
+		if( !Settings.UNZIP_DIRECTORY.exists() )
+			Settings.UNZIP_DIRECTORY.mkdirs();
+		
+		label.setText("Extracting update.... ");
+		
+		Settings.transferCancelled = false;
+		Settings.transferLocked = true;
 		
 		task.addCallback(callback).execute();
 	}
 	
-	public static void move(File source, File destination, JProgressBar progressbar, JLabel label, Function func)
+	public static void move(final File source, final File destination, final JProgressBar progressbar, final JLabel label, Function func)
 	{
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				progressbar.setValue( 50 + info.percent / 2 );
+				label.setText( 
+						String.format(
+								"Installing plugin.... %d%%", 
+								50 + info.percent / 2 ) );
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				switch( returnCode ) 
+				{
+					case TransferUtils.COMPLETE:
+						put(STDOUT, "DONE");
+						label.setText("Install complete....");
+						
+						Settings.canQuit = true;
+						System.gc();
+	
+						try {
+							Settings.cleanUp();
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+						}
+						break;
+					case TransferUtils.CANCELLED:
+						break;
+					case TransferUtils.FAILED:
+						break;
+					case TransferUtils.OFFLINE:
+						break;
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				int status = TransferUtils.COMPLETE;
+				String[] files = source.list();
+				
+				try {
+					observer.init(source);
+
+					for( String file : files )
+					{
+						File s = new File(source, file);
+						File d = new File(destination, file);
+						status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+					}
+				} catch (ArithmeticException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (FileNotFoundException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return status;
+			}
+		};
+
+		trace(STDOUT, "-> Installing plugin..............");
+
+		label.setText("Installing Plugin....");
+		progressbar.setIndeterminate(false);
 		
+		task.addCallback(callback).execute();
 	}
 }

@@ -61,6 +61,7 @@ import weave.utils.IdentityUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
+import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
@@ -193,7 +194,7 @@ public class Updater extends JFrame
 		cancelButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if( Settings.downloadLocked )
+				if( Settings.transferLocked )
 					Settings.transferCancelled = true;
 				else
 					Settings.shutdown();
@@ -323,7 +324,7 @@ public class Updater extends JFrame
 				int returnCode = (Integer) o;
 				
 				Settings.transferCancelled = false;
-				Settings.downloadLocked = false;
+				Settings.transferLocked = false;
 				
 				try {
 					switch( returnCode )
@@ -384,12 +385,12 @@ public class Updater extends JFrame
 			}
 		};
 
-		trace(STDOUT, "-> Downloading update.............");
+		trace(STDOUT, StringUtils.rpad("-> Downloading update", ".", Settings.LOG_PADDING_LENGTH));
 		statusLabel.setText("Downloading update....");
 		statusProgress.setIndeterminate(false);
 		statusProgress.setValue(0);
 
-		Settings.downloadLocked = true;
+		Settings.transferLocked = true;
 		Settings.transferCancelled = false;
 		
 		task.addCallback(callback).execute();
@@ -438,7 +439,7 @@ public class Updater extends JFrame
 			}
 		};
 
-		trace(STDOUT, "-> Installing update..............");
+		trace(STDOUT, StringUtils.rpad("-> Installing update", ".", Settings.LOG_PADDING_LENGTH));
 		
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);

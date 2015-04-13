@@ -42,6 +42,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.StringUtils;
 import weave.utils.SyscallCreatorUtils;
 import weave.utils.TransferUtils;
 
@@ -126,7 +127,7 @@ public class JettyConfig extends Config
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 
-				trace(STDOUT, "-> Starting " + getConfigName() + " server..........");
+				trace(STDOUT, StringUtils.rpad("-> Starting " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
 
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
@@ -137,8 +138,6 @@ public class JettyConfig extends Config
 											"jetty.home=\"" + basePath + "\" " +
 											"jetty.base=\"" + basePath + "\" " +
 											"jetty.port=" + _port + " " +
-//											"--debug " +
-//											"--module=logging " +
 											"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
@@ -204,7 +203,7 @@ public class JettyConfig extends Config
 	}
 	public Map<String, List<String>> stopServer()
 	{
-		trace(STDOUT, "-> Stopping " + getConfigName() + " server..........");
+		trace(STDOUT, StringUtils.rpad("-> Stopping " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
 
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
