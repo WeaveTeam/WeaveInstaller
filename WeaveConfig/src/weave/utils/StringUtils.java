@@ -89,4 +89,14 @@ public class StringUtils extends Globals
 		
 		return str.substring(0, length) + "...";
 	}
+	
+	public static String lpad(String text, String padding, int width)
+	{
+		return repeat(padding, text.length() - width) + text;
+	}
+	
+	public static String rpad(String text, String padding, int width)
+	{
+		return text + repeat(padding, text.length() - width);
+	}
 }
