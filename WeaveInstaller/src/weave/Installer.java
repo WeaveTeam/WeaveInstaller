@@ -69,6 +69,7 @@ import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.StatsUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 
@@ -378,17 +379,6 @@ public class Installer extends JFrame
 				}
 			}
 		}, 3000);
-
-//		Properties props = System.getProperties();
-//		Map<String, String> mp = new HashMap<String, String>();
-//		
-//		for( String name : props.stringPropertyNames() )
-//			mp.put(name, props.getProperty(name));
-//		
-//		
-//		System.out.println("Environment\n" + ObjectUtils.toString(System.getenv()));
-//		System.out.println("Properties\n" + ObjectUtils.toString(mp));
-		
 		
 		switchToWelcomeSetupPanels(rightPanel);
 	}
@@ -636,10 +626,18 @@ public class Installer extends JFrame
 	public void startTimers()
 	{
 		new Timer().schedule(new TimerTask() {
-			@Override public void run() {
+			@Override 
+			public void run() {
 				UpdateUtils.checkForUpdate(UpdateUtils.FROM_EVENT);
 			}
 		}, 60 * 60 * 1000, 60 * 60 * 1000);
+		
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				StatsUtils.noop();
+			}
+		}, 5 * 1000, 60 * 1000);
 	}
 	//============================================================================================================
 	private int updateToNewUpdater() throws IOException, InterruptedException

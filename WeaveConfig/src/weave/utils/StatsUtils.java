@@ -81,7 +81,7 @@ public class StatsUtils extends Globals
 				@Override
 				public Object doInBackground() {
 					try {
-						return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_STATS_LIVE, params);
+						return URLRequestUtils.request(URLRequestUtils.POST, Settings.API_STATS_LIVE, params);
 					} catch (IOException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);

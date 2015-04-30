@@ -25,8 +25,6 @@ import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,7 +34,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.swing.Icon;
@@ -51,6 +48,7 @@ import javax.swing.JTextArea;
 
 import weave.Settings;
 import weave.managers.TrayManager;
+import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 
 @SuppressWarnings("serial")
@@ -88,7 +86,7 @@ public class BugReportWindow extends JFrame
 		_instance.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		_instance.setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
 
-		Icon icon 						= new ImageIcon( resizeImage(30, 30, TrayManager.trayIconOffline) );
+		Icon icon 						= new ImageIcon( ImageUtils.resize(TrayManager.trayIconOffline, 30, 30) ); 
 		JLabel iconLabel 				= new JLabel(icon);
 		JEditorPane titleContainer 		= new JEditorPane();
 		JEditorPane messageContainer 	= new JEditorPane();
@@ -210,16 +208,6 @@ public class BugReportWindow extends JFrame
 			@Override public void windowClosed(WindowEvent arg0) { }
 			@Override public void windowActivated(WindowEvent arg0) { }
 		});
-	}
-	
-	private static BufferedImage resizeImage(int width, int height, Image original)
-	{
-		BufferedImage resized = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
-		Graphics2D g = resized.createGraphics();
-		g.drawImage(original, 0, 0, width, height, null);
-		g.dispose();
-		
-		return resized;
 	}
 	
 	public class _internal

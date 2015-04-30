@@ -1,6 +1,7 @@
 package weave.utils;
 
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
@@ -11,7 +12,7 @@ public class ImageUtils extends Globals
 	public static final int SCALE_WIDTH = 1;
 	public static final int SCALE_HEIGHT = 2;
 	
-	public static BufferedImage resize(BufferedImage image, int width, int height)
+	public static BufferedImage resize(Image image, int width, int height)
 	{
 		BufferedImage buff = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
 		Graphics2D g = (Graphics2D) buff.createGraphics();

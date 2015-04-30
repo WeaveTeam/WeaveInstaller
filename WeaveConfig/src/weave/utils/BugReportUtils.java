@@ -30,20 +30,7 @@ import static weave.utils.TraceUtils.traceln;
 import java.awt.HeadlessException;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONObject;
 
 import weave.Globals;
 import weave.Settings;
@@ -71,13 +58,16 @@ public class BugReportUtils extends Globals
 		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
 		traceln(STDOUT, "");
 		
+		for( WindowListener l : brw.getWindowListeners() )
+			brw.removeWindowListener(l);
+		
 		brw.addWindowListener(new WindowListener() {
 			@Override public void windowOpened(WindowEvent arg0) { }
 			@Override public void windowIconified(WindowEvent arg0) { }
 			@Override public void windowDeiconified(WindowEvent arg0) { }
 			@Override public void windowDeactivated(WindowEvent arg0) {	}
 			@Override public void windowClosing(WindowEvent arg0) {
-				trace(STDOUT, "-> Should send bug report?........");
+				trace(STDOUT, StringUtils.rpad("-> Should send bug report?", ".", Settings.LOG_PADDING_LENGTH));
 				if( brw.CLOSE_OPTION == BugReportWindow.YES_OPTION ) {
 					put(STDOUT, "YES");
 					
@@ -96,47 +86,31 @@ public class BugReportUtils extends Globals
 	
 	private static void submitReport(Throwable e, String comment)
 	{
-		trace(STDOUT, "-> Sending Bug report.............");
+		trace(STDOUT, StringUtils.rpad("-> Sending Bug report", ".", Settings.LOG_PADDING_LENGTH));
 
 		try {
 			String stack = getStackTrace(e);
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("os", Settings.getExactOS());
-			map.put("updr_ver", Settings.UPDATER_VER);
-			map.put("instll_ver", Settings.SERVER_VER);
-			map.put("comment", comment);
-			map.put("stack", stack);
 			
-			JSONObject json = new JSONObject(map);
-			HttpClient client = new DefaultHttpClient();
-			HttpPost post = new HttpPost(Settings.API_BUG_REPORT);
-			System.out.println(json.toString());
-	
-			StringEntity params = new StringEntity("json="+json.toString());
-			post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-			post.setEntity(params);
+			URLRequestParams params = new URLRequestParams();
+			params.add("os", Settings.getExactOS());
+			params.add("updr_ver", Settings.UPDATER_VER);
+			params.add("instll_ver", Settings.SERVER_VER);
+			params.add("comment", comment);
+			params.add("stack", stack);
+			params.add("epoch", ""+(System.currentTimeMillis()/1000));
 			
-			HttpResponse response = client.execute(post);
-			InputStream is = response.getEntity().getContent();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			StringBuilder sb = new StringBuilder();
+			URLRequestResult result = URLRequestUtils.request(URLRequestUtils.POST, Settings.API_BUG_REPORT, params);
 			
-			String line = "";
-			while( (line = br.readLine()) != null )
-				sb.append(line + Settings.N_L);
+			put(STDOUT, (result.getResponseContent().equals("1") ? "SUCCESSFUL" : "ERROR")
+						+ " [ " + result.getResponseHeader(null) + " ]" 
+						+ " : " + result.getResponseContent().replaceAll("\\<.*?>", ""));
 			
-//			System.out.println("");
-//			System.out.println(sb.toString());
-//			System.out.println("");
-			
-		} catch (ClientProtocolException e1) {	
-			trace(STDERR, e1);
-			put(STDOUT, "FAILED");
 		} catch (IOException e1) {
 			trace(STDERR, e1);
 			put(STDOUT, "FAILED");
+		} catch (InterruptedException ex) {
+			trace(STDERR, ex);
+			put(STDOUT, "FAILED");
 		}
-		
-		put(STDOUT, "SENT");
 	}
 }

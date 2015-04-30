@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.util.zip.ZipException;
 
 import javax.swing.JLabel;
@@ -31,13 +32,80 @@ import weave.utils.ZipUtils;
 
 public class DownloadManager 
 {
-	public static void download(String urlStr, String fileStr, String destinationStr, final JProgressBar progressbar, final JLabel label, final Function func) throws MalformedURLException, InterruptedException
+	private String type = "";
+	private String dlURLStr = "";
+	private String dlFileStr = "";
+	private String dlDestinationStr = "";
+	private Function callbackFunction = null;
+	
+	private JLabel label = null;
+	private JProgressBar progressbar = null;
+	
+	private static DownloadManager _instance = null;
+	public static DownloadManager init(String t)
 	{
-		final URL url = new URL(urlStr);
-		final File file = new File(fileStr);
-		final File destination = new File(destinationStr);
+		if( _instance == null )
+			_instance = new DownloadManager();
 		
-		AsyncCallback callback = new AsyncCallback() {
+		_instance.type = t;
+		_instance.dlURLStr = null;
+		_instance.dlFileStr = null;
+		_instance.dlDestinationStr = null;
+		_instance.callbackFunction = null;
+		
+		_instance.label = null;
+		_instance.progressbar = null;
+		return _instance;
+	}
+	
+	public DownloadManager setProgressbar(JProgressBar bar)
+	{
+		progressbar = bar;
+		return this;
+	}
+	
+	public DownloadManager setLabel(JLabel l)
+	{
+		label = l;
+		return this;
+	}
+	
+	public DownloadManager downloadFrom(String loc)
+	{
+		dlURLStr = loc;
+		return this;
+	}
+	public DownloadManager extractTo(String loc)
+	{
+		dlFileStr = loc;
+		return this;
+	}
+	public DownloadManager installTo(String loc)
+	{
+		dlDestinationStr = loc;
+		return this;
+	}
+	public DownloadManager callback(Function f)
+	{
+		callbackFunction = f;
+		return this;
+	}
+	public void start() throws MalformedURLException, InterruptedException
+	{
+		if( dlURLStr != null )
+			download();
+		else if( dlFileStr != null )
+			extract();
+		else
+			throw new InvalidParameterException();
+	}
+	
+	private void download() throws MalformedURLException, InterruptedException
+	{
+		final URL url = new URL(dlURLStr);
+		final File file = new File(dlFileStr);
+		
+		final AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
 				int returnCode = (Integer) o;
@@ -53,7 +121,7 @@ public class DownloadManager
 							label.setText("Download Complete....");
 							label.setForeground(Color.BLACK);
 		
-							extract(file, destination, progressbar, label, func);
+							extract();
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -61,7 +129,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -69,7 +137,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -77,7 +145,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -132,15 +200,17 @@ public class DownloadManager
 					observer.init(url);
 					ret = DownloadUtils.download(url, file, observer, 2 * TransferUtils.MB);
 				} catch (IOException e) {
-					e.printStackTrace();
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 				return ret;
 			}
 		};
 
-		trace(STDOUT, StringUtils.rpad("-> Downloading plugin", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, StringUtils.rpad("-> Downloading " + type, ".", Settings.LOG_PADDING_LENGTH));
 		
 		label.setVisible(true);
 		progressbar.setVisible(true);
@@ -159,8 +229,10 @@ public class DownloadManager
 		task.addCallback(callback).execute();
 	}
 	
-	public static void extract(final File zipFile, final File destination, final JProgressBar progressbar, final JLabel label, final Function func)
+	private void extract()
 	{
+		final File file = new File(dlFileStr);
+		
 		AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
@@ -172,7 +244,7 @@ public class DownloadManager
 						case TransferUtils.COMPLETE:
 							put(STDOUT, "DONE");
 							
-							move(Settings.UNZIP_DIRECTORY, destination, progressbar, label, func);
+							move();
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -180,7 +252,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -188,7 +260,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -196,7 +268,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 
 							Thread.sleep(1000);
-							func.call();
+							callbackFunction.call();
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -220,8 +292,8 @@ public class DownloadManager
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 				try {
-					observer.init(zipFile);
-					o = ZipUtils.extract(zipFile, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
+					observer.init(file);
+					o = ZipUtils.extract(file, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -246,6 +318,7 @@ public class DownloadManager
 			Settings.UNZIP_DIRECTORY.mkdirs();
 		
 		label.setText("Extracting update.... ");
+		trace(STDOUT, StringUtils.rpad("-> Extracting " + type, ".", Settings.LOG_PADDING_LENGTH));
 		
 		Settings.transferCancelled = false;
 		Settings.transferLocked = true;
@@ -253,8 +326,11 @@ public class DownloadManager
 		task.addCallback(callback).execute();
 	}
 	
-	public static void move(final File source, final File destination, final JProgressBar progressbar, final JLabel label, Function func)
+	private void move()
 	{
+		final File unzip = Settings.UNZIP_DIRECTORY;
+		final File destination = new File(dlDestinationStr);
+		
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
@@ -270,28 +346,43 @@ public class DownloadManager
 			public void run(Object o) {
 				int returnCode = (Integer) o;
 				
-				switch( returnCode ) 
-				{
-					case TransferUtils.COMPLETE:
-						put(STDOUT, "DONE");
-						label.setText("Install complete....");
-						
-						Settings.canQuit = true;
-						System.gc();
-	
-						try {
-							Settings.cleanUp();
+				try {
+					switch( returnCode ) 
+					{
+						case TransferUtils.COMPLETE:
+							put(STDOUT, "DONE");
+							label.setText("Install complete....");
+							
+							callbackFunction.call();
+							break;
+						case TransferUtils.FAILED:
+							put(STDOUT, "FAILED");
+							label.setText("Install Failed...");
+							label.setForeground(Color.RED);
+							
 							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-						}
-						break;
-					case TransferUtils.CANCELLED:
-						break;
-					case TransferUtils.FAILED:
-						break;
-					case TransferUtils.OFFLINE:
-						break;
+							callbackFunction.call();
+							break;
+						case TransferUtils.CANCELLED:
+							put(STDOUT, "CANCELLED");
+							label.setText("Install Cancelled...");
+							label.setForeground(Color.BLACK);
+							
+							Thread.sleep(1000);
+							callbackFunction.call();
+							break;
+						case TransferUtils.OFFLINE:
+							put(STDOUT, "OFFLINE");
+							label.setText("Offline");
+							label.setForeground(Color.BLACK);
+	
+							Thread.sleep(1000);
+							callbackFunction.call();
+							break;
+					}
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		};
@@ -299,16 +390,41 @@ public class DownloadManager
 			@Override
 			public Object doInBackground() {
 				int status = TransferUtils.COMPLETE;
-				String[] files = source.list();
+				String[] unzip_dir_files = unzip.list();
 				
 				try {
-					observer.init(source);
-
-					for( String file : files )
+					if( unzip_dir_files.length == 1 )
 					{
-						File s = new File(source, file);
-						File d = new File(destination, file);
-						status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+						File topLevelFile = new File(unzip, unzip_dir_files[0]);
+						observer.init(topLevelFile);
+						
+						if( topLevelFile.isDirectory() )
+						{
+							String[] topLevelFile_dir_files = topLevelFile.list();
+							for( String name : topLevelFile_dir_files )
+							{
+								File s = new File(topLevelFile, name);
+								File d = new File(destination, name);
+								status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+							}
+						}
+						else
+						{
+							File s = new File(unzip, topLevelFile.getName());
+							File d = new File(destination, topLevelFile.getName());
+							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+						}
+					}
+					else
+					{
+						observer.init(unzip);
+						
+						for( String file : unzip_dir_files )
+						{
+							File s = new File(unzip, file);
+							File d = new File(destination, file);
+							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+						}
 					}
 				} catch (ArithmeticException e) {
 					trace(STDERR, e);
@@ -327,7 +443,7 @@ public class DownloadManager
 			}
 		};
 
-		trace(STDOUT, "-> Installing plugin..............");
+		trace(STDOUT, StringUtils.rpad("-> Installing " + type, ".", Settings.LOG_PADDING_LENGTH));
 
 		label.setText("Installing Plugin....");
 		progressbar.setIndeterminate(false);

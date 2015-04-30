@@ -52,7 +52,7 @@ public class RemoteUtils extends Globals
 	
 	private static String[] getConfigFile()
 	{
-		String content = "";
+		URLRequestResult result = null;
 		
 		if( Settings.isOfflineMode() )
 			return null;
@@ -60,8 +60,8 @@ public class RemoteUtils extends Globals
 		try {
 			if( configTimestamp < (System.currentTimeMillis() / 1000L) )
 			{
-				content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
-				configFile = content.split(";");
+				result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
+				configFile = result.getResponseContent().split(";");
 				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
 			}
 		} catch (IOException e) {
@@ -91,7 +91,7 @@ public class RemoteUtils extends Globals
 	@Reflectable
 	public static String[] getRemoteFiles()
 	{
-		String content = "";
+		URLRequestResult result = null;
 		
 		if( Settings.isOfflineMode() )
 			return null;
@@ -106,8 +106,8 @@ public class RemoteUtils extends Globals
 		}
 
 		try {
-			content = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
-			return content.split(";");
+			result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
+			return result.getResponseContent().split(";");
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -130,7 +130,7 @@ public class RemoteUtils extends Globals
 			return null;
 		
 		try {
-			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP);
+			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP).getResponseContent();
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -161,9 +161,11 @@ public class RemoteUtils extends Globals
 		params.add("port", "" + port);
 		
 		try {
-			String result = URLRequestUtils.request(URLRequestUtils.GET, Settings.API_SOCKET, params);
+			return URLRequestUtils
+						.request(URLRequestUtils.GET, Settings.API_SOCKET, params)
+						.getResponseContent()
+						.equals("1");
 
-			return result.equals("1");
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

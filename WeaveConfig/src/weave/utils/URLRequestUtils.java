@@ -20,12 +20,12 @@ public class URLRequestUtils extends Globals
 	public static final String POST = "POST";
 	public static final int TIMEOUT = 3000;
 	
-	public static String request(String method, String urlStr) throws IOException, InterruptedException
+	public static URLRequestResult request(String method, String urlStr) throws IOException, InterruptedException
 	{
 		return request(method, urlStr, null);
 	}
 	
-	public static String request(final String method, final String urlStr, final URLRequestParams params) throws IOException, InterruptedException
+	public static URLRequestResult request(final String method, final String urlStr, final URLRequestParams params) throws IOException, InterruptedException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
@@ -35,7 +35,8 @@ public class URLRequestUtils extends Globals
 		DataOutputStream outStream 	= null;
 		BufferedReader reader 		= null;
 		String line 				= null;
-		StringBuilder response 		= null;
+		StringBuilder content 		= new StringBuilder();
+		URLRequestResult result		= null;
 
 		try {
 			if( method.equals(GET) )
@@ -49,15 +50,16 @@ public class URLRequestUtils extends Globals
 				conn.setRequestMethod(GET);
 				conn.setDoOutput(false);
 				conn.setUseCaches(false);
-				conn.setRequestProperty("Content-Type", "multipart/form-data");
+				conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 				conn.setRequestProperty("charset", "utf-8");
 				conn.setConnectTimeout(TIMEOUT);
 				conn.connect();
 				
-				response = new StringBuilder();
 				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				while( (line = reader.readLine()) != null )
-					response.append(line);
+					content.append(line);
+				
+				result = new URLRequestResult(conn, content.toString());
 			}
 			else if( method.equals(POST) )
 			{
@@ -66,7 +68,7 @@ public class URLRequestUtils extends Globals
 				conn.setRequestMethod(POST);
 				conn.setDoOutput(params != null);
 				conn.setUseCaches(false);
-				conn.setRequestProperty("Content-Type", "multipart/form-data");
+				conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 				conn.setRequestProperty("charset", "UTF-8");
 				conn.setConnectTimeout(TIMEOUT);
 				conn.connect();
@@ -79,12 +81,13 @@ public class URLRequestUtils extends Globals
 					outStream.close();
 				}
 				
-				response = new StringBuilder();
 				reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				while( (line = reader.readLine()) != null )
-					response.append(line);
+					content.append(line);
+				
+				result = new URLRequestResult(conn, content.toString());
 			}
-			return response.toString();
+			return result;
 			
 		} catch (MalformedURLException e) {
 			trace(STDERR, e);
@@ -112,16 +115,18 @@ public class URLRequestUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 		
+		URLRequestResult result = null;
+		
 		try {
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setInstanceFollowRedirects(true);
 			conn.setRequestMethod(GET);
 			conn.setConnectTimeout(TIMEOUT);
 			conn.connect();
-			
-			if( conn.getResponseCode() == 200 )
-				return conn.getHeaderField(field);
 
+			result = new URLRequestResult(conn, "");
+			return result.getResponseHeader(field);
+			
 		} catch (IOException e) {
 			trace(STDERR, e);
 		}

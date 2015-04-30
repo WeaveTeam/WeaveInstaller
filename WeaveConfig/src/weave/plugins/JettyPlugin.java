@@ -57,6 +57,19 @@ public class JettyPlugin extends Plugin
 	private JProgressBar progressbar = null;
 	private JLabel progressLabel = null;
 	
+	private Function onDownloadCompleteCallback = new Function() {
+		@Override
+		public void run() {
+			setAllButtonsEnabled(true);
+			progressbar.setValue(0);
+			progressbar.setIndeterminate(true);
+			progressbar.setVisible(false);
+			progressLabel.setText("");
+			progressLabel.setVisible(false);
+			getPluginPanel();
+		}
+	};
+	
 	@Override
 	public JPanel getPluginPanel()
 	{
@@ -100,20 +113,16 @@ public class JettyPlugin extends Plugin
 			public void actionPerformed(ActionEvent e) {
 				try {
 					setAllButtonsEnabled(false);
-					DownloadManager.download(getPluginDownloadURL(), getPluginDownloadFile(), getPluginBaseDirectory(),
-											 progressbar, progressLabel,
-											 new Function() {
-												@Override
-												public void run() {
-													setAllButtonsEnabled(true);
-													progressbar.setValue(0);
-													progressbar.setIndeterminate(true);
-													progressbar.setVisible(false);
-													progressLabel.setText("");
-													progressLabel.setVisible(false);
-													getPluginPanel();
-												}
-											});
+
+					DownloadManager.init("plugin")
+						.setLabel(progressLabel)
+						.setProgressbar(progressbar)
+						.downloadFrom(getPluginDownloadURL())
+						.extractTo(getPluginDownloadFile())
+						.installTo(getPluginBaseDirectory())
+						.callback(onDownloadCompleteCallback)
+						.start();
+					
 				} catch (MalformedURLException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
@@ -130,7 +139,7 @@ public class JettyPlugin extends Plugin
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("remove");
+				
 			}
 		});
 		panel.add(removeButton);
