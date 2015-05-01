@@ -91,7 +91,6 @@ import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
-import weave.managers.IconManager;
 import weave.managers.PluginManager;
 import weave.plugins.IPlugin;
 import weave.reflect.Reflectable;
@@ -155,7 +154,7 @@ public class HomeSetupPanel extends SetupPanel
 	public JScrollPane troubleshootScrollPane;
 
 	// ============== About Tab ============== //
-	public JLabel aboutImage, aboutTitle, aboutVersion;
+	public JLabel aboutTitle, aboutVersion;
 	public JEditorPane aboutHTML;
 	
 	public HomeSetupPanel()
@@ -1143,60 +1142,50 @@ public class HomeSetupPanel extends SetupPanel
 	public JPanel createAboutTab(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
+	
+		aboutTitle = new JLabel(Settings.SERVER_NAME);
+		aboutTitle.setBounds(20, 20, 300, 30);
+		aboutTitle.setFont(new Font(Settings.FONT, Font.BOLD, 18));
 		
-		try {
-			aboutImage = new JLabel("");
-			aboutImage.setBounds(20, 20, 100, 100);
-			aboutImage.setIcon(new ImageIcon(ImageUtils.scale(ImageIO.read(IconManager.ICON_TRAY_LOGO_LARGE), aboutImage.getWidth(), ImageUtils.SCALE_WIDTH)));
-			
-			aboutTitle = new JLabel(Settings.SERVER_NAME);
-			aboutTitle.setBounds(150, 30, 300, 30);
-			aboutTitle.setFont(new Font(Settings.FONT, Font.BOLD, 18));
-			
-			aboutVersion = new JLabel(Settings.SERVER_VER);
-			aboutVersion.setBounds(150, 60, 300, 30);
-			aboutVersion.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
-			
-			aboutHTML = new JEditorPane();
-			aboutHTML.setBounds(20, 130, 400, 200);
-			aboutHTML.setBackground(Color.WHITE);
-			aboutHTML.setEditable(false);
-			aboutHTML.setContentType("text/html");
-			aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
-			aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
-								"enable visualization of any available  data by anyone for any purpose.<br><br><br><br>" +
-								"(c) Institute for Visualization and Perception Research<br>" +
-								"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
-			String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
-										"font-size: " + aboutHTML.getFont().getSize() + "px; }" +
-								"b { font-size: " + (aboutHTML.getFont().getSize() + 2) + "px; }";
-			((HTMLDocument)aboutHTML.getDocument()).getStyleSheet().addRule(htmlStyle);
-			aboutHTML.addHyperlinkListener(new HyperlinkListener() {
-				@Override
-				public void hyperlinkUpdate(HyperlinkEvent e) {
-					if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
-					{
-						try {
-							LaunchUtils.browse(e.getURL().toURI());
-						} catch (IOException ex) {
-							trace(STDERR, ex);
-							BugReportUtils.showBugReportDialog(ex);
-						} catch (InterruptedException ex) {
-							trace(STDERR, ex);
-							BugReportUtils.showBugReportDialog(ex);
-						} catch (URISyntaxException ex) {
-							trace(STDERR, ex);
-							BugReportUtils.showBugReportDialog(ex);
-						}
+		aboutVersion = new JLabel(Settings.SERVER_VER);
+		aboutVersion.setBounds(20, 50, 300, 30);
+		aboutVersion.setFont(new Font(Settings.FONT, Font.PLAIN, 13));
+		
+		aboutHTML = new JEditorPane();
+		aboutHTML.setBounds(20, 120, 400, 200);
+		aboutHTML.setBackground(Color.WHITE);
+		aboutHTML.setEditable(false);
+		aboutHTML.setContentType("text/html");
+		aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
+		aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
+							"enable visualization of any available  data by anyone for any purpose.<br><br><br><br><br><br>" +
+							"(c) Institute for Visualization and Perception Research<br>" +
+							"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
+		String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
+									"font-size: " + aboutHTML.getFont().getSize() + "px; }" +
+							"b { font-size: " + (aboutHTML.getFont().getSize() + 2) + "px; }";
+		((HTMLDocument)aboutHTML.getDocument()).getStyleSheet().addRule(htmlStyle);
+		aboutHTML.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+				{
+					try {
+						LaunchUtils.browse(e.getURL().toURI());
+					} catch (IOException ex) {
+						trace(STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (InterruptedException ex) {
+						trace(STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					} catch (URISyntaxException ex) {
+						trace(STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
 					}
 				}
-			});
-			
-		} catch (IOException e) {
-			trace(STDERR, e);
-		}
+			}
+		});
 		
-		panel.add(aboutImage);
 		panel.add(aboutTitle);
 		panel.add(aboutVersion);
 		panel.add(aboutHTML);

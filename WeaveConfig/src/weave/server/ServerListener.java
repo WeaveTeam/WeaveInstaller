@@ -42,9 +42,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import weave.Globals;
+import weave.Settings;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ReflectionUtils;
+import weave.utils.StringUtils;
 import weave.utils.TraceUtils;
 
 public class ServerListener extends Globals
@@ -64,7 +66,7 @@ public class ServerListener extends Globals
 	
 	public void start()
 	{
-		trace(STDOUT, "-> Starting RPC Server............");
+		trace(STDOUT, StringUtils.rpad("-> Starting RPC Server", ".", Settings.LOG_PADDING_LENGTH));
 		
 		try {
 			
@@ -111,7 +113,7 @@ public class ServerListener extends Globals
 	public void stop()
 	{
 		int i = 0;
-		trace(STDOUT, "-> Stopping RPC Server............");
+		trace(STDOUT, StringUtils.rpad("-> Stopping RPC Server", ".", Settings.LOG_PADDING_LENGTH));
 		
 		try {
 			while( !connections.isEmpty() )

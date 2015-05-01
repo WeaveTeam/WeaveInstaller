@@ -29,9 +29,10 @@ import weave.utils.RemoteUtils;
 
 public class AnalystWorkstationPlugin extends Plugin 
 {
-	public static final String NAME = "Weave Analyst";
+	public static final String NAME = "WeaveAnalyst";
 	public static final String HOMEPAGEURL = "http://info.oicweave.org/projects/weave/wiki/Weave_Analyst";
-	public static final String DESCRIPTION = "Runs computation on data using an analytic engine to visually and interactively display the results.";
+	public static final String DESCRIPTION = "Runs computation on data using an analytic engine to visually and " +
+											 "interactively display the results.";
 	
 	private static AnalystWorkstationPlugin _instance = null;
 	public static AnalystWorkstationPlugin getPlugin()
@@ -95,6 +96,7 @@ public class AnalystWorkstationPlugin extends Plugin
 			{
 				installButton.setText("Reinstall");
 				removeButton.setVisible(true);
+				removeButton.setEnabled(false);
 				openButton.setVisible(true);
 			}
 			else
@@ -121,35 +123,6 @@ public class AnalystWorkstationPlugin extends Plugin
 		description.setText(getPluginDescription());
 		description.setEditable(false);
 		panel.add(description);
-		
-		openButton = new JButton("Open");
-		openButton.setBounds(190, 115, 90, 25);
-		openButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				IConfig servlet = ConfigManager.getConfigManager().getActiveContainer();
-				if( servlet == null )
-					return;
-				
-				try {
-					LaunchUtils.browse("http://" + 
-							Settings.LOCALHOST + ":" + 
-							servlet.getPort() + 
-							"/aws/");
-				} catch (IOException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (URISyntaxException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				}
-			}
-		});
-		openButton.setVisible(false);
-		panel.add(openButton);
 		
 		installButton = new JButton("Install");
 		installButton.setBounds(190, 45, 90, 25);
@@ -188,6 +161,35 @@ public class AnalystWorkstationPlugin extends Plugin
 			}
 		});
 		panel.add(removeButton);
+
+		openButton = new JButton("Open");
+		openButton.setBounds(190, 115, 90, 25);
+		openButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				IConfig servlet = ConfigManager.getConfigManager().getActiveContainer();
+				if( servlet == null )
+					return;
+				
+				try {
+					LaunchUtils.browse("http://" + 
+							Settings.LOCALHOST + ":" + 
+							servlet.getPort() + 
+							"/aws/");
+				} catch (IOException ex) {
+					trace(STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (URISyntaxException ex) {
+					trace(STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				} catch (InterruptedException ex) {
+					trace(STDERR, ex);
+					BugReportUtils.showBugReportDialog(ex);
+				}
+			}
+		});
+		openButton.setVisible(false);
+		panel.add(openButton);
 		
 		progressbar = new JProgressBar();
 		progressbar.setBounds(20, 235, 260, 25);
@@ -210,7 +212,7 @@ public class AnalystWorkstationPlugin extends Plugin
 	public void setAllButtonsEnabled(boolean b)
 	{
 		installButton.setEnabled(b);
-		removeButton.setEnabled(b);
+		removeButton.setEnabled(false);
 		openButton.setEnabled(b);
 	}
 }

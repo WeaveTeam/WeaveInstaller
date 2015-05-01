@@ -231,9 +231,9 @@ public class Installer extends JFrame
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
-		BufferedImage wvaLogo = ImageUtils.fit(ImageIO.read(IconManager.IMAGE_W_LOGO), 125, 57);
+		BufferedImage wvaLogo = ImageUtils.fit(ImageIO.read(IconManager.IMAGE_W_LOGO), 125, 65);
 		JLabel wvaLabel = new JLabel("", new ImageIcon(wvaLogo), JLabel.CENTER);
-		wvaLabel.setBounds(10, 10, 125, 57);
+		wvaLabel.setBounds(10, 10, 125, 65);
 		leftPanel.add(wvaLabel);
 
 		final JLabel iweaveLink = new JLabel(Settings.IWEAVE_HOST);
@@ -315,7 +315,7 @@ public class Installer extends JFrame
 		});
 		helpButton.setVisible(true);
 		//////////////////////////////////////////////////////////////////////////////////
-		cancelButton = new JButton("Cancel");
+		cancelButton = new JButton("Close");
 		cancelButton.setBounds(480, 10, 100, 30);				// 400, 13, 80, 25
 		cancelButton.setBackground(new Color(0x507AAA));
 		cancelButton.setToolTipText("Close the installer");

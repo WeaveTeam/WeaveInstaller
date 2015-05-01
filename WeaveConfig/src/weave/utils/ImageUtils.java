@@ -84,7 +84,7 @@ public class ImageUtils extends Globals
 		// need to scale to the smaller diff
 		else if( widthDiff > 0 && heightDiff > 0 )
 		{
-			return widthDiff > heightDiff ? 
+			return Math.abs(widthDiff) > Math.abs(heightDiff) ? 
 					scale(image, maxHeight, SCALE_HEIGHT) :
 					scale(image, maxWidth, SCALE_WIDTH);
 		}
@@ -92,9 +92,9 @@ public class ImageUtils extends Globals
 		// need to scale to the larger diff
 		else if( widthDiff < 0 && heightDiff < 0 )
 		{
-			return widthDiff > heightDiff ?
-					scale(image, maxHeight, SCALE_HEIGHT) :
-					scale(image, maxWidth, SCALE_WIDTH);
+			return Math.abs(widthDiff) > Math.abs(heightDiff) ?
+					scale(image, maxWidth, SCALE_WIDTH) :
+					scale(image, maxHeight, SCALE_HEIGHT);
 		}
 		
 		// should never get here but let's default to height

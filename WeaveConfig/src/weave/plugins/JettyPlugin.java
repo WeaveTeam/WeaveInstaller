@@ -78,13 +78,12 @@ public class JettyPlugin extends Plugin
 			if( isPluginInstalled() )
 			{
 				installButton.setText("Reinstall");
-				installButton.setBounds(90, 200, 90, 25);
 				removeButton.setVisible(true);
+				removeButton.setEnabled(false);
 			}
 			else
 			{
 				installButton.setText("Install");
-				installButton.setBounds(190, 200, 90, 25);
 				removeButton.setVisible(false);
 			}
 			return panel;
@@ -98,7 +97,7 @@ public class JettyPlugin extends Plugin
 		panel.add(nameLabel);
 		
 		description = new JEditorPane();
-		description.setBounds(20, 40, 260, 140);
+		description.setBounds(20, 40, 170, 140);
 		description.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		description.setBackground(Color.WHITE);
 		description.setContentType("text/html");
@@ -107,7 +106,7 @@ public class JettyPlugin extends Plugin
 		panel.add(description);
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(190, 200, 90, 25);
+		installButton.setBounds(190, 45, 90, 25);
 		installButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -135,7 +134,7 @@ public class JettyPlugin extends Plugin
 		panel.add(installButton);
 		
 		removeButton = new JButton("Remove");
-		removeButton.setBounds(190, 200, 90, 25);
+		removeButton.setBounds(190, 80, 90, 25);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -150,6 +149,6 @@ public class JettyPlugin extends Plugin
 	public void setAllButtonsEnabled(boolean b)
 	{
 		installButton.setEnabled(b);
-		removeButton.setEnabled(b);
+		removeButton.setEnabled(false);
 	}
 }
