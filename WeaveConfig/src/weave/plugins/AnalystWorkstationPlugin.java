@@ -29,9 +29,9 @@ import weave.utils.RemoteUtils;
 
 public class AnalystWorkstationPlugin extends Plugin 
 {
-	public static final String NAME = "Analyst Workstation";
+	public static final String NAME = "Weave Analyst";
 	public static final String HOMEPAGEURL = "http://info.oicweave.org/projects/weave/wiki/Weave_Analyst";
-	public static final String DESCRIPTION = "Analyst workstation for Weave";
+	public static final String DESCRIPTION = "Runs computation on data using an analytic engine to visually and interactively display the results.";
 	
 	private static AnalystWorkstationPlugin _instance = null;
 	public static AnalystWorkstationPlugin getPlugin()
@@ -94,14 +94,14 @@ public class AnalystWorkstationPlugin extends Plugin
 			if( isPluginInstalled() )
 			{
 				installButton.setText("Reinstall");
-				installButton.setBounds(90, 200, 90, 25);
 				removeButton.setVisible(true);
+				openButton.setVisible(true);
 			}
 			else
 			{
 				installButton.setText("Install");
-				installButton.setBounds(190, 200, 90, 25);
 				removeButton.setVisible(false);
+				openButton.setVisible(false);
 			}
 			return panel;
 		}
@@ -114,7 +114,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(nameLabel);
 		
 		description = new JEditorPane();
-		description.setBounds(20, 40, 260, 140);
+		description.setBounds(20, 40, 170, 140);
 		description.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		description.setBackground(Color.WHITE);
 		description.setContentType("text/html");
@@ -123,7 +123,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(description);
 		
 		openButton = new JButton("Open");
-		openButton.setBounds(190, 200, 90, 25);
+		openButton.setBounds(190, 115, 90, 25);
 		openButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -152,7 +152,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(openButton);
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(190, 200, 90, 25);
+		installButton.setBounds(190, 45, 90, 25);
 		installButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -180,7 +180,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(installButton);
 		
 		removeButton = new JButton("Remove");
-		removeButton.setBounds(190, 200, 90, 25);
+		removeButton.setBounds(190, 80, 90, 25);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -211,5 +211,6 @@ public class AnalystWorkstationPlugin extends Plugin
 	{
 		installButton.setEnabled(b);
 		removeButton.setEnabled(b);
+		openButton.setEnabled(b);
 	}
 }

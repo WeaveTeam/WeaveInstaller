@@ -68,8 +68,10 @@ import weave.ui.HomeSetupPanel;
 import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
+import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.StatsUtils;
+import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 
@@ -229,10 +231,10 @@ public class Installer extends JFrame
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
-		BufferedImage oicLogo = ImageIO.read(IconManager.IMAGE_OIC_LOGO);
-		JLabel oicLabel = new JLabel("", new ImageIcon(oicLogo), JLabel.CENTER);
-		oicLabel.setBounds(10, 10, 125, 57);
-		leftPanel.add(oicLabel);
+		BufferedImage wvaLogo = ImageUtils.fit(ImageIO.read(IconManager.IMAGE_W_LOGO), 125, 57);
+		JLabel wvaLabel = new JLabel("", new ImageIcon(wvaLogo), JLabel.CENTER);
+		wvaLabel.setBounds(10, 10, 125, 57);
+		leftPanel.add(wvaLabel);
 
 		final JLabel iweaveLink = new JLabel(Settings.IWEAVE_HOST);
 		iweaveLink.setBounds(30, SetupPanel.LEFT_PANEL_HEIGHT - 30, 125, 20);
@@ -367,7 +369,7 @@ public class Installer extends JFrame
 			public void run() {
 				try {
 					if( updateToNewUpdater() == TransferUtils.COMPLETE ) {
-						traceln(STDOUT, "-> Updating WeaveUpdater..........DONE");
+						traceln(STDOUT, StringUtils.rpad("-> Updating WeaveUpdater", ".", Settings.LOG_PADDING_LENGTH));
 						Settings.setDirectoryPermissions();
 					}
 				} catch (IOException e) {

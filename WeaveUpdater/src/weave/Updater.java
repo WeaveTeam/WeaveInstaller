@@ -257,7 +257,7 @@ public class Updater extends JFrame
 		
 		// Check to see if there is an update available and if 
 		// we should update at this time
-		traceln(STDOUT, "-> Checking for updates...........");
+		traceln(STDOUT, StringUtils.rpad("-> Checking for updates", ".", Settings.LOG_PADDING_LENGTH));
 		isUpdate = UpdateUtils.isUpdateAvailable();
 		
 		if( isUpdate || Settings.UPDATE_OVERRIDE )
@@ -503,7 +503,7 @@ public class Updater extends JFrame
 				Settings.createShortcut( overwrite );
 				Thread.sleep(200);
 				try {
-					traceln(STDOUT, "-> Refreshing Windows Explorer...");
+					traceln(STDOUT, StringUtils.rpad("-> Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {
 					trace(STDERR, e);

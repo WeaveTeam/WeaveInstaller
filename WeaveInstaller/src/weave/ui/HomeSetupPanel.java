@@ -101,6 +101,7 @@ import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 
@@ -1229,7 +1230,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	private void refreshInterface() throws InterruptedException, MalformedURLException
 	{
-		traceln(STDOUT, "-> Refreshing User Interface......");
+		traceln(STDOUT, StringUtils.rpad("-> Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
 
 		Settings.canQuit = false;
 		

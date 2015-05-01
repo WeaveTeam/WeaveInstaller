@@ -30,6 +30,7 @@ public class IconManager
 	public static URL ICON_TRAY_OFFLINE = IconManager.class.getResource("/resources/icon.png");
 	public static URL ICON_TRAY_ERROR = IconManager.class.getResource("/resources/icon.png");
 	public static URL IMAGE_OIC_LOGO = IconManager.class.getResource("/resources/oic4.png");
+	public static URL IMAGE_W_LOGO = IconManager.class.getResource("/resources/iconw.png");
 	
 	public static URL IMAGE_JETTY = IconManager.class.getResource("/resources/jetty.png");
 	public static URL IMAGE_GLASSFISH = IconManager.class.getResource("/resources/glassfish.png");

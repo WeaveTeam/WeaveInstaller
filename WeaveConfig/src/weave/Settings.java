@@ -500,7 +500,7 @@ public class Settings extends Globals
 	public static boolean getLock() throws InterruptedException
 	{
 		int myPID = getPID();
-		traceln(STDOUT, "-> Getting lock file..............");
+		traceln(STDOUT, StringUtils.rpad("-> Getting lock file", ".", LOG_PADDING_LENGTH));
 
 		if( LOCK_FILE.exists() )
 		{

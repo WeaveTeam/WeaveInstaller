@@ -25,6 +25,7 @@ import weave.async.AsyncTask;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
+import weave.utils.ObjectUtils;
 import weave.utils.StringUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TransferUtils;
@@ -391,16 +392,19 @@ public class DownloadManager
 			public Object doInBackground() {
 				int status = TransferUtils.COMPLETE;
 				String[] unzip_dir_files = unzip.list();
-				
+				System.out.println("\nunzip_dir_files: " + ObjectUtils.toString(unzip_dir_files));
 				try {
+					System.out.println("unzip_dir_files length: " + unzip_dir_files.length);
 					if( unzip_dir_files.length == 1 )
 					{
 						File topLevelFile = new File(unzip, unzip_dir_files[0]);
 						observer.init(topLevelFile);
-						
+						System.out.println("topLevelFile: " + topLevelFile.getAbsolutePath());
+						System.out.println("topLevelFile isDirectory: " + (topLevelFile.isDirectory() ? "True" : "False"));
 						if( topLevelFile.isDirectory() )
 						{
 							String[] topLevelFile_dir_files = topLevelFile.list();
+							System.out.println("topLevelFile_dir_files: " + ObjectUtils.toString(topLevelFile_dir_files));
 							for( String name : topLevelFile_dir_files )
 							{
 								File s = new File(topLevelFile, name);

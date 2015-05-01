@@ -24,6 +24,7 @@ import static weave.utils.TraceUtils.trace;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.SocketTimeoutException;
 
 import weave.Globals;
 import weave.Settings;
@@ -82,6 +83,8 @@ public class StatsUtils extends Globals
 				public Object doInBackground() {
 					try {
 						return URLRequestUtils.request(URLRequestUtils.POST, Settings.API_STATS_LIVE, params);
+					} catch (SocketTimeoutException e) {
+						// Do nothing here, not a bug
 					} catch (IOException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
