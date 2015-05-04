@@ -153,6 +153,7 @@ public class Settings extends Globals
 
 	public static boolean UPDATE_OVERRIDE				= false;
 	public static boolean CONFIGURED					= false;
+	public static boolean SETUP_COMPLETE				= false;
 	public static String UNIQUE_ID						= "";
 	public static String LAST_UPDATE_CHECK 				= "Never";
 	public static String SHORTCUT_VER					= "0";
@@ -287,6 +288,7 @@ public class Settings extends Globals
 			
 			SETTINGS_MAP = new HashMap<String, Object>();
 			SETTINGS_MAP.put("CONFIGURED", CONFIGURED);
+			SETTINGS_MAP.put("SETUP_COMPLETE", SETUP_COMPLETE);
 			SETTINGS_MAP.put("UNIQUE_ID", UNIQUE_ID);
 			SETTINGS_MAP.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
 			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
@@ -334,6 +336,7 @@ public class Settings extends Globals
 			
 			/* Obtain the map values and assign them to data members */
 			CONFIGURED = 			(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
+			SETUP_COMPLETE = 		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("SETUP_COMPLETE"), 		SETUP_COMPLETE);
 			UNIQUE_ID = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
 			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
 			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
@@ -434,7 +437,8 @@ public class Settings extends Globals
 		traceln(STDOUT, "");
 		traceln(STDOUT, "######################################");
 		traceln(STDOUT, "=== Running Preconfiguration ===");
-		traceln(STDOUT, "-> Creating File Structure........DONE");
+		traceln(STDOUT, StringUtils.rpad("-> Creating File Structure", ".", LOG_PADDING_LENGTH));
+		put(STDOUT, "DONE");
 	}
 	
 	

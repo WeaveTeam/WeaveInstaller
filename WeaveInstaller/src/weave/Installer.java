@@ -57,13 +57,13 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
 import weave.managers.TrayManager;
 import weave.reflect.Reflectable;
 import weave.ui.ConfigSetupPanel;
+import weave.ui.CustomCheckbox;
 import weave.ui.HomeSetupPanel;
 import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
@@ -88,6 +88,10 @@ public class Installer extends JFrame
 	
 	// === Left Panel === //
 	public SetupPanel					leftPanel		= null;
+	public CustomCheckbox				servletCheckbox = null;
+	public CustomCheckbox				databaseCheckbox = null;
+	public CustomCheckbox				installCheckbox = null;
+	public CustomCheckbox				configCheckbox	= null;
 	
 	// === Right Panel === //
 	public SetupPanel 					rightPanel		= null;
@@ -127,7 +131,7 @@ public class Installer extends JFrame
 			traceln(STDOUT, "");
 			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
-			if( !Desktop.isDesktopSupported() || HeadlessGraphicsEnvironment.isHeadless() )
+			if( !Desktop.isDesktopSupported() )
 			{
 				traceln(STDOUT, "");
 				traceln(STDOUT, "!! Fault detected !!");
@@ -235,7 +239,36 @@ public class Installer extends JFrame
 		JLabel wvaLabel = new JLabel("", new ImageIcon(wvaLogo), JLabel.CENTER);
 		wvaLabel.setBounds(10, 10, 125, 65);
 		leftPanel.add(wvaLabel);
+		
+		servletCheckbox = new CustomCheckbox("Select Servlet");
+		servletCheckbox.setBounds(10, 120, 125, 25);
+		servletCheckbox.setBackground(leftPanel.getBackground());
+		servletCheckbox.setSelected(false);
+		servletCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		leftPanel.add(servletCheckbox);
+		
+		databaseCheckbox = new CustomCheckbox("Select Database");
+		databaseCheckbox.setBounds(10, 150, 125, 25);
+		databaseCheckbox.setBackground(new Color(0xEE, 0xEE, 0xEE, 125));
+		databaseCheckbox.setOpaque(false);
+		databaseCheckbox.setSelected(false);
+		databaseCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		leftPanel.add(databaseCheckbox);
 
+		installCheckbox = new CustomCheckbox("Install Weave");
+		installCheckbox.setBounds(10, 180, 125, 25);
+		installCheckbox.setBackground(leftPanel.getBackground());
+		installCheckbox.setSelected(false);
+		installCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		leftPanel.add(installCheckbox);
+		
+		configCheckbox = new CustomCheckbox("Configure Weave");
+		configCheckbox.setBounds(10, 210, 125, 25);
+		configCheckbox.setBackground(leftPanel.getBackground());
+		configCheckbox.setSelected(false);
+		configCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		leftPanel.add(configCheckbox);
+		
 		final JLabel iweaveLink = new JLabel(Settings.IWEAVE_HOST);
 		iweaveLink.setBounds(30, SetupPanel.LEFT_PANEL_HEIGHT - 30, 125, 20);
 		iweaveLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -350,6 +383,7 @@ public class Installer extends JFrame
 		
 		
 		// ======== FINISHING TOUCHES ======== //
+		rightPanel.requestFocus();
 		rightPanel.setVisible( true );
 		bottomPanel.setVisible( true );
 		leftPanel.setVisible( true );
@@ -430,8 +464,16 @@ public class Installer extends JFrame
 					{
 						if( !Settings.CONFIGURED )
 							switchToConfigSetupPanel();
-						else
+						else {
+							if( Settings.SETUP_COMPLETE )
+								setProgress(15);
+							else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY) > 0 )
+								setProgress(7);
+							else
+								setProgress(3);
+								
 							switchToHomeSetupPanel();
+						}
 					}
 					else
 					{
@@ -508,6 +550,12 @@ public class Installer extends JFrame
 						if( !SP_config.savePanelInput(SP_config.getCurrentPanelIndex()) )
 							return;
 						
+						switch (SP_config.getCurrentPanelIndex()) {
+							case 0:	setProgress(1);	break;
+							case 1:	setProgress(3);	break;
+							default:				break;
+						}
+						
 						SP_config.nextPanel();
 						
 						if( SP_config.isLastPanel() ) {
@@ -527,6 +575,11 @@ public class Installer extends JFrame
 					else
 					{
 						SP_config.previousPanel();
+						switch (SP_config.getCurrentPanelIndex()) {
+							case 0:	setProgress(0);	break;
+							case 1:	setProgress(1);	break;
+							default:				break;
+						}
 						nextButton.setText("Next >");
 					}
 				}
@@ -624,6 +677,15 @@ public class Installer extends JFrame
 	
 	
 
+	//============================================================================================================
+	@Reflectable
+	public void setProgress(Integer bit)
+	{
+		servletCheckbox.setSelected((bit & 1 << 0) > 0);
+		databaseCheckbox.setSelected((bit & 1 << 1) > 0);
+		installCheckbox.setSelected((bit & 1 << 2) > 0);
+		configCheckbox.setSelected((bit & 1 << 3) > 0);
+	}
 	//============================================================================================================
 	public void startTimers()
 	{

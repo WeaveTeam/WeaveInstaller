@@ -48,7 +48,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import sun.java2d.HeadlessGraphicsEnvironment;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
@@ -119,7 +118,7 @@ public class Updater extends JFrame
 			traceln(STDOUT, "");
 			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
-			if( !Desktop.isDesktopSupported() || HeadlessGraphicsEnvironment.isHeadless() )
+			if( !Desktop.isDesktopSupported() )
 			{
 				traceln(STDOUT, "");
 				traceln(STDOUT, "!! Fault detected !!");
@@ -504,6 +503,7 @@ public class Updater extends JFrame
 				Thread.sleep(200);
 				try {
 					traceln(STDOUT, StringUtils.rpad("-> Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
+					Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {
 					trace(STDERR, e);

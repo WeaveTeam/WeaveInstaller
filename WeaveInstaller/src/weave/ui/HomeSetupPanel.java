@@ -84,6 +84,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.HTMLDocument;
 
 import weave.Function;
+import weave.Globals;
 import weave.Revisions;
 import weave.Settings;
 import weave.async.AsyncTask;
@@ -99,6 +100,7 @@ import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ObjectUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
@@ -884,6 +886,29 @@ public class HomeSetupPanel extends SetupPanel
 			public void actionPerformed(ActionEvent a) 
 			{
 				try {
+					try {
+						ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
+													new Class<?>[] { Integer.class },
+													new Object[] { 15 });
+						Settings.SETUP_COMPLETE = true;
+						Settings.save();
+					} catch (NoSuchMethodException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (SecurityException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (IllegalAccessException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (IllegalArgumentException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					} catch (InvocationTargetException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
+					
 					LaunchUtils.openAdminConsole();
 				} catch (IOException e) {
 					trace(STDERR, e);
@@ -1203,6 +1228,27 @@ public class HomeSetupPanel extends SetupPanel
 				.getActiveContainer()
 				.setInstallVersion(Revisions.getRevisionVersion(lastDownloadedFile));
 			ConfigManager.getConfigManager().save();
+			
+			try {
+				ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
+											new Class<?>[] { Integer.class },
+											new Object[] { 7 });
+			} catch (NoSuchMethodException e) {
+				trace(STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
+			} catch (SecurityException e) {
+				trace(STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalAccessException e) {
+				trace(STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalArgumentException e) {
+				trace(STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
+			} catch (InvocationTargetException e) {
+				trace(STDERR, e);
+				BugReportUtils.showBugReportDialog(e);
+			}
 			
 			try {
 				Settings.cleanUp();
