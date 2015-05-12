@@ -436,7 +436,7 @@ public class Settings extends Globals
 
 		traceln(STDOUT, "");
 		traceln(STDOUT, "######################################");
-		traceln(STDOUT, "=== Running Preconfiguration ===");
+		traceln(STDOUT, "=== Running " + CURRENT_PROGRAM_NAME + " Preconfiguration ===");
 		traceln(STDOUT, StringUtils.rpad("-> Creating File Structure", ".", LOG_PADDING_LENGTH));
 		put(STDOUT, "DONE");
 	}

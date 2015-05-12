@@ -165,7 +165,7 @@ public class ObjectUtils extends Globals
 		if( o instanceof Map<?,?> )
 		{
 			Map<?,?> m = (Map<?, ?>)o;
-			sb.append("\n{\n");
+			sb.append("{\n");
 			for( Entry<?, ?> e : m.entrySet() )
 				sb.append("\t\"" + e.getKey() + "\" : \"" + e.getValue() + "\"" + (i++ != m.size()-1 ? ",":"") + "\n");
 			sb.append("}");
@@ -173,7 +173,7 @@ public class ObjectUtils extends Globals
 		else if( o instanceof List<?> )
 		{
 			List<?> l = (List<?>)o;
-			sb.append("\n{" + (delim.contains("\n") ? "\n": " "));
+			sb.append("{" + (delim.contains("\n") ? "\n": " "));
 			for( int j = 0; j < l.size(); j++ )
 				if( j == 0 )
 					sb.append((delim.contains("\t") ? "\t":"") + "\"" + l.get(j).toString() + "\"" + (i++ != l.size() - 1 ? delim : " "));
@@ -184,7 +184,7 @@ public class ObjectUtils extends Globals
 		else if( o instanceof Object[] )
 		{
 			Object[] arr = (Object[])o;
-			sb.append("\n[" + (delim.contains("\n") ? "\n":" "));
+			sb.append("[" + (delim.contains("\n") ? "\n":" "));
 			for( int j = 0; j < arr.length; j++ )
 				if( j == 0 )
 					sb.append((delim.contains("\t") ? "\t" : "") + "\"" + arr[j].toString() + "\"" + (i++ != arr.length-1 ? delim: " "));

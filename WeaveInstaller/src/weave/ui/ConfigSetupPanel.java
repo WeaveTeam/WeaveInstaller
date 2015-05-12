@@ -501,7 +501,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewServletWebappsLabel);
 		
 		reviewServletWebappsInput = new JTextField();
-		reviewServletWebappsInput.setBounds(90, 90, 170, 25);
+		reviewServletWebappsInput.setBounds(90, 90, 230, 25);
 		reviewServletWebappsInput.setVisible(true);
 		reviewServletWebappsInput.setEditable(false);
 		panel.add(reviewServletWebappsInput);
@@ -513,7 +513,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewServletPortLabel);
 		
 		reviewServletPortInput = new JTextField();
-		reviewServletPortInput.setBounds(90, 120, 170, 25);
+		reviewServletPortInput.setBounds(90, 120, 230, 25);
 		reviewServletPortInput.setVisible(true);
 		reviewServletPortInput.setEditable(false);
 		panel.add(reviewServletPortInput);
@@ -537,7 +537,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewDatabaseHostLabel);
 		
 		reviewDatabaseHostInput = new JTextField();
-		reviewDatabaseHostInput.setBounds(90, 200, 170, 25);
+		reviewDatabaseHostInput.setBounds(90, 200, 230, 25);
 		reviewDatabaseHostInput.setVisible(true);
 		reviewDatabaseHostInput.setEditable(false);
 		panel.add(reviewDatabaseHostInput);
@@ -549,7 +549,7 @@ public class ConfigSetupPanel extends SetupPanel
 		panel.add(reviewDatabasePortLabel);
 		
 		reviewDatabasePortInput = new JTextField();
-		reviewDatabasePortInput.setBounds(90, 230, 170, 25);
+		reviewDatabasePortInput.setBounds(90, 230, 230, 25);
 		reviewDatabasePortInput.setVisible(true);
 		reviewDatabasePortInput.setEditable(false);
 		panel.add(reviewDatabasePortInput);

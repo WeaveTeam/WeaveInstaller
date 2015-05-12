@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.zip.ZipException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -52,7 +53,7 @@ import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.dll.DLLInterface;
-import weave.managers.TrayManager;
+import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -102,19 +103,19 @@ public class Updater extends JFrame
 		try {
 			Thread.sleep(1000);
 			
+			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
 			Settings.init();
 			
 			if( !Settings.getLock() )
 			{
+				int ownerID = Integer.parseInt(FileUtils.getFileContents(Settings.LOCK_FILE));
 				JOptionPane.showMessageDialog(null, 
-						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+						Settings.CURRENT_PROGRAM_NAME + " is already running with pid: " + ownerID + ".\n\n" +
 						"Please stop that one before starting another.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
 			
-			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
-
 			traceln(STDOUT, "");
 			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
@@ -161,7 +162,7 @@ public class Updater extends JFrame
 		setTitle(Settings.UPDATER_TITLE);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(TrayManager.trayIconOnline);
+		setIconImage(ImageIO.read(IconManager.IMAGE_NULL));
 		
 		staticLabel = new JLabel("Updating " + Settings.SERVER_NAME + "...");
 		staticLabel.setBounds(20, 10, 400, 20);
@@ -476,7 +477,6 @@ public class Updater extends JFrame
 			BugReportUtils.showBugReportDialog(e);
 		}
 
-		StatsUtils.noop();
 		Settings.shutdown();
 	}
 	

@@ -23,6 +23,8 @@ import java.net.URL;
 
 public class IconManager
 {
+	public static URL IMAGE_NULL = IconManager.class.getResource("/resources/null.png");
+	
 	public static URL ICON_TRAY_LOGO = IconManager.class.getResource("/resources/icon.png");
 	public static URL ICON_TRAY_LOGO_LARGE = IconManager.class.getResource("/resources/icon_large.png");
 	

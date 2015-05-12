@@ -345,7 +345,7 @@ public class FileUtils extends TransferUtils
 			
 			// This is an optional argument that allows the transfer to be
 			// throttled to a specific speed. 
-			// NOTE: this should only be used for testing or to prevent UI bugs.
+			// NOTE: this should only be used for testing
 			if( throttle > 0 ) {
 				limit += n;
 				if( limit >= ( throttle / 10 )) {

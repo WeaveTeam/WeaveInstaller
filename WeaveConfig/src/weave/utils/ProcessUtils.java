@@ -74,11 +74,6 @@ public class ProcessUtils extends Globals
 		
 		proccess.waitFor();
 		
-//		proccess.getInputStream().close();
-//		proccess.getOutputStream().close();
-//		proccess.getErrorStream().close();
-//		proccess.destroy();
-		
 		returnMap.put("output", internals.output);
 		returnMap.put("error", internals.error);
 		

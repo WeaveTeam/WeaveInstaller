@@ -57,6 +57,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.IconManager;
@@ -114,8 +115,8 @@ public class Installer extends JFrame
 			UIManager.setLookAndFeel(FastLookAndFeel.class.getCanonicalName());
 			Thread.sleep(1000);
 
-			Settings.init();
 			Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
+			Settings.init();
 
 			Thread.sleep(1000);
 			if( !Settings.getLock() )
@@ -224,8 +225,7 @@ public class Installer extends JFrame
 		setTitle(Settings.SERVER_TITLE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(ImageIO.read(IconManager.ICON_TRAY_LOGO));
-		
+		setIconImage(ImageIO.read(IconManager.IMAGE_NULL));
 		
 
 		// ======== CREATE LEFT PANEL ======== //
@@ -245,6 +245,7 @@ public class Installer extends JFrame
 		servletCheckbox.setBackground(leftPanel.getBackground());
 		servletCheckbox.setSelected(false);
 		servletCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		servletCheckbox.setToolTipText("Select the application server");
 		leftPanel.add(servletCheckbox);
 		
 		databaseCheckbox = new CustomCheckbox("Select Database");
@@ -253,6 +254,7 @@ public class Installer extends JFrame
 		databaseCheckbox.setOpaque(false);
 		databaseCheckbox.setSelected(false);
 		databaseCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		databaseCheckbox.setToolTipText("Select the database server.");
 		leftPanel.add(databaseCheckbox);
 
 		installCheckbox = new CustomCheckbox("Install Weave");
@@ -260,6 +262,7 @@ public class Installer extends JFrame
 		installCheckbox.setBackground(leftPanel.getBackground());
 		installCheckbox.setSelected(false);
 		installCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		installCheckbox.setToolTipText("Click Install on the Weave tab.");
 		leftPanel.add(installCheckbox);
 		
 		configCheckbox = new CustomCheckbox("Configure Weave");
@@ -267,6 +270,7 @@ public class Installer extends JFrame
 		configCheckbox.setBackground(leftPanel.getBackground());
 		configCheckbox.setSelected(false);
 		configCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		configCheckbox.setToolTipText("<html>Open the Admin Console on the Sessions tab.<br>Configure Weave for first time use.</html>");
 		leftPanel.add(configCheckbox);
 		
 		final JLabel iweaveLink = new JLabel(Settings.IWEAVE_HOST);
@@ -454,7 +458,8 @@ public class Installer extends JFrame
 			backButton.setEnabled(false);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
 			backButton.setText("< Back");	nextButton.setText("Next >");
-			configureButton.setEnabled(false); configureButton.setVisible(false);
+			configureButton.setEnabled(false);
+			configureButton.setVisible(false);
 
 			removeButtonActions();
 			nextButton.addActionListener(new ActionListener() {
@@ -464,16 +469,8 @@ public class Installer extends JFrame
 					{
 						if( !Settings.CONFIGURED )
 							switchToConfigSetupPanel();
-						else {
-							if( Settings.SETUP_COMPLETE )
-								setProgress(15);
-							else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY) > 0 )
-								setProgress(7);
-							else
-								setProgress(3);
-								
+						else
 							switchToHomeSetupPanel();
-						}
 					}
 					else
 					{
@@ -487,6 +484,20 @@ public class Installer extends JFrame
 					// Will be disabled
 				}
 			});
+			
+			IConfig servlet = ConfigManager.getConfigManager().getActiveContainer(),
+					database = ConfigManager.getConfigManager().getActiveDatabase();
+			
+			if( Settings.SETUP_COMPLETE )
+				setProgress(15);
+			else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY) > 0 )
+				setProgress(7);
+			else if( servlet != null && database != null )
+				setProgress(3);
+			else if( servlet != null )
+				setProgress(1);
+			else if( database != null )
+				setProgress(2);
 			
 		} else
 			switchToWelcomeSetupPanels(rightPanel);
@@ -528,7 +539,8 @@ public class Installer extends JFrame
 			backButton.setEnabled(true);	backButton.setVisible(true);
 			nextButton.setEnabled(true);	nextButton.setVisible(true);
 			backButton.setText("< Back");	nextButton.setText("Next >");
-			configureButton.setEnabled(false); configureButton.setVisible(false);
+			configureButton.setEnabled(false);
+			configureButton.setVisible(false);
 			
 			removeButtonActions();
 			nextButton.addActionListener(new ActionListener() {
@@ -551,8 +563,8 @@ public class Installer extends JFrame
 							return;
 						
 						switch (SP_config.getCurrentPanelIndex()) {
-							case 0:	setProgress(1);	break;
-							case 1:	setProgress(3);	break;
+							case 0:	setProgress(getProgress() | 1);	break;
+							case 1:	setProgress(getProgress() | 2);	break;
 							default:				break;
 						}
 						
@@ -576,14 +588,15 @@ public class Installer extends JFrame
 					{
 						SP_config.previousPanel();
 						switch (SP_config.getCurrentPanelIndex()) {
-							case 0:	setProgress(0);	break;
-							case 1:	setProgress(1);	break;
-							default:				break;
+							case 0:	setProgress(getProgress() & 12);	break;
+							case 1:	setProgress(getProgress() & 13);	break;
+							default:									break;
 						}
 						nextButton.setText("Next >");
 					}
 				}
 			});
+			setProgress(getProgress() & 12);
 
 		} else
 			switchToConfigSetupPanel(rightPanel);
@@ -626,7 +639,8 @@ public class Installer extends JFrame
 			backButton.setEnabled(false);	backButton.setVisible(false);
 			nextButton.setEnabled(false);	nextButton.setVisible(false);
 			backButton.setText("< Back");	nextButton.setText("Next >");
-			configureButton.setEnabled(true); configureButton.setVisible(true);
+			configureButton.setEnabled(true);
+			configureButton.setVisible(true);
 			
 			removeButtonActions();
 			nextButton.addActionListener(new ActionListener() {
@@ -685,6 +699,14 @@ public class Installer extends JFrame
 		databaseCheckbox.setSelected((bit & 1 << 1) > 0);
 		installCheckbox.setSelected((bit & 1 << 2) > 0);
 		configCheckbox.setSelected((bit & 1 << 3) > 0);
+	}
+	@Reflectable
+	public Integer getProgress()
+	{
+		return  ((servletCheckbox.isSelected() ? 1 : 0) << 0) +
+				((databaseCheckbox.isSelected() ? 1 : 0) << 1) +
+				((installCheckbox.isSelected() ? 1 : 0) << 2) +
+				((configCheckbox.isSelected() ? 1 : 0) << 3);
 	}
 	//============================================================================================================
 	public void startTimers()

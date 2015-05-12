@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import weave.Globals;
 import weave.Settings;
@@ -80,6 +81,32 @@ public class TraceUtils extends Globals
 			bw.flush();
 			bw.close();
 			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	synchronized public static boolean traceln( int pipe, List<String> dump)
+	{
+		try {
+			d = new Date();
+			File logFile = getLogFile(pipe);
+			FileWriter fw = new FileWriter(logFile, true);
+			BufferedWriter bw = new BufferedWriter(fw);
+	
+			if( !logFile.getParentFile().exists() )	logFile.getParentFile().mkdirs();
+			if( !logFile.exists() )					logFile.createNewFile();
+			
+			for( String line : dump )
+			{
+				bw.write(Settings.N_L);
+				bw.write(tf.format(d) + " " + line);
+			}
+			bw.flush();
+			bw.close();
+		
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;

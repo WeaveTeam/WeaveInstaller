@@ -1182,8 +1182,9 @@ public class HomeSetupPanel extends SetupPanel
 		aboutHTML.setEditable(false);
 		aboutHTML.setContentType("text/html");
 		aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
-		aboutHTML.setText(	"Weave is a <b>We</b>b-based <b>A</b>nalysis and <b>V</b>isualization <b>E</b>nvironment designed to " +
-							"enable visualization of any available  data by anyone for any purpose.<br><br><br><br><br><br>" +
+		aboutHTML.setText(	"The Weave Server Assistant is a cross-platform utiliy designed to help " +
+							"users to install Weave and its components to your system with minimal effort. " +
+							"<br><br><br><br><br><br>" +
 							"(c) Institute for Visualization and Perception Research<br>" +
 							"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
 		String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +

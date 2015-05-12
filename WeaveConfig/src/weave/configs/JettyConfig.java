@@ -52,6 +52,11 @@ public class JettyConfig extends Config
 	public static final String HOMEPAGE = "http://eclipse.org/jetty/";
 	public static final String HOST = "localhost";
 	public static final int PORT = 8084;
+	public static final String DESCRIPTION 	= "Jetty provides an HTTP server and servlet container capable of serving static and " +
+											  "dynamic content either from standalone or embedded instantiations.<br>" +
+											  "Jetty is a free and open-source project as part of the Eclipse Foundation&#153.";
+	public static final String WARNING 		= "<center><b>Jetty is a plugin that will run inside the tool and does not require external configuration.<br>" + 
+										 	  "This is the appropriate choice for new users.</b></center>";
 	
 	public static JettyConfig _instance = null;
 	public static JettyConfig getConfig()
@@ -75,9 +80,8 @@ public class JettyConfig extends Config
 			setWebappsDirectory(new File(thisPluginDir, "webapps"));
 			setHomepageURL(HOMEPAGE);
 			setDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
-			setDescription(getConfigName() + " is a free and open-source project as part of the Eclipse Foundation&#153.");
-			setWarning(	"<center><b>" + getConfigName() + " is a plugin that will run inside the tool and does not require external configuration.<br>" + 
-						"This is the appropriate choice for new users.</b></center>");
+			setDescription(DESCRIPTION);
+			setWarning(WARNING);
 			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
 			
 		} catch (IOException e) {

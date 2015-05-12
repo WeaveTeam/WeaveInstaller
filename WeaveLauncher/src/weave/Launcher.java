@@ -20,7 +20,9 @@
 package weave;
 
 import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -53,6 +55,7 @@ public class Launcher extends JFrame
 			System.exit(NORMAL);
 		}
 		
+		Settings.CURRENT_PROGRAM_NAME = Settings.LAUNCHER_NAME;
 		Settings.init();
 		
 		SwingUtilities.invokeLater(new Runnable() {
@@ -161,6 +164,7 @@ public class Launcher extends JFrame
 			}
 			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_TYPE.WINDOWS ) 
 			{
+				traceln(STDOUT, StringUtils.rpad("-> Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
 				LaunchUtils.openElevated(path, delay);
 			}
 			else
@@ -168,12 +172,12 @@ public class Launcher extends JFrame
 				LaunchUtils.open(path, delay);
 			}
 
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		} catch (Exception e3) {
-			e3.printStackTrace();
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		} catch (IOException e) {
+			trace(STDERR, e);
+		} catch (Exception e) {
+			trace(STDERR, e);
 		}
 		
 		System.exit(NORMAL);

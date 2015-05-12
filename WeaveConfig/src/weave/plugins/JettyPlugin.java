@@ -92,12 +92,12 @@ public class JettyPlugin extends Plugin
 		panel = super.getPluginPanel();
 		
 		nameLabel = new JLabel(getPluginName());
-		nameLabel.setBounds(20, 10, 150, 25);
+		nameLabel.setBounds(10, 10, 150, 25);
 		nameLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		panel.add(nameLabel);
 		
 		description = new JEditorPane();
-		description.setBounds(20, 40, 170, 140);
+		description.setBounds(10, 40, 170, 140);
 		description.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		description.setBackground(Color.WHITE);
 		description.setContentType("text/html");

@@ -25,7 +25,6 @@ import weave.async.AsyncTask;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.StringUtils;
 import weave.utils.TimeUtils;
 import weave.utils.TransferUtils;
@@ -162,7 +161,7 @@ public class DownloadManager
 					// Unknown max size - progress unavailable
 					progressbar.setIndeterminate(true);
 					label.setText( 
-						String.format("Downloading update.... %s @ %s",
+						String.format("Downloading " + type + ".... %s @ %s",
 							FileUtils.sizeify(info.cur), 
 							DownloadUtils.speedify(info.speed)) );
 				} else {
@@ -199,7 +198,7 @@ public class DownloadManager
 				int ret = TransferUtils.FAILED;
 				try {
 					observer.init(url);
-					ret = DownloadUtils.download(url, file, observer, 2 * TransferUtils.MB);
+					ret = DownloadUtils.download(url, file, observer, 6 * TransferUtils.MB);
 				} catch (IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -216,7 +215,7 @@ public class DownloadManager
 		label.setVisible(true);
 		progressbar.setVisible(true);
 		
-		label.setText("Downloading plugin....");
+		label.setText("Downloading " + type + "....");
 		progressbar.setIndeterminate(true);
 		
 		Thread.sleep(1000);
@@ -284,7 +283,7 @@ public class DownloadManager
 				progressbar.setValue( info.percent / 2 );
 				label.setText( 
 					String.format(
-						"Extracting update.... %d%%", 
+						"Extracting " + type + ".... %d%%", 
 						info.percent / 2 ) );
 			}
 		};
@@ -294,7 +293,7 @@ public class DownloadManager
 				Object o = TransferUtils.FAILED;
 				try {
 					observer.init(file);
-					o = ZipUtils.extract(file, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 8 * TransferUtils.MB);
+					o = ZipUtils.extract(file, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 10 * TransferUtils.MB);
 				} catch (ArithmeticException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
@@ -318,7 +317,7 @@ public class DownloadManager
 		if( !Settings.UNZIP_DIRECTORY.exists() )
 			Settings.UNZIP_DIRECTORY.mkdirs();
 		
-		label.setText("Extracting update.... ");
+		label.setText("Extracting " + type + "....");
 		trace(STDOUT, StringUtils.rpad("-> Extracting " + type, ".", Settings.LOG_PADDING_LENGTH));
 		
 		Settings.transferCancelled = false;
@@ -338,7 +337,7 @@ public class DownloadManager
 				progressbar.setValue( 50 + info.percent / 2 );
 				label.setText( 
 						String.format(
-								"Installing plugin.... %d%%", 
+								"Installing " + type + ".... %d%%", 
 								50 + info.percent / 2 ) );
 			}
 		};
@@ -392,19 +391,14 @@ public class DownloadManager
 			public Object doInBackground() {
 				int status = TransferUtils.COMPLETE;
 				String[] unzip_dir_files = unzip.list();
-				System.out.println("\nunzip_dir_files: " + ObjectUtils.toString(unzip_dir_files));
 				try {
-					System.out.println("unzip_dir_files length: " + unzip_dir_files.length);
 					if( unzip_dir_files.length == 1 )
 					{
 						File topLevelFile = new File(unzip, unzip_dir_files[0]);
 						observer.init(topLevelFile);
-						System.out.println("topLevelFile: " + topLevelFile.getAbsolutePath());
-						System.out.println("topLevelFile isDirectory: " + (topLevelFile.isDirectory() ? "True" : "False"));
 						if( topLevelFile.isDirectory() )
 						{
 							String[] topLevelFile_dir_files = topLevelFile.list();
-							System.out.println("topLevelFile_dir_files: " + ObjectUtils.toString(topLevelFile_dir_files));
 							for( String name : topLevelFile_dir_files )
 							{
 								File s = new File(topLevelFile, name);
@@ -427,7 +421,7 @@ public class DownloadManager
 						{
 							File s = new File(unzip, file);
 							File d = new File(destination, file);
-							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 8 * TransferUtils.MB);
+							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 10 * TransferUtils.MB);
 						}
 					}
 				} catch (ArithmeticException e) {
@@ -449,7 +443,7 @@ public class DownloadManager
 
 		trace(STDOUT, StringUtils.rpad("-> Installing " + type, ".", Settings.LOG_PADDING_LENGTH));
 
-		label.setText("Installing Plugin....");
+		label.setText("Installing " + type + "....");
 		progressbar.setIndeterminate(false);
 		
 		task.addCallback(callback).execute();

@@ -101,23 +101,26 @@ public class LaunchUtils extends Globals
 		if( !elevate.exists() ) {
 			traceln(STDOUT, "!! Elevate utility not found: \"" + elevate.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null,
-					"A required file is missing to support this action.", 
+					"A required file is missing to support this action.\n" +
+					"If this problem persists, please make sure you\n" +
+					"are running the latest version of the tool.", 
 					"File Not Found", 
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		
-		command += "\"" + elevate.getAbsolutePath().replace("\\", "/") + "\" ";
+		command += "\"" + elevate.getAbsolutePath().replace("\\", "/") + "\" -c ";
 		command += "java -jar ";
 		command += "\"" + file.getAbsolutePath().replace("\\", "/") + "\" ";
 
 		Thread.sleep(delay);
 		String[] generatedCommands = SyscallCreatorUtils.generate(command);
+		traceln(STDOUT, "-> Elevated Generated command: " + ObjectUtils.toString(generatedCommands));
 		ProcessUtils.run(generatedCommands, getLogFile(STDOUT), getLogFile(STDERR));
 		return true;
 	}
 	
-	private static Boolean launch(File f, int delay) throws IOException, InterruptedException
+	public static Boolean launch(File f, int delay) throws IOException, InterruptedException
 	{
 		String command = "";
 		File launcher = new File(Settings.BIN_DIRECTORY, Settings.LAUNCHER_JAR);
@@ -149,6 +152,8 @@ public class LaunchUtils extends Globals
 		command += "\"" + delay + "\"";
 		
 		String[] generatedCommand = SyscallCreatorUtils.generate(command);
+		traceln(STDOUT, "-> Generated command: " + ObjectUtils.toString(generatedCommand));
+		
 		ProcessUtils.run(generatedCommand, getLogFile(STDOUT), getLogFile(STDERR));
 		
  		return true;
@@ -171,7 +176,7 @@ public class LaunchUtils extends Globals
 		else
 			throw new FileNotFoundException("Updater file not found");
 		
-		return launch(updater, delay);
+		return openElevated(updater, delay);
 	}
 	
 	public static Boolean launchWeaveInstaller() throws IOException, InterruptedException
@@ -180,7 +185,7 @@ public class LaunchUtils extends Globals
 	}
 	public static Boolean launchWeaveInstaller(int delay) throws IOException, InterruptedException
 	{
-		return launch(new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR), delay);
+		return openElevated(new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR), delay);
 	}
 	
 	public static Boolean openAdminConsole() throws IOException, URISyntaxException, InterruptedException

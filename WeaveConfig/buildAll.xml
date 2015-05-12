@@ -22,7 +22,9 @@
 	
 	
 	<target name="clean">
+		<!--
 		<delete dir="${env.APPDATA}/.weave/libs/" failonerror="false" />
+		-->
 		
 		<delete dir="WeaveConfig/bin/" failonerror="false" />
 		<delete dir="WeaveLauncher/bin/" failonerror="false" />
