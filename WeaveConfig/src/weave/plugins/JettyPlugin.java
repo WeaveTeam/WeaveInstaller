@@ -7,8 +7,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -19,8 +22,10 @@ import weave.Function;
 import weave.Settings;
 import weave.configs.JettyConfig;
 import weave.managers.DownloadManager;
+import weave.managers.IconManager;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
+import weave.utils.ImageUtils;
 
 public class JettyPlugin extends Plugin
 {
@@ -50,6 +55,7 @@ public class JettyPlugin extends Plugin
 	}
 
 	private JPanel panel = null;
+	private JLabel iconLabel = null;
 	private JLabel nameLabel = null;
 	private JEditorPane description = null;
 	private JButton installButton = null;
@@ -66,6 +72,14 @@ public class JettyPlugin extends Plugin
 			progressbar.setVisible(false);
 			progressLabel.setText("");
 			progressLabel.setVisible(false);
+			
+			try {
+				Settings.cleanUp();
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				trace(STDERR, e);
+			}
+			
 			getPluginPanel();
 		}
 	};
@@ -91,13 +105,25 @@ public class JettyPlugin extends Plugin
 		
 		panel = super.getPluginPanel();
 		
+		iconLabel = new JLabel();
+		iconLabel.setBounds(174, 10, 106, 30);
+		iconLabel.setHorizontalAlignment(JLabel.CENTER);
+		iconLabel.setVerticalAlignment(JLabel.CENTER);
+		try {
+			iconLabel.setIcon(new ImageIcon(ImageUtils.fit(ImageIO.read(IconManager.IMAGE_JETTY), 106, 30)));
+		} catch (IOException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		panel.add(iconLabel);
+		
 		nameLabel = new JLabel(getPluginName());
 		nameLabel.setBounds(10, 10, 150, 25);
 		nameLabel.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		panel.add(nameLabel);
 		
 		description = new JEditorPane();
-		description.setBounds(10, 40, 170, 140);
+		description.setBounds(10, 50, 270, 140);
 		description.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		description.setBackground(Color.WHITE);
 		description.setContentType("text/html");
@@ -106,7 +132,7 @@ public class JettyPlugin extends Plugin
 		panel.add(description);
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(190, 45, 90, 25);
+		installButton.setBounds(190, 200, 90, 25);
 		installButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -134,7 +160,7 @@ public class JettyPlugin extends Plugin
 		panel.add(installButton);
 		
 		removeButton = new JButton("Remove");
-		removeButton.setBounds(190, 80, 90, 25);
+		removeButton.setBounds(190, 235, 90, 25);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -142,6 +168,21 @@ public class JettyPlugin extends Plugin
 			}
 		});
 		panel.add(removeButton);
+
+		progressbar = new JProgressBar();
+		progressbar.setBounds(20, 235, 260, 25);
+		progressbar.setIndeterminate(true);
+		progressbar.setStringPainted(false);
+		progressbar.setValue(0);
+		progressbar.setVisible(false);
+		panel.add(progressbar);
+		
+		progressLabel = new JLabel();
+		progressLabel.setBounds(20, 270, 260, 25);
+		progressLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
+		progressLabel.setText("");
+		progressLabel.setVisible(false);
+		panel.add(progressLabel);
 		
 		return getPluginPanel();
 	}

@@ -229,7 +229,7 @@ public class DownloadManager
 		task.addCallback(callback).execute();
 	}
 	
-	private void extract()
+	private void extract() throws InterruptedException
 	{
 		final File file = new File(dlFileStr);
 		
@@ -317,8 +317,17 @@ public class DownloadManager
 		if( !Settings.UNZIP_DIRECTORY.exists() )
 			Settings.UNZIP_DIRECTORY.mkdirs();
 		
-		label.setText("Extracting " + type + "....");
 		trace(STDOUT, StringUtils.rpad("-> Extracting " + type, ".", Settings.LOG_PADDING_LENGTH));
+		label.setVisible(true);
+		progressbar.setVisible(true);
+		
+		label.setText("Extracting " + type + "....");
+		progressbar.setIndeterminate(true);
+		
+		Thread.sleep(1000);
+		
+		progressbar.setValue(0);
+		progressbar.setIndeterminate(false);
 		
 		Settings.transferCancelled = false;
 		Settings.transferLocked = true;
@@ -443,6 +452,9 @@ public class DownloadManager
 
 		trace(STDOUT, StringUtils.rpad("-> Installing " + type, ".", Settings.LOG_PADDING_LENGTH));
 
+		label.setVisible(true);
+		progressbar.setVisible(true);
+		
 		label.setText("Installing " + type + "....");
 		progressbar.setIndeterminate(false);
 		

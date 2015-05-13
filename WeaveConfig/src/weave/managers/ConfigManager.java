@@ -48,6 +48,7 @@ import weave.configs.SQLiteConfig;
 import weave.configs.TomcatConfig;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
+import weave.utils.StringUtils;
 
 public class ConfigManager extends Globals
 {
@@ -81,10 +82,10 @@ public class ConfigManager extends Globals
 		{
 			map = new HashMap<String, IConfig>();
 			switch( i ) {
-				case 1: map.put(SERVLET, JettyConfig.getConfig());		break;
+				case 1: map.put(SERVLET, JettyConfig.getConfig());			break;
 				case 2: map.put(SERVLET, TomcatConfig.getConfig()); 		break;
 				case 3: map.put(DATABASE, SQLiteConfig.getConfig()); 		break;
-				case 4: map.put(DATABASE, MySQLConfig.getConfig());		break;
+				case 4: map.put(DATABASE, MySQLConfig.getConfig());			break;
 				case 5: map.put(DATABASE, PostgreSQLConfig.getConfig());	break;
 				case 6: map.put(DATABASE, OracleConfig.getConfig());		break;
 			}
@@ -197,14 +198,14 @@ public class ConfigManager extends Globals
 	{
 		if( c == null )
 		{
-			traceln(STDOUT, "-> Unloading Config Container....." + ACTIVE_CONTAINER_PLUGIN.getConfigName());
+			traceln(STDOUT, StringUtils.rpad("-> Unloading Config Container", ".", Settings.LOG_PADDING_LENGTH) + ACTIVE_CONTAINER_PLUGIN.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = null;
 			return true;
 		}
 		
 		if( ACTIVE_CONTAINER_PLUGIN == null ) 
 		{
-			traceln(STDOUT, "-> Loading Config Container......." + c.getConfigName());
+			traceln(STDOUT, StringUtils.rpad("-> Loading Config Container", ".", Settings.LOG_PADDING_LENGTH) + c.getConfigName());
 			ACTIVE_CONTAINER_PLUGIN = c;
 			return true;
 		}
@@ -215,14 +216,14 @@ public class ConfigManager extends Globals
 	{
 		if( d == null )
 		{
-			traceln(STDOUT, "-> Unloading Database Container..." + ACTIVE_DATABASE_PLUGIN.getConfigName());
+			traceln(STDOUT, StringUtils.rpad("-> Unloading Database Container", ".", Settings.LOG_PADDING_LENGTH) + ACTIVE_DATABASE_PLUGIN.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = null;
 			return true;
 		}
 		
 		if( ACTIVE_DATABASE_PLUGIN == null ) 
 		{
-			traceln(STDOUT, "-> Loading Database Container....." + d.getConfigName());
+			traceln(STDOUT, StringUtils.rpad("-> Loading Database Container", ".", Settings.LOG_PADDING_LENGTH) + d.getConfigName());
 			ACTIVE_DATABASE_PLUGIN = d;
 			return true;
 		}
@@ -235,7 +236,7 @@ public class ConfigManager extends Globals
 	public boolean save()
 	{
 		try {
-			traceln(STDOUT, "-> Saving config file.............");
+			traceln(STDOUT, StringUtils.rpad("-> Saving config file", ".", Settings.LOG_PADDING_LENGTH));
 			
 			if( !Settings.configsFileExists() )
 				Settings.CONFIG_FILE.createNewFile();
@@ -304,7 +305,7 @@ public class ConfigManager extends Globals
 			return false;
 		
 		try {
-			traceln(STDOUT, "-> Loading config file............");
+			traceln(STDOUT, StringUtils.rpad("-> Loading config file", ".", Settings.LOG_PADDING_LENGTH));
 
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(Settings.CONFIG_FILE));
 			CONFIGS_MAP = (Map<String, Map<String, Object>>) instream.readObject();

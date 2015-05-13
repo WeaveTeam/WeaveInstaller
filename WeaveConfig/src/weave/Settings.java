@@ -941,8 +941,7 @@ public class Settings extends Globals
 		}
 		else if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.SERVER_NAME) )
 		{
-			if( ConfigManager.getConfigManager().getActiveContainer() != null )
-				ConfigManager.getConfigManager().getActiveContainer().unloadConfig();
+			ConfigManager.getConfigManager().unloadAllConfigs();
 			TrayManager.removeTrayIcon();
 			stopListenerServer();
 		}
