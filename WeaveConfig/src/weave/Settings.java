@@ -143,8 +143,8 @@ public class Settings extends Globals
 	/*
 	 * Operating System
 	 */
-	public enum OS_TYPE 								{ WINDOWS, LINUX, MAC, UNKNOWN };
-	public static OS_TYPE OS 							= OS_TYPE.UNKNOWN;
+	public static enum OS_ENUM 							{ WINDOWS, LINUX, MAC, UNKNOWN };
+	public static OS_ENUM OS 							= OS_ENUM.UNKNOWN;
 	
 	/*
 	 * Settings File
@@ -158,13 +158,15 @@ public class Settings extends Globals
 	public static String LAST_UPDATE_CHECK 				= "Never";
 	public static String SHORTCUT_VER					= "0";
 	public static int 	 RPC_PORT						= 3579;
-	public static double REQUIRED_JAVA_VERSION			= 1.7;
 
+	public static enum INSTALL_ENUM						{ NIGHTLY, MILESTONE };
+	public static INSTALL_ENUM INSTALL_MODE				= INSTALL_ENUM.MILESTONE;
+	
 	/*
 	 * Networking
 	 */
-	public static enum MODE								{ ONLINE_MODE, OFFLINE_MODE };
-	public static MODE LAUNCH_MODE						= MODE.ONLINE_MODE;
+	public static enum LAUNCH_ENUM						{ ONLINE_MODE, OFFLINE_MODE };
+	public static LAUNCH_ENUM LAUNCH_MODE				= LAUNCH_ENUM.ONLINE_MODE;
 	public static String REMOTE_IP						= "";
 	public static String LOCAL_IP						= "";
 	public static String LOCALHOST						= "";
@@ -189,6 +191,7 @@ public class Settings extends Globals
 	public static 		String CURRENT_PROGRAM_NAME		= PROJECT_NAME;
 	public static final String FONT						= "Arial";
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
+	public static double REQUIRED_JAVA_VERSION			= 1.7;
 	public static int LOG_PADDING_LENGTH				= 34;
 	public static int recommendPrune					= 6;
 	
@@ -266,7 +269,7 @@ public class Settings extends Globals
 	 */
 	public static boolean isOfflineMode()
 	{
-		return (LAUNCH_MODE == MODE.OFFLINE_MODE);
+		return (LAUNCH_MODE == LAUNCH_ENUM.OFFLINE_MODE);
 	}
 	
 	
@@ -294,6 +297,8 @@ public class Settings extends Globals
 			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
 			SETTINGS_MAP.put("UPDATE_OVERRIDE", UPDATE_OVERRIDE);
 			SETTINGS_MAP.put("LAUNCH_MODE", LAUNCH_MODE);
+			SETTINGS_MAP.put("INSTALL_MODE", INSTALL_MODE);
+			SETTINGS_MAP.put("RPC_PORT", RPC_PORT);
 			
 			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(SETTINGS_FILE));
 			outstream.writeObject(SETTINGS_MAP);
@@ -341,16 +346,19 @@ public class Settings extends Globals
 			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
 			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
 			UPDATE_OVERRIDE	=		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
-			LAUNCH_MODE = 			(MODE)			ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
+			LAUNCH_MODE = 			(LAUNCH_ENUM)	ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
+			INSTALL_MODE = 			(INSTALL_ENUM)	ObjectUtils.ternary(SETTINGS_MAP.get("INSTALL_MODE"), 			INSTALL_MODE);
 			RPC_PORT = 				(Integer)		ObjectUtils.ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
 			
-//			trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
-//			trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-//			trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-//			trace(STDOUT, "\tCURRENT_INSTALL_VER: " + CURRENT_INSTALL_VER);
-//			trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-//			trace(STDOUT, "\tUPDATE_FREQ: " + UPDATE_FREQ);
-//			trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
+			trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
+			trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
+			trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
+			trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
+			trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
+			trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
+			trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
+			trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
+			trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 
 		} catch (FileNotFoundException e) {
 			put(STDOUT, "FAILED");
@@ -389,11 +397,11 @@ public class Settings extends Globals
 				createFS(wsp);
 		}
 		
-		else if( OS == OS_TYPE.WINDOWS )
+		else if( OS == OS_ENUM.WINDOWS )
 			createFS(System.getenv("APPDATA"));
-		else if( OS == OS_TYPE.LINUX )
+		else if( OS == OS_ENUM.LINUX )
 			createFS(USER_HOME);
-		else if( OS == OS_TYPE.MAC )
+		else if( OS == OS_ENUM.MAC )
 			createFS(USER_HOME + F_S + "Library" + F_S + "Application Support");
 		else
 		{
@@ -678,7 +686,7 @@ public class Settings extends Globals
 	@Reflectable 
 	public static void enableWeaveProtocol(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
-		if( OS != OS_TYPE.WINDOWS )
+		if( OS != OS_ENUM.WINDOWS )
 			return;
 
 		// 	weave://
@@ -711,7 +719,7 @@ public class Settings extends Globals
 	@Reflectable 
 	public static void enableWeaveExtension(Boolean enable) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
 	{
-		if( OS != OS_TYPE.WINDOWS )
+		if( OS != OS_ENUM.WINDOWS )
 			return;
 		
 		// .weave extension
@@ -780,13 +788,13 @@ public class Settings extends Globals
 	public static void findOS()
 	{
 		if( EXACT_OS.toLowerCase().contains("windows") )
-			OS = OS_TYPE.WINDOWS;
+			OS = OS_ENUM.WINDOWS;
 		else if( EXACT_OS.toLowerCase().contains("nix") || EXACT_OS.toLowerCase().contains("nux") )
-			OS = OS_TYPE.LINUX;
+			OS = OS_ENUM.LINUX;
 		else if( EXACT_OS.toLowerCase().contains("mac") )
-			OS = OS_TYPE.MAC;
+			OS = OS_ENUM.MAC;
 		else
-			OS = OS_TYPE.UNKNOWN;
+			OS = OS_ENUM.UNKNOWN;
 	}
 	
 	
@@ -799,11 +807,11 @@ public class Settings extends Globals
 	@Reflectable 
 	public static String getOS()
 	{
-		if( OS == OS_TYPE.WINDOWS )
+		if( OS == OS_ENUM.WINDOWS )
 			return "Windows";
-		else if( OS == OS_TYPE.MAC )
+		else if( OS == OS_ENUM.MAC )
 			return "Mac";
-		else if( OS == OS_TYPE.LINUX )
+		else if( OS == OS_ENUM.LINUX )
 			return "Linux";
 		
 		return "Unknown";
@@ -852,9 +860,9 @@ public class Settings extends Globals
 		
 		try {
 			
-			if( OS == OS_TYPE.WINDOWS )		
+			if( OS == OS_ENUM.WINDOWS )		
 				result = ProcessUtils.run(windows_cmds);
-			else if( OS == OS_TYPE.MAC || OS == OS_TYPE.LINUX )
+			else if( OS == OS_ENUM.MAC || OS == OS_ENUM.LINUX )
 				result = ProcessUtils.run(unix_cmds);
 			else
 				result = new HashMap<String, List<String>>();

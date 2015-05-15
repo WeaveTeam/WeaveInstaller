@@ -21,6 +21,7 @@ package weave.utils;
 
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,8 +29,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.json.JSONArray;
+
 import weave.Globals;
 import weave.Settings;
+import weave.Settings.INSTALL_ENUM;
 import weave.managers.TrayManager;
 
 public class UpdateUtils extends Globals
@@ -123,10 +127,16 @@ public class UpdateUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 		
+		return getWeaveUpdateFileName(RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL));
+	}
+	
+	public static String getWeaveUpdateFileName(String url) throws MalformedURLException, InterruptedException
+	{
+		if( Settings.isOfflineMode() )
+			return null;
+		
 		String search = "filename=";
-		String header = URLRequestUtils.getContentHeader(
-							RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL),
-							"Content-Disposition");
+		String header = URLRequestUtils.getContentHeader(url, "Content-Disposition");
 		int index = ((header != null ) ? header.indexOf(search) : -1 );
 		if( index == -1 )
 			return null;
@@ -134,12 +144,18 @@ public class UpdateUtils extends Globals
 		return header.substring(index + search.length());
 	}
 	
-	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException, MalformedURLException
+	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException, IOException
 	{
 		if( Settings.isOfflineMode() )
 			return UPDATE_OFFLINE;
+
+		String urlStr = null;
+		if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
+			urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+		else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
+			urlStr = UpdateUtils.getLatestMilestoneURL();
 		
-		String fileName = getWeaveUpdateFileName();
+		String fileName = getWeaveUpdateFileName(urlStr);
 		
 		if( fileName == null )
 			return UPDATE_ERROR;
@@ -151,5 +167,17 @@ public class UpdateUtils extends Globals
 		
 		File f = new File(Settings.REVISIONS_DIRECTORY, fileName);
 		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
+	}
+
+	public static String getLatestMilestoneURL() throws IOException, InterruptedException
+	{
+		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_TAGS_URL);
+		URLRequestResult result = URLRequestUtils.request(URLRequestUtils.GET, urlStr);
+		if( result == null )
+			return null;
+		
+		JSONArray tags = new JSONArray(result.getResponseContent());
+		String url = tags.getJSONObject(0).getString("zipball_url");
+		return url;
 	}
 }

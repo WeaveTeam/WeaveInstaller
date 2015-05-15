@@ -66,6 +66,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -85,8 +86,8 @@ import javax.swing.text.html.HTMLDocument;
 
 import weave.Function;
 import weave.Globals;
-import weave.Revisions;
 import weave.Settings;
+import weave.Settings.INSTALL_ENUM;
 import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
@@ -102,6 +103,7 @@ import weave.utils.LaunchUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ReflectionUtils;
 import weave.utils.RemoteUtils;
+import weave.utils.Revisions;
 import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
@@ -112,14 +114,11 @@ public class HomeSetupPanel extends SetupPanel
 	private boolean refreshProgramatically = false;
 	public JTabbedPane tabbedPane;
 	public JPanel weaveTab, pluginsTab, sessionsTab, tab4, troubleshootTab, aboutTab;
-	private String lastDownloadedFile = "";
 
-	
 	// ============== Weave Tab ============== //
-	public JButton  installButton, refreshButton, 
-					deployButton, deleteButton, 
-					cleanButton;
-	public JLabel	downloadLabel;
+	public DropDownButton installButtonDropDown;
+	public JButton refreshButton, deployButton, deleteButton, cleanButton;
+	public JLabel downloadLabel;
 	public JProgressBar progressbar;
 	public WeaveStats weaveStats;
 	public CustomTable revisionTable;
@@ -210,46 +209,21 @@ public class HomeSetupPanel extends SetupPanel
 			public void stateChanged(ChangeEvent event)
 			{
 				JPanel selectedTab = (JPanel) tabbedPane.getSelectedComponent();
-				if( selectedTab == sessionsTab )
+				
+				if( selectedTab == weaveTab )
 				{
-					File WEBAPPS, ROOT;
-					
+					refreshRevisionTable();
+				}
+				else if( selectedTab == sessionsTab )
+				{
 					try {
-						WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
-						if( WEBAPPS != null && WEBAPPS.exists() )
-						{
-							ROOT = new File(WEBAPPS, "ROOT");
-							if( ROOT.exists() )
-							{
-								int fileCount = 0;
-								String[] files = ROOT.list();
-								
-								for( int i = 0; i < files.length; i++ )
-									if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") )
-										fileCount++;
-								
-								File sessionFile = null;
-								Date modifiedDate = null;
-								Object[][] data = new Object[fileCount][3];
-								
-								sessionStateTable.setData(new Object[1][3]).refreshTable();
-								fileCount = 0;
-								
-								for( int i = 0; i < files.length; i++ )
-								{
-									if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") ) {
-										sessionFile = new File(ROOT, files[i]);
-										modifiedDate = new Date(sessionFile.lastModified());
-										data[fileCount][0] = sessionFile.getName();
-										data[fileCount][1] = new SimpleDateFormat("MM/dd/yy h:mm a").format(modifiedDate);
-										data[fileCount][2] = FileUtils.sizeify(sessionFile.length());
-										fileCount++;
-									}
-								}
-								
-								sessionStateTable.setData(data).refreshTable();
-							}
-						}
+						refreshSessionTable();
+						
+						if( sessionStateTable.getSelectedIndex() == -1 )
+							sessionStateTable.setSelectedIndex(0);
+					} catch (IllegalArgumentException e) {
+						// We will get here if we try to set the table index
+						// but there is no items in the table
 					} catch (NoSuchMethodException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
@@ -259,26 +233,20 @@ public class HomeSetupPanel extends SetupPanel
 					} catch (IllegalAccessException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
-					} catch (IllegalArgumentException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
 					} catch (InvocationTargetException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
-					
+				}
+				else if( selectedTab == pluginsTab )
+				{
 					try {
-						if( sessionStateTable.getSelectedIndex() == -1 )
-							sessionStateTable.setSelectedIndex(0);
+						if( pluginsTable.getSelectedIndex() == -1 )
+							pluginsTable.setSelectedIndex(0);
 					} catch (IllegalArgumentException e) {
 						// We will get here if we try to set the table index
 						// but there is no items in the table
 					}
-				}
-				else if( selectedTab == pluginsTab )
-				{
-					if( pluginsTable.getSelectedIndex() == -1 )
-						pluginsTable.setSelectedIndex(0);
 				}
 				else if( selectedTab == troubleshootTab )
 				{
@@ -363,7 +331,7 @@ public class HomeSetupPanel extends SetupPanel
 	public Boolean switchToTab(Integer index)
 	{
 		try {
-			tabbedPane.setSelectedIndex(0);
+			tabbedPane.setSelectedIndex(index == 0 ? 1 : 0);
 			tabbedPane.setSelectedIndex(index);
 		} catch (IndexOutOfBoundsException e) {
 			trace(STDERR, e);
@@ -399,92 +367,118 @@ public class HomeSetupPanel extends SetupPanel
 					trace(STDERR, e);
 				} catch (MalformedURLException e) {
 					trace(STDERR, e);
+				} catch (IOException e) {
+					trace(STDERR, e);
 				}
 			}
 		});
 		panel.add(refreshButton);
 		
-		installButton = new JButton("Install");
-		installButton.setBounds(330, 50, 100, 30);
-		installButton.setToolTipText("Download the latest version of "+ Settings.PROJECT_NAME +" and install it.");
-		installButton.setEnabled(false);
-		installButton.addActionListener(new ActionListener() {
+		installButtonDropDown = new DropDownButton("Install");
+		installButtonDropDown.setBounds(330, 50, 100, 30);
+		installButtonDropDown.setToolTipText("Download the latest version of " + Settings.PROJECT_NAME + " and install it.");
+		installButtonDropDown.setEnabled(false);
+		installButtonDropDown.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a)
 			{
-				try {
-					setButtonsEnabled(false);
-
-					// Get the install URL to the zip file
-					final String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
-					if( urlStr == null ) {
-						JOptionPane.showConfirmDialog(null, 
-								"A connection to the internet could not be established.\n\n" +
-								"Please connect to the internet and try again.", 
-								"No Connection", 
-								JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-						setButtonsEnabled(true);
-						cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-						return;
+				setButtonsEnabled(false);
+				
+				new Timer().schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							// Get the install URL to the zip file
+							String urlStr = null;
+							if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
+								urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+							else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
+								urlStr = UpdateUtils.getLatestMilestoneURL();
+							
+							if( urlStr == null ) {
+								JOptionPane.showConfirmDialog(null, 
+										"A connection to the internet could not be established.\n\n" +
+										"Please connect to the internet and try again.", 
+										"No Connection", 
+										JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+								refreshInterface();
+								return;
+							}
+	
+							// Get the zip file's file name
+							String fileName = UpdateUtils.getWeaveUpdateFileName(urlStr);
+							if( fileName == null ) {
+								JOptionPane.showConfirmDialog(null,
+										"There was an error generating the update package filename.\n\n" +
+										"Please try again later or if the problem persists,\n" +
+										"report this issue as a bug for the developers.", 
+										"Error", 
+										JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+								refreshInterface();
+								return;
+							}
+							
+							// Get the active servlet container
+							IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
+							if( actvContainer == null ) {
+								JOptionPane.showMessageDialog(null, 
+										"There is no active servlet selected.\n\n" + 
+										"Please configure a servlet to use, then try again.", 
+										"Error", JOptionPane.ERROR_MESSAGE);
+								refreshInterface();
+								return;
+							}
+	
+							// Get the active servlet container's webapps directory
+							File cfgWebapps = actvContainer.getWebappsDirectory();
+							if( cfgWebapps == null || !cfgWebapps.exists() ) {
+								JOptionPane.showMessageDialog(null, 
+										"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
+										"Error", JOptionPane.ERROR_MESSAGE);
+								refreshInterface();
+								return;
+							}
+							
+							File zip = new File(Settings.REVISIONS_DIRECTORY, fileName);
+							
+							DownloadManager.init("update")
+								.setLabel(downloadLabel)
+								.setProgressbar(progressbar)
+								.downloadFrom(urlStr)
+								.extractTo(zip.getAbsolutePath())
+								.installTo(cfgWebapps.getAbsolutePath())
+								.callback(onDownloadCompleteCallback)
+								.start();
+							
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+						} catch (MalformedURLException e) {
+							trace(STDERR, e);
+						} catch (IOException e) {
+							trace(STDERR, e);
+						}
 					}
-
-					// Get the zip file's file name
-					String fileName = UpdateUtils.getWeaveUpdateFileName();
-					if( fileName == null ) {
-						JOptionPane.showConfirmDialog(null,
-								"There was an error generating the update package filename.\n\n" +
-								"Please try again later or if the problem persists,\n" +
-								"report this issue as a bug for the developers.", 
-								"Error", 
-								JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-						setButtonsEnabled(true);
-						cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-						return;
-					}
-					
-					// Get the active servlet container
-					IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
-					if( actvContainer == null ) {
-						JOptionPane.showMessageDialog(null, 
-								"There is no active servlet selected.\n\n" + 
-								"Please configure a servlet to use, then try again.", 
-								"Error", JOptionPane.ERROR_MESSAGE);
-						setButtonsEnabled(true);
-						cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-						return;
-					}
-
-					// Get the active servlet container's webapps directory
-					File cfgWebapps = actvContainer.getWebappsDirectory();
-					if( cfgWebapps == null || !cfgWebapps.exists() ) {
-						JOptionPane.showMessageDialog(null, 
-								"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
-								"Error", JOptionPane.ERROR_MESSAGE);
-						setButtonsEnabled(true);
-						cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-						return;
-					}
-					
-					File zip = new File(Settings.REVISIONS_DIRECTORY, fileName);
-					lastDownloadedFile = zip.getName();
-					
-					DownloadManager.init("update")
-						.setLabel(downloadLabel)
-						.setProgressbar(progressbar)
-						.downloadFrom(urlStr)
-						.extractTo(zip.getAbsolutePath())
-						.installTo(cfgWebapps.getAbsolutePath())
-						.callback(onDownloadCompleteCallback)
-						.start();
-					
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-				} catch (MalformedURLException e) {
-					trace(STDERR, e);
-				}
+				}, 500);
 			}
 		});
-		panel.add(installButton);
+		installButtonDropDown.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Settings.INSTALL_MODE = INSTALL_ENUM.MILESTONE;
+				Settings.save();
+				installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
+			}
+		});
+		installButtonDropDown.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Settings.INSTALL_MODE = INSTALL_ENUM.NIGHTLY;
+				Settings.save();
+				installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
+			}
+		});
+		installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
+		panel.add(installButtonDropDown);
 		
 		deployButton = new JButton("Deploy");
 		deployButton.setBounds(330, 150, 100, 30);
@@ -492,38 +486,35 @@ public class HomeSetupPanel extends SetupPanel
 		deployButton.setVisible(true);
 		deployButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent a) 
-			{
-				int index = revisionTable.getSelectedIndex();
-				if( index < 0 )
-					return;
-				
-				String file = Revisions.getRevisionsList().get(index).getAbsolutePath();
-
-				// Get the active servlet container
-				IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
-				if( actvContainer == null ) {
-					JOptionPane.showMessageDialog(null, 
-							"There is no active servlet selected.\n\n" + 
-							"Please configure a servlet to use, then try again.", 
-							"Error", JOptionPane.ERROR_MESSAGE);
-					setButtonsEnabled(true);
-					cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-					return;
-				}
-
-				// Get the active servlet container's webapps directory
-				File cfgWebapps = actvContainer.getWebappsDirectory();
-				if( cfgWebapps == null || !cfgWebapps.exists() ) {
-					JOptionPane.showMessageDialog(null, 
-							"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
-							"Error", JOptionPane.ERROR_MESSAGE);
-					setButtonsEnabled(true);
-					cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-					return;
-				}
-				
+			public void actionPerformed(ActionEvent a) {
 				try {
+					int index = revisionTable.getSelectedIndex();
+					if( index < 0 )
+						return;
+					
+					String file = Revisions.getRevisionsList().get(index).getAbsolutePath();
+	
+					// Get the active servlet container
+					IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
+					if( actvContainer == null ) {
+						JOptionPane.showMessageDialog(null, 
+								"There is no active servlet selected.\n\n" + 
+								"Please configure a servlet to use, then try again.", 
+								"Error", JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+	
+					// Get the active servlet container's webapps directory
+					File cfgWebapps = actvContainer.getWebappsDirectory();
+					if( cfgWebapps == null || !cfgWebapps.exists() ) {
+						JOptionPane.showMessageDialog(null, 
+								"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
+								"Error", JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+					
 					DownloadManager.init("update")
 						.setLabel(downloadLabel)
 						.setProgressbar(progressbar)
@@ -531,11 +522,14 @@ public class HomeSetupPanel extends SetupPanel
 						.installTo(cfgWebapps.getAbsolutePath())
 						.callback(onDownloadCompleteCallback)
 						.start();
-					
+						
 				} catch (MalformedURLException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -576,6 +570,8 @@ public class HomeSetupPanel extends SetupPanel
 							trace(STDERR, e);
 						} catch (MalformedURLException e) {
 							trace(STDERR, e);
+						} catch (IOException e) {
+							trace(STDERR, e);
 						}
 					}
 				}, 1000);
@@ -611,6 +607,8 @@ public class HomeSetupPanel extends SetupPanel
 							trace(STDERR, e);
 						} catch (MalformedURLException e) {
 							trace(STDERR, e);
+						} catch (IOException e) {
+							trace(STDERR, e);
 						}
 					}
 				}, 1000);
@@ -639,6 +637,51 @@ public class HomeSetupPanel extends SetupPanel
 		revisionTable = new CustomTable(new String[] {"Revision", "Date Downloaded"}, new Object[0][2]);
 		revisionTable.setBounds(10, 150, 300, 150);
 		revisionTable.setVisible(true);
+		new DropTarget(revisionTable, new DropTargetListener() {
+			@SuppressWarnings("unchecked")
+			@Override public void drop(DropTargetDropEvent dtde) {
+				dtde.acceptDrop(DnDConstants.ACTION_COPY);
+				
+				Transferable transferable = dtde.getTransferable();
+				DataFlavor[] flavors = transferable.getTransferDataFlavors();
+				File REV = null, destination = null;
+				
+				for( DataFlavor flavor : flavors )
+				{
+					if( flavor.isFlavorJavaFileListType() )
+					{
+						try {
+							List<File> files = (List<File>) transferable.getTransferData(flavor);
+							REV = Settings.REVISIONS_DIRECTORY;
+							if( REV == null || !REV.exists() )
+								return;
+							
+							for( File file : files )
+							{
+								destination = new File(REV, file.getName());
+								if( file.equals(destination) )
+									continue;
+								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
+							}
+						} catch (UnsupportedFlavorException e) {
+							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						} catch (IOException e) {
+							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
+						}
+					}
+				}
+				switchToTab(weaveTab);
+			}
+			@Override public void dropActionChanged(DropTargetDragEvent dtde) { }
+			@Override public void dragOver(DropTargetDragEvent dtde) { }
+			@Override public void dragExit(DropTargetEvent dte) { }
+			@Override public void dragEnter(DropTargetDragEvent dtde) { }
+		});
 		panel.add(revisionTable);
 		
 		return panel;
@@ -959,14 +1002,9 @@ public class HomeSetupPanel extends SetupPanel
 				pluginsPanel.repaint();
 			}
 		});
-		
 		panel.add(pluginsTable);
-		
-		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
-		Object[][] data = new Object[plugins.size()][1];
-		for( int i = 0; i < plugins.size(); i++ )
-			data[i][0] = plugins.get(i).getPluginName();
-		pluginsTable.setData(data).refreshTable();
+
+		refreshPluginTable();
 		
 		return panel;
 	}
@@ -1224,33 +1262,38 @@ public class HomeSetupPanel extends SetupPanel
 		public void run() {
 			System.gc();
 			
-			ConfigManager
-				.getConfigManager()
-				.getActiveContainer()
-				.setInstallVersion(Revisions.getRevisionVersion(lastDownloadedFile));
-			ConfigManager.getConfigManager().save();
+			Integer returnCode = (Integer) arguments[0];
+			String filename = (String) arguments[1];
 			
-			try {
-				ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
-											new Class<?>[] { Integer.class },
-											new Object[] { 7 });
-			} catch (NoSuchMethodException e) {
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-			} catch (SecurityException e) {
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-			} catch (IllegalAccessException e) {
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-			} catch (IllegalArgumentException e) {
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-			} catch (InvocationTargetException e) {
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
+			if( returnCode == TransferUtils.COMPLETE )
+			{
+				ConfigManager
+					.getConfigManager()
+					.getActiveContainer()
+					.setInstallVersion(Revisions.getRevisionVersion(filename));
+				ConfigManager.getConfigManager().save();
+				
+				try {
+					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
+												new Class<?>[] { Integer.class },
+												new Object[] { 7 });
+				} catch (NoSuchMethodException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (SecurityException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalAccessException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalArgumentException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InvocationTargetException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
 			}
-			
 			try {
 				Settings.cleanUp();
 				Thread.sleep(1000);
@@ -1260,42 +1303,14 @@ public class HomeSetupPanel extends SetupPanel
 				trace(STDERR, e);
 			} catch (MalformedURLException e) {
 				trace(STDERR, e);
+			} catch (IOException e) {
+				trace(STDERR, e);
 			}			
 		}
 	};
 	
-	private void refreshInterface() throws InterruptedException, MalformedURLException
+	private void refreshRevisionTable()
 	{
-		traceln(STDOUT, StringUtils.rpad("-> Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
-
-		Settings.canQuit = false;
-		
-		setButtonsEnabled(false);
-		int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
-		weaveStats.refresh(updateAvailable);
-		refreshProgramatically = false;
-
-		Settings.canQuit = true;
-		
-		downloadLabel.setVisible(false);
-		downloadLabel.setText("");
-		progressbar.setVisible(false);
-		progressbar.setIndeterminate(true);
-		progressbar.setString("");
-		progressbar.setValue(0);
-		
-//		pluginsProgressLabel.setVisible(false);
-//		pluginsProgressLabel.setText("");
-//		pluginsProgressBar.setVisible(false);
-//		pluginsProgressBar.setIndeterminate(true); 
-//		pluginsProgressBar.setString(""); 
-//		pluginsProgressBar.setValue(0); 
-
-		setButtonsEnabled(true);
-		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
-		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
-		
-		// Update revision table data
 		ArrayList<File> revisionList = Revisions.getRevisionsList();
 		Object[][] revisionData = new Object[revisionList.size()][2];
 		File file = null;
@@ -1327,11 +1342,92 @@ public class HomeSetupPanel extends SetupPanel
 		}
 		revisionTable.setData(revisionData).refreshTable();
 	}
+	private void refreshSessionTable() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		File WEBAPPS, ROOT;
+	
+		WEBAPPS = (File) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getWebappsDirectory", null);
+		if( WEBAPPS != null && WEBAPPS.exists() )
+		{
+			ROOT = new File(WEBAPPS, "ROOT");
+			if( ROOT.exists() )
+			{
+				int fileCount = 0;
+				String[] files = ROOT.list();
+				
+				for( int i = 0; i < files.length; i++ )
+					if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") )
+						fileCount++;
+				
+				File sessionFile = null;
+				Date modifiedDate = null;
+				Object[][] data = new Object[fileCount][3];
+				
+				sessionStateTable.setData(new Object[1][3]).refreshTable();
+				fileCount = 0;
+				
+				for( int i = 0; i < files.length; i++ )
+				{
+					if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") ) {
+						sessionFile = new File(ROOT, files[i]);
+						modifiedDate = new Date(sessionFile.lastModified());
+						data[fileCount][0] = sessionFile.getName();
+						data[fileCount][1] = new SimpleDateFormat("MM/dd/yy h:mm a").format(modifiedDate);
+						data[fileCount][2] = FileUtils.sizeify(sessionFile.length());
+						fileCount++;
+					}
+				}
+				
+				sessionStateTable.setData(data).refreshTable();
+			}
+		}
+	}
+	private void refreshPluginTable()
+	{
+		ArrayList<IPlugin> plugins = PluginManager.getPluginManager().getPlugins();
+		Object[][] data = new Object[plugins.size()][1];
+		for( int i = 0; i < plugins.size(); i++ )
+			data[i][0] = plugins.get(i).getPluginName();
+		pluginsTable.setData(data).refreshTable();
+	}
+	private void refreshInterface() throws InterruptedException, IOException
+	{
+		traceln(STDOUT, StringUtils.rpad("-> Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
+
+		Settings.canQuit = false;
+		
+		setButtonsEnabled(false);
+		int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
+		weaveStats.refresh(updateAvailable);
+		refreshProgramatically = false;
+
+		Settings.canQuit = true;
+		
+		downloadLabel.setVisible(false);
+		downloadLabel.setText("");
+		progressbar.setVisible(false);
+		progressbar.setIndeterminate(true);
+		progressbar.setString("");
+		progressbar.setValue(0);
+		
+//		pluginsProgressLabel.setVisible(false);
+//		pluginsProgressLabel.setText("");
+//		pluginsProgressBar.setVisible(false);
+//		pluginsProgressBar.setIndeterminate(true); 
+//		pluginsProgressBar.setString(""); 
+//		pluginsProgressBar.setValue(0); 
+
+		setButtonsEnabled(true);
+		installButtonDropDown.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
+		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
+		
+		refreshRevisionTable();
+	}
 	
 	private void setButtonsEnabled(boolean enabled)
 	{
 		refreshButton.setEnabled(enabled);
-		installButton.setEnabled(enabled);
+		installButtonDropDown.setEnabled(enabled);
 		deployButton.setEnabled(enabled);
 		deleteButton.setEnabled(enabled);
 		cleanButton.setEnabled(enabled);

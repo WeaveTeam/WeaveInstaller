@@ -73,6 +73,12 @@ public class AnalystWorkstationPlugin extends Plugin
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
 		public void run() {
+			setAllButtonsEnabled(true);
+			progressbar.setValue(0);
+			progressbar.setIndeterminate(true);
+			progressbar.setVisible(false);
+			progressLabel.setText("");
+			progressLabel.setVisible(false);
 			try {
 				Settings.cleanUp();
 				Thread.sleep(1000);
@@ -80,12 +86,6 @@ public class AnalystWorkstationPlugin extends Plugin
 				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 			}
-			setAllButtonsEnabled(true);
-			progressbar.setValue(0);
-			progressbar.setIndeterminate(true);
-			progressbar.setVisible(false);
-			progressLabel.setText("");
-			progressLabel.setVisible(false);
 			getPluginPanel();
 		}
 	};

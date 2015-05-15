@@ -18,5 +18,6 @@
 	<classpathentry kind="lib" path="libs/jfxrt.jar"/>
 	<classpathentry kind="lib" path="libs/JTattoo-1.6.10.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/JSplitButton_1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

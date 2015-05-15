@@ -34,6 +34,7 @@ public class RemoteUtils extends Globals
 {
 	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
 	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";
+	public static final String WEAVE_TAGS_URL			= "WeaveTagsURL";
 	
 	public static final String WEAVE_SERVER_VERSION 	= "WeaveServerVersion";
 	public static final String WEAVE_UPDATER_VERSION 	= "WeaveUpdaterVersion";
@@ -43,7 +44,6 @@ public class RemoteUtils extends Globals
 	public static final String JETTY_VERSION 			= "JettyVersion";
 	
 	public static final String AWS_URL					= "AnalystURL";
-	public static final String AWS_VERSION				= "AnalystVersion";
 	
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	

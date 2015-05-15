@@ -2,7 +2,7 @@ package weave.utils;
 
 import weave.Globals;
 import weave.Settings;
-import weave.Settings.OS_TYPE;
+import weave.Settings.OS_ENUM;
 
 public class SyscallCreatorUtils extends Globals
 {
@@ -11,12 +11,12 @@ public class SyscallCreatorUtils extends Globals
 		String shell = "";
 		String carry = "";
 		
-		if( Settings.OS == OS_TYPE.WINDOWS )
+		if( Settings.OS == OS_ENUM.WINDOWS )
 		{
 			shell = System.getenv("ComSpec");
 			carry = "/C";
 		}
-		else if( Settings.OS == OS_TYPE.LINUX || Settings.OS == OS_TYPE.MAC )
+		else if( Settings.OS == OS_ENUM.LINUX || Settings.OS == OS_ENUM.MAC )
 		{
 			shell = System.getenv("SHELL");
 			carry = "-c";

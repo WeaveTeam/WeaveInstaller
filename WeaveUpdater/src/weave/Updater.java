@@ -138,7 +138,7 @@ public class Updater extends JFrame
 						JOptionPane.YES_NO_OPTION, 
 						JOptionPane.WARNING_MESSAGE ))
 				{
-					Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
+					Settings.LAUNCH_MODE = Settings.LAUNCH_ENUM.OFFLINE_MODE;
 					Settings.save();
 					LaunchUtils.launchWeaveUpdater(1000);
 					Settings.shutdown();
@@ -482,7 +482,7 @@ public class Updater extends JFrame
 	
 	private void createShortcut( boolean overwrite ) throws IOException, InterruptedException
 	{
-		if( Settings.OS == Settings.OS_TYPE.WINDOWS ) 
+		if( Settings.OS == Settings.OS_ENUM.WINDOWS ) 
 		{
 			File shortcut = new File(Settings.DESKTOP_DIRECTORY, Settings.PROJECT_NAME + ".lnk"); 
 			if( !shortcut.exists() || overwrite )

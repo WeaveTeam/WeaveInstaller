@@ -43,6 +43,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -112,6 +113,9 @@ public class Installer extends JFrame
 	public static void main( String[] args )
 	{
 		try {
+			Properties props = new Properties();
+			props.put("logoString", "");
+			FastLookAndFeel.setCurrentTheme(props);
 			UIManager.setLookAndFeel(FastLookAndFeel.class.getCanonicalName());
 			Thread.sleep(1000);
 
@@ -164,7 +168,7 @@ public class Installer extends JFrame
 					}
 					else
 					{
-						Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
+						Settings.LAUNCH_MODE = Settings.LAUNCH_ENUM.OFFLINE_MODE;
 						Settings.save();
 						LaunchUtils.launchWeaveUpdater();
 					}
@@ -205,7 +209,7 @@ public class Installer extends JFrame
 	{
 		// ======== INITIALIZATION ======== //
 		try {
-			if( Settings.OS == Settings.OS_TYPE.WINDOWS )
+			if( Settings.OS == Settings.OS_ENUM.WINDOWS )
 				Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
 		} catch (UnsatisfiedLinkError e) {
 			// If we can't find the dll then don't error

@@ -129,7 +129,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -137,7 +137,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -145,7 +145,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -252,7 +252,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -260,7 +260,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -268,7 +268,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -361,8 +361,8 @@ public class DownloadManager
 						case TransferUtils.COMPLETE:
 							put(STDOUT, "DONE");
 							label.setText("Install complete....");
-							
-							callbackFunction.call();
+
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -370,7 +370,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -378,7 +378,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -386,7 +386,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 	
 							Thread.sleep(1000);
-							callbackFunction.call();
+							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 					}
 				} catch (InterruptedException e) {

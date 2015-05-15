@@ -35,7 +35,7 @@ import javax.swing.JOptionPane;
 
 import weave.Globals;
 import weave.Settings;
-import weave.Settings.OS_TYPE;
+import weave.Settings.OS_ENUM;
 import weave.managers.ConfigManager;
 
 public class LaunchUtils extends Globals
@@ -137,7 +137,7 @@ public class LaunchUtils extends Globals
 		
 		Settings.releaseLock();
 
-		if( Settings.OS == OS_TYPE.UNKNOWN )
+		if( Settings.OS == OS_ENUM.UNKNOWN )
 		{
 			JOptionPane.showMessageDialog(null, 
 					"Cannot launch file: " + f.getCanonicalPath() + "\n\n" +

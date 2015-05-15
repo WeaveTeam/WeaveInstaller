@@ -35,10 +35,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import weave.Revisions;
 import weave.Settings;
 import weave.managers.ConfigManager;
 import weave.utils.ObjectUtils;
+import weave.utils.Revisions;
 
 @SuppressWarnings("serial")
 public class RevisionTable extends JPanel

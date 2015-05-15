@@ -17,13 +17,17 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave;
+package weave.utils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+
+
+import weave.Globals;
+import weave.Settings;
 
 public class Revisions extends Globals
 {
@@ -100,8 +104,20 @@ public class Revisions extends Globals
 	
 	public static String getRevisionVersion(String s)
 	{
-		int start = s.lastIndexOf('-') + 1;
-		int end = s.lastIndexOf('.');
+		int start, end;
+		String milestone = "milestone-";
+		
+		if( s.contains(milestone) )
+		{
+			start = s.indexOf(milestone) + milestone.length();
+			end = s.indexOf("-", start);
+			if( start > end )
+				return s.substring(start);
+			return s.substring(start, end);
+		}
+
+		start = s.lastIndexOf('-') + 1;
+		end = s.lastIndexOf('.');
 		if( start > end )
 			return s.substring(start).toUpperCase();
 		

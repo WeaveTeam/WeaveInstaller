@@ -50,7 +50,7 @@ import javax.swing.JOptionPane;
 
 import weave.Globals;
 import weave.Settings;
-import weave.Settings.MODE;
+import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.utils.BugReportUtils;
@@ -286,7 +286,7 @@ public class TrayManager extends Globals
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				Settings.LAUNCH_MODE = ( Settings.isOfflineMode() ? MODE.ONLINE_MODE : MODE.OFFLINE_MODE );
+				Settings.LAUNCH_MODE = ( Settings.isOfflineMode() ? LAUNCH_ENUM.ONLINE_MODE : LAUNCH_ENUM.OFFLINE_MODE );
 				Settings.save();
 				
 				try {
