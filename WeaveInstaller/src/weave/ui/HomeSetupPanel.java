@@ -40,6 +40,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -116,8 +117,8 @@ public class HomeSetupPanel extends SetupPanel
 	public JPanel weaveTab, pluginsTab, sessionsTab, tab4, troubleshootTab, aboutTab;
 
 	// ============== Weave Tab ============== //
-	public DropDownButton installButtonDropDown;
-	public JButton refreshButton, deployButton, deleteButton, cleanButton;
+	public DropDownButton refreshButton;
+	public JButton installButton, deployButton, deleteButton, cleanButton;
 	public JLabel downloadLabel;
 	public JProgressBar progressbar;
 	public WeaveStats weaveStats;
@@ -181,7 +182,10 @@ public class HomeSetupPanel extends SetupPanel
 			@Override
 			public void run() {
 				refreshProgramatically = true;
-				refreshButton.doClick();
+				refreshButton.dispatchEvent(new MouseEvent(refreshButton, MouseEvent.MOUSE_RELEASED,
+															System.currentTimeMillis(), 0,
+															refreshButton.getX(), refreshButton.getY(),
+															1, false));
 			}
 		}, 1000);
 		
@@ -354,102 +358,18 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = createTab(parent);
 
-		refreshButton = new JButton("Refresh");
-		refreshButton.setBounds(330, 10, 100, 30);
+		refreshButton = new DropDownButton("Refresh");
+		refreshButton.setBounds(330, 50, 100, 30);
 		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
 		refreshButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) 
 			{
-				try {
-					refreshInterface();
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-				} catch (MalformedURLException e) {
-					trace(STDERR, e);
-				} catch (IOException e) {
-					trace(STDERR, e);
-				}
-			}
-		});
-		panel.add(refreshButton);
-		
-		installButtonDropDown = new DropDownButton("Install");
-		installButtonDropDown.setBounds(330, 50, 100, 30);
-		installButtonDropDown.setToolTipText("Download the latest version of " + Settings.PROJECT_NAME + " and install it.");
-		installButtonDropDown.setEnabled(false);
-		installButtonDropDown.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent a)
-			{
-				setButtonsEnabled(false);
-				
 				new Timer().schedule(new TimerTask() {
 					@Override
 					public void run() {
 						try {
-							// Get the install URL to the zip file
-							String urlStr = null;
-							if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
-								urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
-							else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
-								urlStr = UpdateUtils.getLatestMilestoneURL();
-							
-							if( urlStr == null ) {
-								JOptionPane.showConfirmDialog(null, 
-										"A connection to the internet could not be established.\n\n" +
-										"Please connect to the internet and try again.", 
-										"No Connection", 
-										JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-								refreshInterface();
-								return;
-							}
-	
-							// Get the zip file's file name
-							String fileName = UpdateUtils.getWeaveUpdateFileName(urlStr);
-							if( fileName == null ) {
-								JOptionPane.showConfirmDialog(null,
-										"There was an error generating the update package filename.\n\n" +
-										"Please try again later or if the problem persists,\n" +
-										"report this issue as a bug for the developers.", 
-										"Error", 
-										JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-								refreshInterface();
-								return;
-							}
-							
-							// Get the active servlet container
-							IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
-							if( actvContainer == null ) {
-								JOptionPane.showMessageDialog(null, 
-										"There is no active servlet selected.\n\n" + 
-										"Please configure a servlet to use, then try again.", 
-										"Error", JOptionPane.ERROR_MESSAGE);
-								refreshInterface();
-								return;
-							}
-	
-							// Get the active servlet container's webapps directory
-							File cfgWebapps = actvContainer.getWebappsDirectory();
-							if( cfgWebapps == null || !cfgWebapps.exists() ) {
-								JOptionPane.showMessageDialog(null, 
-										"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
-										"Error", JOptionPane.ERROR_MESSAGE);
-								refreshInterface();
-								return;
-							}
-							
-							File zip = new File(Settings.REVISIONS_DIRECTORY, fileName);
-							
-							DownloadManager.init("update")
-								.setLabel(downloadLabel)
-								.setProgressbar(progressbar)
-								.downloadFrom(urlStr)
-								.extractTo(zip.getAbsolutePath())
-								.installTo(cfgWebapps.getAbsolutePath())
-								.callback(onDownloadCompleteCallback)
-								.start();
-							
+							refreshInterface();
 						} catch (InterruptedException e) {
 							trace(STDERR, e);
 						} catch (MalformedURLException e) {
@@ -458,27 +378,136 @@ public class HomeSetupPanel extends SetupPanel
 							trace(STDERR, e);
 						}
 					}
-				}, 500);
+				}, 400);
 			}
 		});
-		installButtonDropDown.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
+		refreshButton.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent a) {
+				trace(STDOUT, StringUtils.rpad("-> Switching to Milestone", ".", Settings.LOG_PADDING_LENGTH));
 				Settings.INSTALL_MODE = INSTALL_ENUM.MILESTONE;
 				Settings.save();
-				installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshProgramatically = true;
+				try {
+					refreshInterface();
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
 			}
 		});
-		installButtonDropDown.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
+		refreshButton.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent a) {
+				trace(STDOUT, StringUtils.rpad("-> Switching to Nightly", ".", Settings.LOG_PADDING_LENGTH));
 				Settings.INSTALL_MODE = INSTALL_ENUM.NIGHTLY;
 				Settings.save();
-				installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshProgramatically = true;
+				try {
+					refreshInterface();
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
 			}
 		});
-		installButtonDropDown.updateSelectedItem(Settings.INSTALL_MODE);
-		panel.add(installButtonDropDown);
+		refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+		panel.add(refreshButton);
+		
+		installButton = new DropDownButton("Install");
+		installButton.setBounds(330, 10, 100, 30);
+		installButton.setToolTipText("Download the latest version of " + Settings.PROJECT_NAME + " and install it.");
+		installButton.setEnabled(false);
+		installButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a)
+			{
+				setButtonsEnabled(false);
+			
+				try {
+					// Get the install URL to the zip file
+					String urlStr = null;
+					if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
+						urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+					else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
+						urlStr = UpdateUtils.getLatestMilestoneURL();
+					
+					if( urlStr == null ) {
+						JOptionPane.showConfirmDialog(null, 
+								"A connection to the internet could not be established.\n\n" +
+								"Please connect to the internet and try again.", 
+								"No Connection", 
+								JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+
+					// Get the zip file's file name
+					String fileName = UpdateUtils.getWeaveUpdateFileName(urlStr);
+					if( fileName == null ) {
+						JOptionPane.showConfirmDialog(null,
+								"There was an error generating the update package filename.\n\n" +
+								"Please try again later or if the problem persists,\n" +
+								"report this issue as a bug for the developers.", 
+								"Error", 
+								JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+					
+					// Get the active servlet container
+					IConfig actvContainer = ConfigManager.getConfigManager().getActiveContainer();
+					if( actvContainer == null ) {
+						JOptionPane.showMessageDialog(null, 
+								"There is no active servlet selected.\n\n" + 
+								"Please configure a servlet to use, then try again.", 
+								"Error", JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+
+					// Get the active servlet container's webapps directory
+					File cfgWebapps = actvContainer.getWebappsDirectory();
+					if( cfgWebapps == null || !cfgWebapps.exists() ) {
+						JOptionPane.showMessageDialog(null, 
+								"Webapps folder for " + actvContainer.getConfigName() + " is not set.", 
+								"Error", JOptionPane.ERROR_MESSAGE);
+						refreshInterface();
+						return;
+					}
+					
+					File zip = new File(Settings.REVISIONS_DIRECTORY, fileName);
+					
+					DownloadManager.init("update")
+						.setLabel(downloadLabel)
+						.setProgressbar(progressbar)
+						.downloadFrom(urlStr)
+						.extractTo(zip.getAbsolutePath())
+						.installTo(cfgWebapps.getAbsolutePath())
+						.callback(onDownloadCompleteCallback)
+						.start();
+					
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (MalformedURLException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+			}
+		});
+		panel.add(installButton);
 		
 		deployButton = new JButton("Deploy");
 		deployButton.setBounds(330, 150, 100, 30);
@@ -568,10 +597,13 @@ public class HomeSetupPanel extends SetupPanel
 							refreshInterface();
 						} catch (InterruptedException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						} catch (MalformedURLException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						} catch (IOException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						}
 					}
 				}, 1000);
@@ -605,10 +637,13 @@ public class HomeSetupPanel extends SetupPanel
 							refreshInterface();
 						} catch (InterruptedException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						} catch (MalformedURLException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						} catch (IOException e) {
 							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						}
 					}
 				}, 1000);
@@ -663,13 +698,13 @@ public class HomeSetupPanel extends SetupPanel
 									continue;
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
 							}
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+							BugReportUtils.showBugReportDialog(e);
 						} catch (UnsupportedFlavorException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						} catch (IOException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (InterruptedException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -1418,7 +1453,7 @@ public class HomeSetupPanel extends SetupPanel
 //		pluginsProgressBar.setValue(0); 
 
 		setButtonsEnabled(true);
-		installButtonDropDown.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
+		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 		
 		refreshRevisionTable();
@@ -1427,7 +1462,7 @@ public class HomeSetupPanel extends SetupPanel
 	private void setButtonsEnabled(boolean enabled)
 	{
 		refreshButton.setEnabled(enabled);
-		installButtonDropDown.setEnabled(enabled);
+		installButton.setEnabled(enabled);
 		deployButton.setEnabled(enabled);
 		deleteButton.setEnabled(enabled);
 		cleanButton.setEnabled(enabled);

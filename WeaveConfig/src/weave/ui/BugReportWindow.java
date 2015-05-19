@@ -32,23 +32,20 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import weave.Settings;
-import weave.managers.TrayManager;
-import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 
 @SuppressWarnings("serial")
@@ -77,8 +74,8 @@ public class BugReportWindow extends JFrame
 	public BugReportWindow(Throwable e)
 	{
 		_instance = this;
-		
-		_instance.setSize(400, 300); 	// 394 x 272 (inner)
+
+		_instance.setSize(400, 325); 	// 394 x 297 (inner)
 		_instance.setResizable(false);
 		_instance.setLayout(null);
 		_instance.setBackground(new Color(0xF0F0F0));
@@ -86,42 +83,75 @@ public class BugReportWindow extends JFrame
 		_instance.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		_instance.setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
 
-		Icon icon 						= new ImageIcon( ImageUtils.resize(TrayManager.trayIconOffline, 30, 30) ); 
-		JLabel iconLabel 				= new JLabel(icon);
 		JEditorPane titleContainer 		= new JEditorPane();
+		JEditorPane exceptionContainer	= new JEditorPane();
 		JEditorPane messageContainer 	= new JEditorPane();
 		final JCheckBox checkbox 		= new JCheckBox("Tell developers about the bug", true);
-		final JButton details 			= new JButton("Details...");
+		final JButton detailsButton 	= new JButton("Details...");
 		final JTextArea commentPanel 	= new JTextArea(defaultComment);
 		final JScrollPane commentScroller = new JScrollPane(commentPanel);
 		JButton close					= new JButton("Close");
 		
-		iconLabel.setBounds(20, 10, 30, 30);
-		iconLabel.setVisible(true);
-		
 		String title = "<b>" + Settings.CURRENT_PROGRAM_NAME + " has encountered a bug</b>";
-		
-		titleContainer.setBounds(65, 15, 300, 30);
+		titleContainer.setBounds(20, 15, 354, 30);
 		titleContainer.setContentType("text/html");
 		titleContainer.setText(title);
-		titleContainer.setOpaque(false);
-		titleContainer.setBackground(new Color(0,0,0,0));
+		titleContainer.setOpaque(true);
+		titleContainer.setBackground(new Color(240,240,240,0));
 		titleContainer.setEditable(false);
 		titleContainer.setVisible(true);
+		titleContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
+
+		String exception = "<center><i>" + e.getClass().getSimpleName() + ": " + e.getLocalizedMessage() + "</i></center>";
+		exceptionContainer.setBounds(20, 40, 354, 45);
+		exceptionContainer.setContentType("text/html");
+		exceptionContainer.setText(exception);
+		exceptionContainer.setOpaque(true);
+		exceptionContainer.setBackground(new Color(240,240,240,0));
+		exceptionContainer.setEditable(false);
+		exceptionContainer.setVisible(true);
+		exceptionContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
 		
-		String message  = "Continued use of the tool may cause stability issues.<br />";
-			   message += "It is recommended that you close the tool and try again.";
-		
-		messageContainer.setBounds(20, 50, 354, 55);
+		String  message  = "Continued use of the tool may cause stability issues.<br />";
+				message += "It is recommended that you close the tool and try again.";
+		messageContainer.setBounds(20, 90, 354, 45);
 		messageContainer.setContentType("text/html");
 		messageContainer.setText(message);
-		messageContainer.setOpaque(false);
-		messageContainer.setBackground(new Color(0,0,0,0));
+		messageContainer.setOpaque(true);
+		messageContainer.setBackground(new Color(240,240,240,0));
 		messageContainer.setEditable(false);
 		messageContainer.setVisible(true);
+		messageContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
 		
-		details.setBounds(284, 110, 90, 25);
-		details.addActionListener(new ActionListener() {
+		detailsButton.setBounds(284, 140, 90, 25);
+		detailsButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -134,21 +164,21 @@ public class BugReportWindow extends JFrame
 				}
 			}
 		});
-		details.setEnabled(true);
-		details.setVisible(true);
+		detailsButton.setEnabled(true);
+		detailsButton.setVisible(true);
 		
-		checkbox.setBounds(20, 110, 250, 25);
+		checkbox.setBounds(20, 140, 250, 25);
 		checkbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				if( checkbox.isSelected() ) {
 					CLOSE_OPTION = YES_OPTION;
-					details.setEnabled(true);
+					detailsButton.setEnabled(true);
 					commentPanel.setEnabled(true);
 					commentScroller.setEnabled(true);
 				} else {
 					CLOSE_OPTION = NO_OPTION;
-					details.setEnabled(false);
+					detailsButton.setEnabled(false);
 					commentPanel.setEnabled(false);
 					commentScroller.setEnabled(false);
 				}
@@ -170,10 +200,10 @@ public class BugReportWindow extends JFrame
 			}
 		});
 		
-		commentScroller.setBounds(20, 140, 354, 75);
+		commentScroller.setBounds(20, 170, 354, 75);
 		commentScroller.setVisible(true);
 		
-		close.setBounds(157, 225, 80, 25);
+		close.setBounds(157, 250, 80, 25);
 		close.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -187,10 +217,10 @@ public class BugReportWindow extends JFrame
 		close.setEnabled(true);
 		close.setVisible(true);
 		
-		_instance.add(iconLabel);
 		_instance.add(titleContainer);
+		_instance.add(exceptionContainer);
 		_instance.add(messageContainer);
-		_instance.add(details);
+		_instance.add(detailsButton);
 		_instance.add(checkbox);
 		_instance.add(commentScroller);
 		_instance.add(close);

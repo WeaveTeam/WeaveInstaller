@@ -23,11 +23,17 @@ import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import javax.swing.JOptionPane;
 
+import weave.Function;
 import weave.Globals;
 import weave.Settings;
+import weave.async.AsyncCallback;
+import weave.async.AsyncTask;
 import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
@@ -67,9 +73,6 @@ public class RemoteUtils extends Globals
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		}
 		return configFile;
 	}
@@ -96,7 +99,7 @@ public class RemoteUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 		
-		if( !Settings.isConnectedToInternet() ) {
+		if( !RemoteUtils.isConnectedToInternet() ) {
 			JOptionPane.showConfirmDialog(null, 
 				"A connection to the internet could not be established.\n\n" +
 				"Please connect to the internet and try again.", 
@@ -109,9 +112,6 @@ public class RemoteUtils extends Globals
 			result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
 			return result.getResponseContent().split(";");
 		} catch (IOException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -132,9 +132,6 @@ public class RemoteUtils extends Globals
 		try {
 			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP).getResponseContent();
 		} catch (IOException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -169,10 +166,90 @@ public class RemoteUtils extends Globals
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		}
 		return false;
+	}
+
+	/**
+	 * Determine if an Internet connection can be established
+	 * 
+	 * @return TRUE if there is an Internet connection, FALSE otherwise
+	 */
+	public static Boolean isConnectedToInternet()
+	{
+		class ITC {
+			boolean isConnected = false;
+		}
+		final ITC itc = new ITC();
+		
+//		trace(STDOUT, "-> Checking Internet Connection...");
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				URL url 				= null;
+				HttpURLConnection conn 	= null;
+				try {
+					url = new URL(Settings.IWEAVE_URL);
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setReadTimeout(1500);
+					conn.setUseCaches(false);
+					conn.connect();
+				} catch (ConnectException e) {
+					// Don't trace error here
+					itc.isConnected = false;
+				} catch (IOException e) {
+					trace(STDERR, e);
+					itc.isConnected = false;
+				} finally {
+					if( conn != null )
+						conn.disconnect();
+				}
+				itc.isConnected = true;
+			}
+		});
+		try {
+			t.start();
+			t.join(2000);
+			t.interrupt();
+			t = null;
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		}
+		
+		Settings.isConnectedToInternet = itc.isConnected;
+		
+//		if( itc.isConnected )
+//			put(STDOUT, "CONNECTED");
+//		else
+//			put(STDOUT, "FAILED");
+		
+		return itc.isConnected;
+	}
+	
+	public static void isConnectedToInternet(final Function ifTrue, final Function ifFalse)
+	{
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				Boolean result = (Boolean) o;
+				
+				if( result )	ifTrue.call();
+				else			ifFalse.call();
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				try {
+					URLRequestUtils.request(URLRequestUtils.GET, Settings.IWEAVE_URL);
+					return true;
+				} catch (IOException e) {
+					trace(STDERR, e);
+				}
+				return false;
+			}
+		};
+		task.addCallback(callback).execute();
 	}
 }

@@ -31,7 +31,6 @@ public class SocketStatus extends JPanel
 		this.port = port;
 		this.timeout = 10000;
 		
-		this.timer = new Timer();
 		createUI();
 	}
 	public SocketStatus(String label, String host, int port, int timeout)
@@ -41,7 +40,6 @@ public class SocketStatus extends JPanel
 		this.port = port;
 		this.timeout = timeout;
 	
-		this.timer = new Timer();
 		createUI();
 	}
 	private void createUI()
@@ -69,26 +67,26 @@ public class SocketStatus extends JPanel
 		{
 			if( RemoteUtils.isServiceUp(host, port) )
 			{
-				status.setText("Online");
 				status.setForeground(new Color(0x004F00));
+				status.setText("Online");
 			}
 			else
 			{
-				status.setText("Offline");
 				status.setForeground(Color.RED);
+				status.setText("Offline");
 			}
 		}
 		else
 		{
 			if( Settings.isServiceUp(host, port) )
 			{
-				status.setText("Online");
 				status.setForeground(new Color(0x004F00));
+				status.setText("Online");
 			}
 			else
 			{
-				status.setText("Offline");
 				status.setForeground(Color.RED);
+				status.setText("Offline");
 			}
 		}
 	}
@@ -98,6 +96,7 @@ public class SocketStatus extends JPanel
 	}
 	public void startMonitor(final boolean useRemoteAPI)
 	{
+		timer = new Timer();
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {

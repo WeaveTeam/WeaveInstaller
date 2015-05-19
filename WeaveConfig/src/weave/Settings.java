@@ -36,11 +36,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
@@ -223,7 +220,7 @@ public class Settings extends Globals
 		// and any new settings with the default values.
 		save();		 
 
-		getNetworkInfo(( isOfflineMode() || !isConnectedToInternet() ));
+		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
 	}
 	
 
@@ -572,25 +569,7 @@ public class Settings extends Globals
 			return FileUtils.recursiveDelete(LOCK_FILE);
 		return false;
 	}
-	
-	@Reflectable
-	public static Boolean isAdminPrivileged(Integer i)
-	{
-		if( i == 1 )
-		{
-			
-		}
-		else if( i == 2 )
-		{
-			
-		}
-		else if( i == 3 )
-		{
-			
-		}
-		return false;
-	}
-	
+
 	/**
 	 * Check if a service is running on the specified port
 	 * @param host the host to query
@@ -604,71 +583,13 @@ public class Settings extends Globals
 			Socket sock = new Socket(host, port);
 			sock.close();
 			b = true;
-		} catch (IOException ex) {
-//			trace(STDERR, ex);
-		} catch (IllegalArgumentException ex) {
+		} catch (IllegalArgumentException e) {
 			JOptionPane.showMessageDialog(null, "Port out of range.");
-//			trace(STDERR, ex);
+//			trace(STDERR, e);
+		} catch (IOException e) {
+//			trace(STDERR, e);
 		}
 		return b;
-	}
-	
-	
-	/**
-	 * Determine if an Internet connection can be established
-	 * 
-	 * @return TRUE if there is an Internet connection, FALSE otherwise
-	 */
-	public static Boolean isConnectedToInternet()
-	{
-		class ITC {
-			boolean isConnected = false;
-		}
-		final ITC itc = new ITC();
-		
-//		trace(STDOUT, "-> Checking Internet Connection...");
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL url 				= null;
-				HttpURLConnection conn 	= null;
-				try {
-					url = new URL(Settings.IWEAVE_URL);
-					conn = (HttpURLConnection) url.openConnection();
-					conn.setRequestMethod("GET");
-					conn.setReadTimeout(1500);
-					conn.setUseCaches(false);
-					conn.connect();
-				} catch (ConnectException e) {
-					// Don't trace error here
-					itc.isConnected = false;
-				} catch (IOException e) {
-					trace(STDERR, e);
-					itc.isConnected = false;
-				} finally {
-					if( conn != null )
-						conn.disconnect();
-				}
-				itc.isConnected = true;
-			}
-		});
-		try {
-			t.start();
-			t.join(2000);
-			t.interrupt();
-			t = null;
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-		}
-		
-		isConnectedToInternet = itc.isConnected;
-		
-//		if( itc.isConnected )
-//			put(STDOUT, "CONNECTED");
-//		else
-//			put(STDOUT, "FAILED");
-		
-		return itc.isConnected;
 	}
 	
 	public static void startListenerServer()

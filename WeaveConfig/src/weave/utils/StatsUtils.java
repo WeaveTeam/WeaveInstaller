@@ -40,7 +40,7 @@ public class StatsUtils extends Globals
 	
 	public static void logUpdate( boolean forced )
 	{
-		if( Settings.isOfflineMode() || !Settings.isConnectedToInternet() )
+		if( Settings.isOfflineMode() )
 			return;
 		
 		final URLRequestParams params = new URLRequestParams();
@@ -56,9 +56,6 @@ public class StatsUtils extends Globals
 				} catch (IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
 				}
 				return null;
 			}
@@ -68,7 +65,7 @@ public class StatsUtils extends Globals
 
 	public static void noop()
 	{
-		if( Settings.isOfflineMode() || !Settings.isConnectedToInternet() )
+		if( Settings.isOfflineMode() )
 			return;
 		
 		try {
@@ -86,9 +83,6 @@ public class StatsUtils extends Globals
 					} catch (SocketTimeoutException e) {
 						// Do nothing here, not a bug
 					} catch (IOException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (InterruptedException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}

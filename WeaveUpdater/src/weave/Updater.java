@@ -129,7 +129,7 @@ public class Updater extends JFrame
 				return;
 			}
 			
-			if( !Settings.isOfflineMode() && !Settings.isConnectedToInternet() )
+			if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 			{
 				if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
 						"It appears you have no connection to the internet.\n" +
@@ -244,7 +244,7 @@ public class Updater extends JFrame
 		traceln(STDOUT, "-> Online Mode Enabled...");
 		
 		
-		// Need to check if this WeaveInstaller tool 
+		// Need to check if this tool 
 		// has a unique ID assigned to it
 		Settings.canQuit = false;
 		if( !Settings.hasUniqueID() ) {

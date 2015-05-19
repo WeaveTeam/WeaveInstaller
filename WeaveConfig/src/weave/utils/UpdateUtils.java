@@ -22,7 +22,6 @@ package weave.utils;
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,7 +121,7 @@ public class UpdateUtils extends Globals
 		}
 	}
 	
-	public static String getWeaveUpdateFileName() throws InterruptedException, MalformedURLException
+	public static String getWeaveUpdateFileName() throws InterruptedException, IOException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
@@ -130,7 +129,7 @@ public class UpdateUtils extends Globals
 		return getWeaveUpdateFileName(RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL));
 	}
 	
-	public static String getWeaveUpdateFileName(String url) throws MalformedURLException, InterruptedException
+	public static String getWeaveUpdateFileName(String url) throws InterruptedException, IOException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
@@ -153,7 +152,10 @@ public class UpdateUtils extends Globals
 		if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
 			urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
 		else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
-			urlStr = UpdateUtils.getLatestMilestoneURL();
+			urlStr = getLatestMilestoneURL();
+		
+		if( urlStr == null )
+			return UPDATE_ERROR;
 		
 		String fileName = getWeaveUpdateFileName(urlStr);
 		

@@ -108,9 +108,6 @@ public class BugReportUtils extends Globals
 		} catch (IOException e1) {
 			trace(STDERR, e1);
 			put(STDOUT, "FAILED");
-		} catch (InterruptedException ex) {
-			trace(STDERR, ex);
-			put(STDOUT, "FAILED");
 		}
 	}
 }

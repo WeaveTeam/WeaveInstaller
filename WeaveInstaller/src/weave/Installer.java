@@ -70,8 +70,10 @@ import weave.ui.HomeSetupPanel;
 import weave.ui.WelcomeSetupPanel;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
+import weave.utils.IdentityUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
 import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
@@ -148,7 +150,7 @@ public class Installer extends JFrame
 			
 			while( true ) 
 			{
-				if( !Settings.isOfflineMode() && !Settings.isConnectedToInternet() )
+				if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 				{
 					int ops = JOptionPane.showOptionDialog(null, 
 							"No internet connection could be established at this time.\n" + 
@@ -217,6 +219,14 @@ public class Installer extends JFrame
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
+
+		Settings.canQuit = false;
+		if( !Settings.hasUniqueID() ) {
+			Settings.UNIQUE_ID = IdentityUtils.createID();
+			traceln(STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
+			Settings.save();
+		}
+		Settings.canQuit = true;
 		
 		TrayManager.initializeTray(this);
 		ConfigManager.getConfigManager().initializeConfigs();
