@@ -280,7 +280,7 @@ public class Updater extends JFrame
 	{
 		// Get update URL
 		final URL url;
-		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
+		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_SERVER_UPDATES_URL);
 		if( urlStr == null ) {
 			JOptionPane.showConfirmDialog(null, 
 				"A connection to the internet could not be established.\n\n" +

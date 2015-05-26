@@ -38,10 +38,11 @@ import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
 {
-	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
 	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";
 	public static final String WEAVE_TAGS_URL			= "WeaveTagsURL";
 	
+	public static final String WEAVE_SERVER_INSTALL_URL	= "WeaveServerInstallURL";
+	public static final String WEAVE_SERVER_UPDATES_URL	= "WeaveServerUpdatesURL";
 	public static final String WEAVE_SERVER_VERSION 	= "WeaveServerVersion";
 	public static final String WEAVE_UPDATER_VERSION 	= "WeaveUpdaterVersion";
 	public static final String WEAVE_LAUNCHER_VERSION	= "WeaveLauncherVersion";
