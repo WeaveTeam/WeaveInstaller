@@ -22,6 +22,7 @@ package weave.utils;
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
 import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 import static weave.utils.TraceUtils.getStackTrace;
 import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
@@ -107,7 +108,7 @@ public class BugReportUtils extends Globals
 			
 		} catch (IOException e1) {
 			trace(STDERR, e1);
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e1) + ")");
 		}
 	}
 }

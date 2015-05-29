@@ -19,11 +19,13 @@
 
 package weave;
 
+import static weave.utils.ObjectUtils.ternary;
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
 import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
 import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -55,7 +57,6 @@ import weave.reflect.Reflectable;
 import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
-import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
 import weave.utils.RegEdit;
 import weave.utils.RemoteUtils;
@@ -337,15 +338,15 @@ public class Settings extends Globals
 			instream.close();
 			
 			/* Obtain the map values and assign them to data members */
-			CONFIGURED = 			(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
-			SETUP_COMPLETE = 		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("SETUP_COMPLETE"), 		SETUP_COMPLETE);
-			UNIQUE_ID = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
-			LAST_UPDATE_CHECK = 	(String) 		ObjectUtils.ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
-			SHORTCUT_VER = 			(String)		ObjectUtils.ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
-			UPDATE_OVERRIDE	=		(Boolean)		ObjectUtils.ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
-			LAUNCH_MODE = 			(LAUNCH_ENUM)	ObjectUtils.ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
-			INSTALL_MODE = 			(INSTALL_ENUM)	ObjectUtils.ternary(SETTINGS_MAP.get("INSTALL_MODE"), 			INSTALL_MODE);
-			RPC_PORT = 				(Integer)		ObjectUtils.ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
+			CONFIGURED = 			(Boolean)		ternary(SETTINGS_MAP.get("CONFIGURED"), 			CONFIGURED);
+			SETUP_COMPLETE = 		(Boolean)		ternary(SETTINGS_MAP.get("SETUP_COMPLETE"), 		SETUP_COMPLETE);
+			UNIQUE_ID = 			(String)		ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
+			LAST_UPDATE_CHECK = 	(String) 		ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
+			SHORTCUT_VER = 			(String)		ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
+			UPDATE_OVERRIDE	=		(Boolean)		ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
+			LAUNCH_MODE = 			(LAUNCH_ENUM)	ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
+			INSTALL_MODE = 			(INSTALL_ENUM)	ternary(SETTINGS_MAP.get("INSTALL_MODE"), 			INSTALL_MODE);
+			RPC_PORT = 				(Integer)		ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
 			
 			trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
 			trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
@@ -358,17 +359,16 @@ public class Settings extends Globals
 			trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 
 		} catch (FileNotFoundException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			JOptionPane.showMessageDialog(null, "Error reading settings file: File not found", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		} catch (ClassNotFoundException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
@@ -461,7 +461,7 @@ public class Settings extends Globals
 				REMOTE_IP = RemoteUtils.getIP();
 			
 		} catch (UnknownHostException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 		}
 		put(STDOUT, "DONE");
@@ -528,12 +528,12 @@ public class Settings extends Globals
 				return getLock();
 				
 			} catch (NumberFormatException e) {
-				put(STDOUT, "FAILED");
+				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				trace(STDERR, e); 
 				BugReportUtils.showBugReportDialog(e);
 				return false;
 			} catch (IOException e) {
-				put(STDOUT, "FAILED");
+				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 				return false;
@@ -548,7 +548,7 @@ public class Settings extends Globals
 				bw.flush();
 				bw.close();
 			} catch (IOException e) {
-				put(STDOUT, "FAILED");
+				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				trace(STDERR, e);
 				return false;
 			}

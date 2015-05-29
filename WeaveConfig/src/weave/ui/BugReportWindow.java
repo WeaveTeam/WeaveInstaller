@@ -21,6 +21,7 @@ package weave.ui;
 
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
@@ -111,7 +112,7 @@ public class BugReportWindow extends JFrame
 			@Override public void mouseClicked(MouseEvent e) { }
 		});
 
-		String exception = "<center><i>" + e.getClass().getSimpleName() + ": " + e.getLocalizedMessage() + "</i></center>";
+		String exception = "<center><i>" + getSimpleClassAndMsg(e) + "</i></center>";
 		exceptionContainer.setBounds(20, 40, 354, 45);
 		exceptionContainer.setContentType("text/html");
 		exceptionContainer.setText(exception);

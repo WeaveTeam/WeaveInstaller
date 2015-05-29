@@ -21,6 +21,7 @@ package weave.managers;
 
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
 import static weave.utils.TraceUtils.traceln;
@@ -264,32 +265,32 @@ public class ConfigManager extends Globals
 			outstream.writeObject(CONFIGS_MAP);
 			outstream.close();
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (NoSuchMethodException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (SecurityException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IllegalAccessException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (IllegalArgumentException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (InvocationTargetException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
@@ -312,12 +313,12 @@ public class ConfigManager extends Globals
 			instream.close();
 			
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;
 		} catch (ClassNotFoundException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;

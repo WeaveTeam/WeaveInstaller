@@ -44,6 +44,11 @@ public class TraceUtils extends Globals
 	
 	private static ArrayList<String> pipes = new ArrayList<String>( Arrays.asList("stdout", "stderr") );
 	
+	public static String getSimpleClassAndMsg( Throwable e )
+	{
+		return e.getClass().getSimpleName() + ": " + e.getLocalizedMessage();
+	}
+	
 	public static String getStackTrace( Throwable e )
 	{
 		String dump = "";

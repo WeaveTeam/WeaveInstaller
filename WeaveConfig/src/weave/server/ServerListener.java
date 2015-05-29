@@ -21,6 +21,7 @@ package weave.server;
 
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
 
@@ -74,14 +75,14 @@ public class ServerListener extends Globals
 			connections = new ArrayList<ServerListener.ServerListenerThread>();
 			
 		} catch (BindException e) {
-			put(STDOUT, "FAILED (Port already in use)");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			JOptionPane.showMessageDialog(null, 
 					"Starting RPC server failed. Port already in use.\n\n" + 
 					"Close any process running on port " + port + " and try again.",
 					"Error", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 		}
 		
@@ -127,7 +128,7 @@ public class ServerListener extends Globals
 			if( ssocket != null ) ssocket.close();
 
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 		}
 		
