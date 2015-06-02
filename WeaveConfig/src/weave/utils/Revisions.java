@@ -110,7 +110,7 @@ public class Revisions extends Globals
 		if( s.contains(milestone) )
 		{
 			start = s.indexOf(milestone) + milestone.length();
-			end = s.indexOf("-", start);
+			end = s.lastIndexOf(".");
 			if( start > end )
 				return s.substring(start);
 			return s.substring(start, end);
@@ -120,7 +120,6 @@ public class Revisions extends Globals
 		end = s.lastIndexOf('.');
 		if( start > end )
 			return s.substring(start).toUpperCase();
-		
 		return s.substring(start, end).toUpperCase();
 	}
 	public static String getRevisionName(String s)

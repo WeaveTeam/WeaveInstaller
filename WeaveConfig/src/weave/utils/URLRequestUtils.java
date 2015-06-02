@@ -4,16 +4,31 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
 import weave.Globals;
 import weave.Settings;
+
 public class URLRequestUtils extends Globals
 {
 	public static final String GET = "GET";
 	public static final String POST = "POST";
 	public static final int TIMEOUT = 3000;
+	
+	public static String encodeURL(String url, Charset charset) throws UnsupportedEncodingException
+	{
+		return URLEncoder.encode(url, charset.displayName())
+					.replaceAll("\\+", "%20")
+					.replaceAll("\\%21", "!")
+					.replaceAll("\\%27", "'")
+					.replaceAll("\\%28", "(")
+					.replaceAll("\\%29", ")")
+					.replaceAll("\\%7E", "~");
+	}
 	
 	public static URLRequestResult request(String method, String urlStr) throws IOException
 	{

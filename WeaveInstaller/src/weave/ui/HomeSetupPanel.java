@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -107,6 +108,7 @@ import weave.utils.RemoteUtils;
 import weave.utils.Revisions;
 import weave.utils.StringUtils;
 import weave.utils.TransferUtils;
+import weave.utils.URLRequestUtils;
 import weave.utils.UpdateUtils;
 
 @SuppressWarnings("serial")
@@ -901,7 +903,7 @@ public class HomeSetupPanel extends SetupPanel
 		launchSessionState.setVisible(true);
 		launchSessionState.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent a) 
 			{
 				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
 				if( selectedFile == null )
@@ -924,32 +926,32 @@ public class HomeSetupPanel extends SetupPanel
 							Settings.LOCALHOST + ":" + 
 							ConfigManager.getConfigManager().getActiveContainer().getPort() +
 							"/weave.html?file=" + 
-							sessionState.getName());
+							URLRequestUtils.encodeURL(sessionState.getName(), StandardCharsets.UTF_8));
 					
-				} catch (NoSuchMethodException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (SecurityException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (IllegalAccessException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (IllegalArgumentException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (InvocationTargetException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (IOException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (URISyntaxException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
-				} catch (InterruptedException e1) {
-					trace(STDERR, e1);
-					BugReportUtils.showBugReportDialog(e1);
+				} catch (NoSuchMethodException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (SecurityException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalAccessException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IllegalArgumentException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InvocationTargetException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (URISyntaxException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		});
