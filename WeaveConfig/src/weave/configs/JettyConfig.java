@@ -95,7 +95,7 @@ public class JettyConfig extends Config
 		boolean result = ConfigManager.getConfigManager().setContainer(_instance);
 		
 		try {
-			if( !Settings.LOCK_FILE.exists() )
+			if( !Settings.SLOCK_FILE.exists() )
 				return false;
 			
 			if( result ) {

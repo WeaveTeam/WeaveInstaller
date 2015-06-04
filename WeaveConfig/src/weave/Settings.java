@@ -80,6 +80,7 @@ public class Settings extends Globals
 	
 				 public static final String API_GET_IP			= IWEAVE_URL + "api/ip.php";
 				 public static final String API_SOCKET			= IWEAVE_URL + "api/socket.php";
+				 public static final String API_FAQ				= IWEAVE_URL + "api/faq.php";
 				 public static final String API_STATS_LOG		= IWEAVE_URL + "api/log.php";
 				 public static final String API_STATS_LIVE		= IWEAVE_URL + "api/noop.php";
 				 public static final String API_BUG_REPORT		= IWEAVE_URL + "api/bug_report.php";
@@ -134,7 +135,8 @@ public class Settings extends Globals
 	public static File DEPLOYED_PLUGINS_DIRECTORY		= null;
 	public static File SETTINGS_FILE 					= null;
 	public static File CONFIG_FILE						= null;
-	public static File LOCK_FILE						= null;
+	public static File SLOCK_FILE						= null;
+	public static File ULOCK_FILE						= null;
 	public static File ICON_FILE						= null;
 	public static File DESKTOP_DIRECTORY				= null;
 	
@@ -419,7 +421,8 @@ public class Settings extends Globals
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
 		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "settings.save"			 );
 		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
-		LOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".lock"					 );
+		SLOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".slock"					 );
+		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + ".ulock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
 		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "libs"				+ F_S);
 		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
@@ -509,52 +512,107 @@ public class Settings extends Globals
 	public static boolean getLock() throws InterruptedException
 	{
 		int myPID = getPID();
-		traceln(STDOUT, StringUtils.rpad("-> Getting lock file", ".", LOG_PADDING_LENGTH));
-
-		if( LOCK_FILE.exists() )
+		
+		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) )
 		{
-			try {
-				int lockPID = Integer.parseInt(FileUtils.getFileContents(LOCK_FILE));
-				
-				if( isActivePID(lockPID) ) {
-					put(STDOUT, "FAILED (ALREADY OPEN)");
+			traceln(STDOUT, StringUtils.rpad("-> Getting ulock file", ".", LOG_PADDING_LENGTH));
+
+			if( ULOCK_FILE.exists() )
+			{
+				try {
+					int lockPID = Integer.parseInt(FileUtils.getFileContents(ULOCK_FILE));
+					
+					if( isActivePID(lockPID) ) {
+						put(STDOUT, "FAILED (ALREADY OPEN)");
+						return false;
+					}
+					
+					releaseLock();
+					Thread.sleep(500);
+					put(STDOUT, "CLEANING");
+					
+					return getLock();
+					
+				} catch (NumberFormatException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e); 
+					BugReportUtils.showBugReportDialog(e);
+					return false;
+				} catch (IOException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 					return false;
 				}
-				
-				releaseLock();
-				Thread.sleep(500);
-				put(STDOUT, "CLEANING");
-				
-				return getLock();
-				
-			} catch (NumberFormatException e) {
-				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-				trace(STDERR, e); 
-				BugReportUtils.showBugReportDialog(e);
-				return false;
-			} catch (IOException e) {
-				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-				trace(STDERR, e);
-				BugReportUtils.showBugReportDialog(e);
-				return false;
 			}
+			else
+			{
+				// This will get the lock
+				try {
+					BufferedWriter bw = new BufferedWriter(new FileWriter(ULOCK_FILE));
+					bw.write("" + myPID + "");
+					bw.flush();
+					bw.close();
+				} catch (IOException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e);
+					return false;
+				}
+			}
+			put(STDOUT, "DONE");
+			return true;
+
 		}
-		else
+		else if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) )
 		{
-			// This will get the lock
-			try {
-				BufferedWriter bw = new BufferedWriter(new FileWriter(LOCK_FILE));
-				bw.write("" + myPID + "");
-				bw.flush();
-				bw.close();
-			} catch (IOException e) {
-				put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-				trace(STDERR, e);
-				return false;
+			traceln(STDOUT, StringUtils.rpad("-> Getting slock file", ".", LOG_PADDING_LENGTH));
+			
+			if( SLOCK_FILE.exists() )
+			{
+				try {
+					int lockPID = Integer.parseInt(FileUtils.getFileContents(SLOCK_FILE));
+					
+					if( isActivePID(lockPID) ) {
+						put(STDOUT, "FAILED (ALREADY OPEN)");
+						return false;
+					}
+					
+					releaseLock();
+					Thread.sleep(500);
+					put(STDOUT, "CLEANING");
+					
+					return getLock();
+					
+				} catch (NumberFormatException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e); 
+					BugReportUtils.showBugReportDialog(e);
+					return false;
+				} catch (IOException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+					return false;
+				}
 			}
+			else
+			{
+				// This will get the lock
+				try {
+					BufferedWriter bw = new BufferedWriter(new FileWriter(SLOCK_FILE));
+					bw.write("" + myPID + "");
+					bw.flush();
+					bw.close();
+				} catch (IOException e) {
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+					trace(STDERR, e);
+					return false;
+				}
+			}
+			put(STDOUT, "DONE");
+			return true;
 		}
-		put(STDOUT, "DONE");
-		return true;
+		return false;
 	}
 	
 	
@@ -565,8 +623,11 @@ public class Settings extends Globals
 	 */
 	public static boolean releaseLock()
 	{
-		if( LOCK_FILE.exists() )
-			return FileUtils.recursiveDelete(LOCK_FILE);
+		if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) && SLOCK_FILE.exists() )
+			return FileUtils.recursiveDelete(SLOCK_FILE);
+		
+		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) && ULOCK_FILE.exists() )
+			return FileUtils.recursiveDelete(ULOCK_FILE);
 		return false;
 	}
 

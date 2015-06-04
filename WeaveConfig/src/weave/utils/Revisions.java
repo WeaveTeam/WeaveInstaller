@@ -104,23 +104,29 @@ public class Revisions extends Globals
 	
 	public static String getRevisionVersion(String s)
 	{
-		int start, end;
-		String milestone = "milestone-";
+		int start, dashIdx, dotIdx;
+		String milestone = "milestone", dash = "-", dot = ".";
 		
 		if( s.contains(milestone) )
 		{
-			start = s.indexOf(milestone) + milestone.length();
-			end = s.lastIndexOf(".");
-			if( start > end )
+			start = s.indexOf(milestone + dash) + milestone.length() + dash.length();
+			dashIdx = s.lastIndexOf(dash);
+			dotIdx = s.lastIndexOf(dot);
+			if( start > dotIdx && start > dashIdx )
 				return s.substring(start);
-			return s.substring(start, end);
+			if( dashIdx > start )
+				return s.substring(start, dashIdx);
+			return s.substring(start, dotIdx);
+		}
+		else
+		{
+			start = s.lastIndexOf(dash) + dash.length();
+			dotIdx = s.lastIndexOf(dot);
+			if( start > dotIdx )
+				return s.substring(start).toUpperCase();
+			return s.substring(start, dotIdx).toUpperCase();
 		}
 
-		start = s.lastIndexOf('-') + 1;
-		end = s.lastIndexOf('.');
-		if( start > end )
-			return s.substring(start).toUpperCase();
-		return s.substring(start, end).toUpperCase();
 	}
 	public static String getRevisionName(String s)
 	{

@@ -266,9 +266,7 @@ public class HomeSetupPanel extends SetupPanel
 									return null;
 								}
 								
-								faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
-//								System.out.println("page updated to " + faqURL);
-								troubleshootHTML.setPage(faqURL);
+								troubleshootHTML.setPage(Settings.API_FAQ + "?" + System.currentTimeMillis());
 								
 								// Remove all link listeners
 								for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )

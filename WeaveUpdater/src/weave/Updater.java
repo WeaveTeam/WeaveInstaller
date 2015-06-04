@@ -108,7 +108,7 @@ public class Updater extends JFrame
 			
 			if( !Settings.getLock() )
 			{
-				int ownerID = Integer.parseInt(FileUtils.getFileContents(Settings.LOCK_FILE));
+				int ownerID = Integer.parseInt(FileUtils.getFileContents(Settings.SLOCK_FILE));
 				JOptionPane.showMessageDialog(null, 
 						Settings.CURRENT_PROGRAM_NAME + " is already running with pid: " + ownerID + ".\n\n" +
 						"Please stop that one before starting another.", 
