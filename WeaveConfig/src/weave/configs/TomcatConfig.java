@@ -63,7 +63,7 @@ public class TomcatConfig extends Config
 							"that provides a pure Java HTTP web server environment for " +
 							"Java code to run in.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application " +
-						"found <a href='" + getDownloadURL() + "'>here.</a></b></center>");
+						"found <a href='" + getDownloadURL() + "'>here</a>.</b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
 
 		} catch (IOException e) {

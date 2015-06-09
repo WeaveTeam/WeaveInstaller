@@ -63,7 +63,8 @@ public class UpdateUtils extends Globals
 																Settings.SHORTCUT_VER ));
 	}
 	
-	public static boolean isUpdateAvailable() 
+	//====================================================================================
+	public static boolean isServerUpdateAvailable() 
 	{
 		if( Settings.isOfflineMode() )
 			return false;
@@ -96,10 +97,10 @@ public class UpdateUtils extends Globals
 		}
 		return ( missingFile || outOfDateFile );
 	}
-	
-	public static void checkForUpdate(int from)
+	//====================================================================================
+	public static void checkForServerUpdate(int from)
 	{
-		boolean isUpdate = isUpdateAvailable();
+		boolean isUpdate = isServerUpdateAvailable();
 		
 		if( isUpdate )
 		{
@@ -120,6 +121,44 @@ public class UpdateUtils extends Globals
 						MessageType.INFO);
 		}
 	}
+	//====================================================================================
+	public static int isWeaveUpdateAvailable() throws InterruptedException, IOException
+	{
+		if( Settings.isOfflineMode() )
+			return UPDATE_OFFLINE; 
+		
+		String urlStr = null;
+		if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
+			urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
+		else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
+			urlStr = getLatestMilestoneURL();
+		
+		if( urlStr == null )
+			return UPDATE_ERROR;
+		
+		String fileName = getWeaveUpdateFileName(urlStr);
+		
+		if( fileName == null )
+			return UPDATE_ERROR;
+		
+		File f = new File(Settings.REVISIONS_DIRECTORY, fileName);
+		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
+	}
+	//====================================================================================
+	public static int checkForWeaveUpdate(boolean save) throws InterruptedException, IOException
+	{
+		int isUpdate = isWeaveUpdateAvailable();
+
+		if( save && isUpdate != UPDATE_ERROR ) {
+			Settings.LAST_UPDATE_CHECK = new SimpleDateFormat("M/d/yyyy h:mm a").format(new Date());
+			Settings.save();
+		}
+		
+		return isUpdate;
+	}
+	//====================================================================================
+	
+	
 	
 	public static String getWeaveUpdateFileName() throws InterruptedException, IOException
 	{
@@ -143,33 +182,6 @@ public class UpdateUtils extends Globals
 		return header.substring(index + search.length());
 	}
 	
-	public static int isWeaveUpdateAvailable(boolean save) throws InterruptedException, IOException
-	{
-		if( Settings.isOfflineMode() )
-			return UPDATE_OFFLINE;
-
-		String urlStr = null;
-		if( Settings.INSTALL_MODE == INSTALL_ENUM.NIGHTLY )
-			urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_BINARIES_URL);
-		else if( Settings.INSTALL_MODE == INSTALL_ENUM.MILESTONE )
-			urlStr = getLatestMilestoneURL();
-		
-		if( urlStr == null )
-			return UPDATE_ERROR;
-		
-		String fileName = getWeaveUpdateFileName(urlStr);
-		
-		if( fileName == null )
-			return UPDATE_ERROR;
-		
-		if( save ) {
-			Settings.LAST_UPDATE_CHECK = new SimpleDateFormat("M/d/yyyy h:mm a").format(new Date());
-			Settings.save();
-		}
-		
-		File f = new File(Settings.REVISIONS_DIRECTORY, fileName);
-		return ( f.exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
-	}
 
 	public static String getLatestMilestoneURL() throws IOException, InterruptedException
 	{

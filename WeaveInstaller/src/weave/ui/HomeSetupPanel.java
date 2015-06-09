@@ -1432,7 +1432,7 @@ public class HomeSetupPanel extends SetupPanel
 		Settings.canQuit = false;
 		
 		setButtonsEnabled(false);
-		int updateAvailable = UpdateUtils.isWeaveUpdateAvailable(!refreshProgramatically);
+		int updateAvailable = UpdateUtils.checkForWeaveUpdate(!refreshProgramatically);
 		weaveStats.refresh(updateAvailable);
 		refreshProgramatically = false;
 

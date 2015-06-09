@@ -354,7 +354,7 @@ public class TrayManager extends Globals
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if( !Settings.isOfflineMode() )
-					UpdateUtils.checkForUpdate(UpdateUtils.FROM_USER);
+					UpdateUtils.checkForServerUpdate(UpdateUtils.FROM_USER);
 			}
 		});
         

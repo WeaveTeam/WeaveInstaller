@@ -121,7 +121,7 @@ public class Config extends Globals implements IConfig
 
 			if( (i & _VERSION) != 0 ) {
 				String d = "";
-				String s = (String)ObjectUtils.ternary(savedCFG, "get", "", argClasses, argsVersion);
+				String s = (String)ObjectUtils.ternary(savedCFG, "get", d, argClasses, argsVersion);
 				setInstallVersion((s == null) ? d : s);
 			}
 			

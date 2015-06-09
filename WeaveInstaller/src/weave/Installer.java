@@ -728,7 +728,7 @@ public class Installer extends JFrame
 		new Timer().schedule(new TimerTask() {
 			@Override 
 			public void run() {
-				UpdateUtils.checkForUpdate(UpdateUtils.FROM_EVENT);
+				UpdateUtils.checkForServerUpdate(UpdateUtils.FROM_EVENT);
 			}
 		}, 60 * 60 * 1000, 60 * 60 * 1000);
 		
