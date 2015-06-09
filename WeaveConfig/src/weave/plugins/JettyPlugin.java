@@ -148,10 +148,7 @@ public class JettyPlugin extends Plugin
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (MalformedURLException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
+				} catch (MalformedURLException | InterruptedException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}

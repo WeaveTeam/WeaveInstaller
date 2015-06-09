@@ -264,32 +264,8 @@ public class ConfigManager extends Globals
 			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(Settings.CONFIG_FILE));
 			outstream.writeObject(CONFIGS_MAP);
 			outstream.close();
-		} catch (IOException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (NoSuchMethodException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (SecurityException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (IllegalAccessException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (IllegalArgumentException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (InvocationTargetException e) {
+		} catch (IOException | NoSuchMethodException | SecurityException | IllegalAccessException |
+				 IllegalArgumentException | InvocationTargetException e) {
 			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
@@ -312,12 +288,7 @@ public class ConfigManager extends Globals
 			CONFIGS_MAP = (Map<String, Map<String, Object>>) instream.readObject();
 			instream.close();
 			
-		} catch (IOException e) {
-			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | IOException e) {
 			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

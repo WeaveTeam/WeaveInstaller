@@ -158,9 +158,7 @@ public class BugReportWindow extends JFrame
 				try {
 					if( getLogFile(STDERR).exists() )
 						LaunchUtils.open(getLogFile(STDERR).getAbsolutePath());
-				} catch (IOException e) {
-					trace(STDERR, e);
-				} catch (InterruptedException e) {
+				} catch (IOException | InterruptedException e) {
 					trace(STDERR, e);
 				}
 			}

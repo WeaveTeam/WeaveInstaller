@@ -204,9 +204,7 @@ public class TrayManager extends Globals
 						"Servlet:  " + servletName + " [" + servletStatus + "]\n" + 
 						"Database: " + databaseName + " [" + databaseStatus + "]");
 					
-				} catch (SecurityException e) {
-					trace(STDERR, e);
-				} catch (IllegalArgumentException e) {
+				} catch (SecurityException | IllegalArgumentException e) {
 					trace(STDERR, e);
 				}
 				return null;
@@ -237,10 +235,7 @@ public class TrayManager extends Globals
 							LaunchUtils.launchWeaveUpdater(1000);
 							Thread.sleep(50);
 							Settings.shutdown();
-						} catch (IOException ex) {
-							trace(STDERR, ex);
-							BugReportUtils.showBugReportDialog(ex);
-						} catch (InterruptedException ex) {
+						} catch (IOException | InterruptedException ex) {
 							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						}
@@ -292,8 +287,8 @@ public class TrayManager extends Globals
 				try {
 					LaunchUtils.launchWeaveUpdater();
 					Settings.shutdown();
-				} catch (IOException ex) {				trace(STDERR, ex);
-				} catch (InterruptedException ex) {		trace(STDERR, ex);
+				} catch (IOException | InterruptedException ex) {
+					trace(STDERR, ex);
 				}
 			}
 		});
@@ -304,9 +299,8 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.openAdminConsole();
-				} catch (IOException ex) {				trace(STDERR, ex);
-				} catch (URISyntaxException ex) {		trace(STDERR, ex);
-				} catch (InterruptedException ex) {		trace(STDERR, ex);
+				} catch (IOException | URISyntaxException | InterruptedException ex) {
+					trace(STDERR, ex);
 				}
 				
 			}
@@ -318,9 +312,8 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE, 100);
-				} catch (IOException ex) {				trace(STDERR, ex);
-				} catch (URISyntaxException ex) {		trace(STDERR, ex);
-				} catch (InterruptedException ex) {		trace(STDERR, ex);		
+				} catch (IOException | URISyntaxException | InterruptedException ex) {
+					trace(STDERR, ex);
 				}
 
 			}
@@ -335,15 +328,8 @@ public class TrayManager extends Globals
 				try {
 					ReflectionUtils.reflectMethod(globalHashMap.get("Installer"), "switchToHomeSetupPanel");
 					ReflectionUtils.reflectMethod(globalHashMap.get("HomeSetupPanel"), "switchToTab", new Class<?>[] { String.class }, new String[] { "About" });
-				} catch (NoSuchMethodException e) {
-					trace(STDERR, e);
-				} catch (SecurityException e) {
-					trace(STDERR, e);
-				} catch (IllegalAccessException e) {
-					trace(STDERR, e);
-				} catch (IllegalArgumentException e) {
-					trace(STDERR, e);
-				} catch (InvocationTargetException e) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException |
+						 IllegalArgumentException | InvocationTargetException e) {
 					trace(STDERR, e);
 				}
 			}

@@ -73,7 +73,6 @@ public class RemoteUtils extends Globals
 			}
 		} catch (IOException e) {
 			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		}
 		return configFile;
 	}
@@ -100,21 +99,16 @@ public class RemoteUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 		
-		if( !RemoteUtils.isConnectedToInternet() ) {
-			JOptionPane.showConfirmDialog(null, 
-				"A connection to the internet could not be established.\n\n" +
-				"Please connect to the internet and try again.", 
-				"No Connection", 
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-			return null;
-		}
-
 		try {
 			result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
 			return result.getResponseContent().split(";");
 		} catch (IOException e) {
 			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
+			JOptionPane.showConfirmDialog(null, 
+				"A connection to the internet could not be established.\n\n" +
+				"Please connect to the internet and try again.", 
+				"No Connection", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 		}
 		return null;
 	}
@@ -134,7 +128,6 @@ public class RemoteUtils extends Globals
 			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP).getResponseContent();
 		} catch (IOException e) {
 			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		}
 		
 		return null;
@@ -166,7 +159,6 @@ public class RemoteUtils extends Globals
 
 		} catch (IOException e) {
 			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
 		}
 		return false;
 	}

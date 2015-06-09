@@ -150,10 +150,7 @@ public class AnalystWorkstationPlugin extends Plugin
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (MalformedURLException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
+				} catch (MalformedURLException | InterruptedException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
@@ -187,13 +184,7 @@ public class AnalystWorkstationPlugin extends Plugin
 							Settings.LOCALHOST + ":" + 
 							servlet.getPort() + 
 							"/aws/");
-				} catch (IOException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (URISyntaxException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
+				} catch (IOException | URISyntaxException | InterruptedException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}

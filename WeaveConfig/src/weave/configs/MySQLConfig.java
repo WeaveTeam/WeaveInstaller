@@ -63,10 +63,7 @@ public class MySQLConfig extends Config
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
 			
-		} catch (IOException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException | IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

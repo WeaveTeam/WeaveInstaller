@@ -199,7 +199,9 @@ public class ZipUtils extends TransferUtils
 		
 		try {
 			ZipFile z = new ZipFile(zip);
-			return z.size();
+			int size = z.size(); 
+			z.close();
+			return size;
 		} catch (ZipException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

@@ -50,11 +50,7 @@ public class RegEdit extends Globals
 				if( results.get("output").get(i).toLowerCase().contains("success") )
 					return true;
 			
-		} catch (IOException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-			return false;
-		} catch (InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;

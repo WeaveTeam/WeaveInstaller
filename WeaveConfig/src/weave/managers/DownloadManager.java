@@ -7,12 +7,10 @@ import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidParameterException;
-import java.util.zip.ZipException;
 
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
@@ -199,10 +197,7 @@ public class DownloadManager
 				try {
 					observer.init(url);
 					ret = DownloadUtils.download(url, file, observer, 6 * TransferUtils.MB);
-				} catch (IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
+				} catch (InterruptedException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -294,21 +289,12 @@ public class DownloadManager
 				try {
 					observer.init(file);
 					o = ZipUtils.extract(file, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 10 * TransferUtils.MB);
-				} catch (ArithmeticException e) {
+				} catch (ArithmeticException | IOException | InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
-				}catch (NullPointerException e) {
+				} catch (NullPointerException e) {
 					trace(STDERR, e);
 					// No bug report
-				} catch (ZipException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
 			}
@@ -433,16 +419,7 @@ public class DownloadManager
 							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 10 * TransferUtils.MB);
 						}
 					}
-				} catch (ArithmeticException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (FileNotFoundException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
+				} catch (ArithmeticException | IOException | InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}

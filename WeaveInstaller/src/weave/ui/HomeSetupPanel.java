@@ -45,7 +45,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -57,7 +56,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
@@ -230,16 +228,7 @@ public class HomeSetupPanel extends SetupPanel
 					} catch (IllegalArgumentException e) {
 						// We will get here if we try to set the table index
 						// but there is no items in the table
-					} catch (NoSuchMethodException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (SecurityException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (IllegalAccessException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (InvocationTargetException e) {
+					} catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
@@ -279,13 +268,7 @@ public class HomeSetupPanel extends SetupPanel
 										{
 											try {
 												LaunchUtils.browse(e.getURL().toURI());
-											} catch (IOException ex) {
-												trace(STDERR, ex);
-												BugReportUtils.showBugReportDialog(ex);
-											} catch (InterruptedException ex) {
-												trace(STDERR, ex);
-												BugReportUtils.showBugReportDialog(ex);
-											} catch (URISyntaxException ex) {
+											} catch (IOException | InterruptedException | URISyntaxException ex) {
 												trace(STDERR, ex);
 												BugReportUtils.showBugReportDialog(ex);
 											}
@@ -370,11 +353,7 @@ public class HomeSetupPanel extends SetupPanel
 					public void run() {
 						try {
 							refreshInterface();
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-						} catch (MalformedURLException e) {
-							trace(STDERR, e);
-						} catch (IOException e) {
+						} catch (InterruptedException | IOException e) {
 							trace(STDERR, e);
 						}
 					}
@@ -391,10 +370,7 @@ public class HomeSetupPanel extends SetupPanel
 				refreshProgramatically = true;
 				try {
 					refreshInterface();
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
+				} catch (InterruptedException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -410,10 +386,7 @@ public class HomeSetupPanel extends SetupPanel
 				refreshProgramatically = true;
 				try {
 					refreshInterface();
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
+				} catch (InterruptedException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -495,13 +468,7 @@ public class HomeSetupPanel extends SetupPanel
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (MalformedURLException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
+				} catch (InterruptedException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -552,13 +519,7 @@ public class HomeSetupPanel extends SetupPanel
 						.callback(onDownloadCompleteCallback)
 						.start();
 						
-				} catch (MalformedURLException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
+				} catch (InterruptedException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -595,13 +556,7 @@ public class HomeSetupPanel extends SetupPanel
 						refreshProgramatically = true;
 						try {
 							refreshInterface();
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (MalformedURLException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IOException e) {
+						} catch (InterruptedException | IOException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -635,13 +590,7 @@ public class HomeSetupPanel extends SetupPanel
 						refreshProgramatically = true;
 						try {
 							refreshInterface();
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (MalformedURLException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IOException e) {
+						} catch (InterruptedException | IOException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -698,13 +647,7 @@ public class HomeSetupPanel extends SetupPanel
 									continue;
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
 							}
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (UnsupportedFlavorException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IOException e) {
+						} catch (InterruptedException | UnsupportedFlavorException | IOException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -769,24 +712,8 @@ public class HomeSetupPanel extends SetupPanel
 					}
 					launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
 					
-				} catch (NoSuchMethodException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (SecurityException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (IllegalAccessException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (IllegalArgumentException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InvocationTargetException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (ZipException ex) {
-					sessionLabel.setIcon(null);
-				} catch (IOException ex) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | 
+						 InvocationTargetException | IOException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} finally {
@@ -844,28 +771,8 @@ public class HomeSetupPanel extends SetupPanel
 									continue;
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
 							}
-						} catch (UnsupportedFlavorException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IOException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (InterruptedException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (NoSuchMethodException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (SecurityException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IllegalAccessException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (IllegalArgumentException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						} catch (InvocationTargetException e) {
+						} catch (UnsupportedFlavorException | IOException | InterruptedException | NoSuchMethodException | 
+								 SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -926,28 +833,8 @@ public class HomeSetupPanel extends SetupPanel
 							"/weave.html?file=" + 
 							URLRequestUtils.encodeURL(sessionState.getName(), StandardCharsets.UTF_8));
 					
-				} catch (NoSuchMethodException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (SecurityException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalAccessException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalArgumentException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InvocationTargetException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (URISyntaxException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InterruptedException e) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
+						 InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -964,36 +851,17 @@ public class HomeSetupPanel extends SetupPanel
 			public void actionPerformed(ActionEvent a) 
 			{
 				try {
-					try {
-						ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
-													new Class<?>[] { Integer.class },
-													new Object[] { 15 });
-						Settings.SETUP_COMPLETE = true;
-						Settings.save();
-					} catch (NoSuchMethodException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (SecurityException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (IllegalAccessException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (IllegalArgumentException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					} catch (InvocationTargetException e) {
-						trace(STDERR, e);
-						BugReportUtils.showBugReportDialog(e);
-					}
+					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
+												new Class<?>[] { Integer.class },
+												new Object[] { 15 });
+					Settings.SETUP_COMPLETE = true;
+					Settings.save();
 					
 					LaunchUtils.openAdminConsole();
-				} catch (IOException e) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
+						 InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
 					trace(STDERR, e);
-				} catch (URISyntaxException e) {
-					trace(STDERR, e);
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		});
@@ -1271,13 +1139,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
-					} catch (IOException ex) {
-						trace(STDERR, ex);
-						BugReportUtils.showBugReportDialog(ex);
-					} catch (InterruptedException ex) {
-						trace(STDERR, ex);
-						BugReportUtils.showBugReportDialog(ex);
-					} catch (URISyntaxException ex) {
+					} catch (IOException | InterruptedException | URISyntaxException ex) {
 						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
@@ -1312,19 +1174,7 @@ public class HomeSetupPanel extends SetupPanel
 					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
 												new Class<?>[] { Integer.class },
 												new Object[] { 7 });
-				} catch (NoSuchMethodException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (SecurityException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalAccessException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalArgumentException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InvocationTargetException e) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -1334,13 +1184,9 @@ public class HomeSetupPanel extends SetupPanel
 				Thread.sleep(1000);
 				refreshProgramatically = true;
 				refreshInterface();
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | IOException e) {
 				trace(STDERR, e);
-			} catch (MalformedURLException e) {
-				trace(STDERR, e);
-			} catch (IOException e) {
-				trace(STDERR, e);
-			}			
+			}
 		}
 	};
 	
@@ -1364,17 +1210,10 @@ public class HomeSetupPanel extends SetupPanel
 				revisionData[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
 				revisionData[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 			}
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-		} catch (InvocationTargetException e) {
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			trace(STDERR, e);
 		}
+
 		revisionTable.setData(revisionData).refreshTable();
 	}
 	private void refreshSessionTable() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException

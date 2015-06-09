@@ -130,19 +130,8 @@ public class Config extends Globals implements IConfig
 			if( (b == null) ? d : b )
 				loadConfig();
 				
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
+				 InvocationTargetException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -223,15 +212,8 @@ public class Config extends Globals implements IConfig
 			ret += ("\tHost: " + getHost() + "\n");
 			ret += ("\tPort: " + getPort() + "\n");
 			ret += ("\tLoaded: " + ( isConfigLoaded() ? "TRUE" : "FALSE") + "\n");
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-		} catch (InvocationTargetException e) {
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | 
+				 IllegalArgumentException | InvocationTargetException e) {
 			trace(STDERR, e);
 		}
 		return ret;

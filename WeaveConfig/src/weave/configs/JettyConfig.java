@@ -145,25 +145,8 @@ public class JettyConfig extends Config
 											"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (NoSuchMethodException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (SecurityException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalAccessException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IllegalArgumentException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (InvocationTargetException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException e) {
+				} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException |
+						 IllegalArgumentException | InvocationTargetException | IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -215,25 +198,8 @@ public class JettyConfig extends Config
 												"jetty.base=\"" + basePath + "\" " +
 												"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
 			return ProcessUtils.run(STOP);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IOException e) {
+		} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException | 
+				 IllegalArgumentException | InvocationTargetException | IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
