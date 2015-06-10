@@ -279,7 +279,7 @@ public class Installer extends JFrame
 		installCheckbox.setToolTipText("Click Install on the Weave tab.");
 		leftPanel.add(installCheckbox);
 		
-		configCheckbox = new CustomCheckbox("Configure Weave");
+		configCheckbox = new CustomCheckbox("Configure");
 		configCheckbox.setBounds(10, 210, 125, 25);
 		configCheckbox.setBackground(leftPanel.getBackground());
 		configCheckbox.setSelected(false);

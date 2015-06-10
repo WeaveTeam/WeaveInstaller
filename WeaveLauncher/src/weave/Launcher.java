@@ -165,7 +165,7 @@ public class Launcher extends JFrame
 			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_ENUM.WINDOWS ) 
 			{
 				traceln(STDOUT, StringUtils.rpad("-> Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
-				LaunchUtils.openElevated(path, delay);
+				LaunchUtils.launchElevated(path, delay);
 			}
 			else
 			{

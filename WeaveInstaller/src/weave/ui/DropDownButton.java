@@ -92,12 +92,12 @@ public class DropDownButton extends JButton
 
 				if( item.getText().contains("Nightly") )
 					if( mode == INSTALL_ENUM.NIGHTLY )
-						item.setText("✔ Nightly");
+						item.setText("<html>&#10004; Nightly</html>");
 					else
 						item.setText("Nightly");
 				else if( item.getText().contains("Milestone") )
 					if( mode == INSTALL_ENUM.MILESTONE )
-						item.setText("✔ Milestone");
+						item.setText("<html>&#10004; Milestone</html>");
 					else
 						item.setText("Milestone");
 			}

@@ -224,6 +224,18 @@ public class Settings extends Globals
 		save();		 
 
 		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
+		
+		trace(STDOUT, "\tOS: " + OS);
+		trace(STDOUT, "\tExact OS: " + EXACT_OS);
+		trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
+		trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
+		trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
+		trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
+		trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
+		trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
+		trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
+		trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
+		trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 	}
 	
 
@@ -349,16 +361,6 @@ public class Settings extends Globals
 			LAUNCH_MODE = 			(LAUNCH_ENUM)	ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
 			INSTALL_MODE = 			(INSTALL_ENUM)	ternary(SETTINGS_MAP.get("INSTALL_MODE"), 			INSTALL_MODE);
 			RPC_PORT = 				(Integer)		ternary(SETTINGS_MAP.get("RPC_PORT"), 				RPC_PORT);
-			
-//			trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
-//			trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
-//			trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-//			trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-//			trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-//			trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
-//			trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
-//			trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
-//			trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 
 		} catch (FileNotFoundException e) {
 			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");

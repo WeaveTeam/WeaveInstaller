@@ -78,11 +78,11 @@ public class LaunchUtils extends Globals
 		Desktop.getDesktop().open(file);
 		return true;
 	}
-	public static Boolean openElevated(String path, int delay) throws InterruptedException, IOException
+	public static Boolean launchElevated(String path, int delay) throws InterruptedException, IOException
 	{
-		return openElevated(new File(path), delay);
+		return launchElevated(new File(path), delay);
 	}
-	public static Boolean openElevated(File file, int delay) throws InterruptedException, IOException
+	public static Boolean launchElevated(File file, int delay) throws InterruptedException, IOException
 	{
 		if( !Desktop.isDesktopSupported() )
 			return false;
@@ -176,7 +176,10 @@ public class LaunchUtils extends Globals
 		else
 			throw new FileNotFoundException("Updater file not found");
 		
-		return openElevated(updater, delay);
+		if( Settings.OS == OS_ENUM.WINDOWS )
+			return launchElevated(updater, delay);
+		
+		return launch(updater, delay);
 	}
 	
 	public static Boolean launchWeaveInstaller() throws IOException, InterruptedException
@@ -185,7 +188,12 @@ public class LaunchUtils extends Globals
 	}
 	public static Boolean launchWeaveInstaller(int delay) throws IOException, InterruptedException
 	{
-		return openElevated(new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR), delay);
+		File installer = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
+
+		if( Settings.OS == OS_ENUM.WINDOWS )
+			return launchElevated(installer, delay);
+		
+		return launch(installer, delay);
 	}
 	
 	public static Boolean openAdminConsole() throws IOException, URISyntaxException, InterruptedException

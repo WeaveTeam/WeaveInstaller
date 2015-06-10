@@ -241,7 +241,7 @@ public class Updater extends JFrame
 		//=================================================
 		// Everything below this is for online launching
 		//=================================================
-		traceln(STDOUT, "-> Online Mode Enabled...");
+		traceln(STDOUT, StringUtils.rpad("-> Online Mode Enabled", ".", Settings.LOG_PADDING_LENGTH));
 		
 		
 		// Need to check if this tool 
@@ -469,10 +469,7 @@ public class Updater extends JFrame
 			while( !Settings.canQuit ) Thread.sleep(1000);
 	
 			LaunchUtils.launchWeaveInstaller(1000);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IOException e) {
+		} catch (InterruptedException | IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
