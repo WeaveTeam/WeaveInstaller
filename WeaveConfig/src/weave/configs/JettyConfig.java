@@ -37,7 +37,7 @@ import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncTask;
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
 import weave.utils.ProcessUtils;
@@ -82,7 +82,7 @@ public class JettyConfig extends Config
 			setDownloadURL(RemoteUtils.getConfigEntry(RemoteUtils.JETTY_URL));
 			setDescription(DESCRIPTION);
 			setWarning(WARNING);
-			setImage(ImageIO.read(IconManager.IMAGE_JETTY));
+			setImage(ImageIO.read(ResourceManager.IMAGE_JETTY));
 			
 		} catch (IOException e) {
 			trace(STDERR, e);

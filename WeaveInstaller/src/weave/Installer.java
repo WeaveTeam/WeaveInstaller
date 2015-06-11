@@ -61,7 +61,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.managers.TrayManager;
 import weave.reflect.Reflectable;
 import weave.ui.ConfigSetupPanel;
@@ -239,7 +239,7 @@ public class Installer extends JFrame
 		setTitle(Settings.SERVER_TITLE);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(ImageIO.read(IconManager.IMAGE_NULL));
+		setIconImage(ImageIO.read(ResourceManager.ICON_TRAY_LOGO));
 		
 
 		// ======== CREATE LEFT PANEL ======== //
@@ -249,7 +249,7 @@ public class Installer extends JFrame
 		leftPanel.setBackground(new Color(0xEEEEEE));
 		leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.black));
 
-		BufferedImage wvaLogo = ImageUtils.fit(ImageIO.read(IconManager.IMAGE_W_LOGO), 125, 65);
+		BufferedImage wvaLogo = ImageUtils.fit(ImageIO.read(ResourceManager.IMAGE_W_LOGO), 125, 65);
 		JLabel wvaLabel = new JLabel("", new ImageIcon(wvaLogo), JLabel.CENTER);
 		wvaLabel.setBounds(10, 10, 125, 65);
 		leftPanel.add(wvaLabel);

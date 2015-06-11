@@ -27,6 +27,7 @@ import static weave.utils.TraceUtils.trace;
 import static weave.utils.TraceUtils.traceln;
 import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 
+import java.awt.Font;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -180,7 +181,7 @@ public class Settings extends Globals
 	/*
 	 * Misc
 	 */
-	public static final String WIKI_HELP_PAGE			= "http://info." + IWEAVE_HOST + "/projects/weave/wiki/Installer";
+	public static final String WIKI_HELP_PAGE			= "http://info." + IWEAVE_HOST + "/projects/weave/wiki/Weave_Server_Assistant";
 	public static final String ELEVATE_UTIL				= "elevate.exe";
 	
 	public static boolean canQuit						= true;
@@ -189,7 +190,7 @@ public class Settings extends Globals
 	public static boolean isConnectedToInternet			= true;
 
 	public static 		String CURRENT_PROGRAM_NAME		= PROJECT_NAME;
-	public static final String FONT						= "Arial";
+	public static final String FONT						= Font.SANS_SERIF;
 	public static boolean INSTALLER_POPUP_SHOWN			= false;
 	public static double REQUIRED_JAVA_VERSION			= 1.7;
 	public static int LOG_PADDING_LENGTH				= 34;
@@ -225,17 +226,17 @@ public class Settings extends Globals
 
 		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
 		
-		trace(STDOUT, "\tOS: " + OS);
-		trace(STDOUT, "\tExact OS: " + EXACT_OS);
-		trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
-		trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
-		trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-		trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-		trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-		trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
-		trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
-		trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
-		trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
+//		trace(STDOUT, "\tOS: " + OS);
+//		trace(STDOUT, "\tExact OS: " + EXACT_OS);
+//		trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
+//		trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
+//		trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
+//		trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
+//		trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
+//		trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
+//		trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
+//		trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
+//		trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 	}
 	
 
@@ -317,7 +318,7 @@ public class Settings extends Globals
 			outstream.close();
 			put(STDOUT, "DONE");
 		} catch (IOException e) {
-			put(STDOUT, "FAILED");
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;

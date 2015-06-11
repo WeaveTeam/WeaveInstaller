@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 
 
@@ -41,7 +41,7 @@ public class SQLiteConfig extends Config
 							"serverless, zero-configuration, transactional SQL database engine.");
 			setWarning(	"<center><b>" + getConfigName() + " will run inside the tool and does not require an external application.<br>" +
 						"This is the appropriate choice for new users.</b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_SQLITE));
+			setImage(ImageIO.read(ResourceManager.IMAGE_SQLITE));
 
 		} catch (IOException e) {
 			trace(STDERR, e);

@@ -28,7 +28,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 
 public class MySQLConfig extends Config
@@ -61,7 +61,7 @@ public class MySQLConfig extends Config
 			setDescription(getConfigName() + " is an open-source relational database management system (RDBMS).");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_MYSQL));
+			setImage(ImageIO.read(ResourceManager.IMAGE_MYSQL));
 			
 		} catch (NumberFormatException | IOException e) {
 			trace(STDERR, e);

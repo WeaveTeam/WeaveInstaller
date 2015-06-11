@@ -22,7 +22,7 @@ import weave.Function;
 import weave.Settings;
 import weave.configs.JettyConfig;
 import weave.managers.DownloadManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.ImageUtils;
@@ -110,7 +110,7 @@ public class JettyPlugin extends Plugin
 		iconLabel.setHorizontalAlignment(JLabel.CENTER);
 		iconLabel.setVerticalAlignment(JLabel.CENTER);
 		try {
-			iconLabel.setIcon(new ImageIcon(ImageUtils.fit(ImageIO.read(IconManager.IMAGE_JETTY), 106, 30)));
+			iconLabel.setIcon(new ImageIcon(ImageUtils.fit(ImageIO.read(ResourceManager.IMAGE_JETTY), 106, 30)));
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

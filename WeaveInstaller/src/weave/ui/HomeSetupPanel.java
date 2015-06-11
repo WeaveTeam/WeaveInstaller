@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
@@ -127,6 +128,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	// ============== Sessions Tab ============== //
 	public CustomTable sessionStateTable;
+	public int lastGoodRowID;
 	public JLabel sessionLabel;
 	public JTextArea dndHelp;
 	public JButton launchSessionState, launchAdminConsoleButton;
@@ -224,7 +226,7 @@ public class HomeSetupPanel extends SetupPanel
 						refreshSessionTable();
 						
 						if( sessionStateTable.getSelectedIndex() == -1 )
-							sessionStateTable.setSelectedIndex(0);
+							sessionStateTable.setSelectedIndex(lastGoodRowID);
 					} catch (IllegalArgumentException e) {
 						// We will get here if we try to set the table index
 						// but there is no items in the table
@@ -669,6 +671,8 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = createTab(parent);
 		
+		lastGoodRowID = 0;
+		
 		sessionStateTable = new CustomTable(new String[] {"Name", "Date", "Size"}, new Object[0][3]);
 		sessionStateTable.setBounds(0, 0, panel.getWidth() - 10, panel.getHeight() / 2);
 		sessionStateTable.setColumnSizes(new int[] { 200, 75, 50 });
@@ -676,9 +680,14 @@ public class HomeSetupPanel extends SetupPanel
 			@Override
 			public void valueChanged(ListSelectionEvent e) 
 			{
-				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
-				if( selectedFile == null )
+				if( sessionStateTable.getSelectedIndex() == -1 )
+				{
+					sessionLabel.setIcon(null);
 					return;
+				}
+				
+				lastGoodRowID = sessionStateTable.getSelectedIndex();
+				String selectedFile = (String) sessionStateTable.getSelectedRow()[0];
 				
 				File WEBAPPS, ROOT, sessionState;
 				ZipFile zip = null;
@@ -695,7 +704,6 @@ public class HomeSetupPanel extends SetupPanel
 					sessionState = new File(ROOT, selectedFile);
 					if( !sessionState.exists() )
 						return;
-					
 				
 					zip = new ZipFile(sessionState);
 					Enumeration<? extends ZipEntry> entries = zip.entries();
@@ -711,19 +719,21 @@ public class HomeSetupPanel extends SetupPanel
 						}
 					}
 					launchSessionState.setEnabled(sessionStateTable.getSelectedIndex() >= 0);
-					
+				
+				} catch (ZipException ex) {
+					sessionLabel.setIcon(null);
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | 
 						 InvocationTargetException | IOException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} finally {
-						try {
-							if( zip != null )
-								zip.close();
-						} catch (IOException ex) {
-							trace(STDERR, ex);
-							BugReportUtils.showBugReportDialog(ex);
-						}
+					try {
+						if( zip != null )
+							zip.close();
+					} catch (IOException ex) {
+						trace(STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					}
 				}
 			}
 		});
@@ -859,9 +869,11 @@ public class HomeSetupPanel extends SetupPanel
 					
 					LaunchUtils.openAdminConsole();
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
-						 InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
+						 InvocationTargetException e ) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException | URISyntaxException | InterruptedException e) {
+					trace(STDERR, e);
 				}
 			}
 		});

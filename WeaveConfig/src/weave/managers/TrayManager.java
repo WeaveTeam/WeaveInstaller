@@ -90,9 +90,9 @@ public class TrayManager extends Globals
 		trace(STDOUT, "-> Initializing System Tray.......");
 		
 //		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
-		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_LOGO_LARGE);
-		trayIconOffline = ImageIO.read(IconManager.ICON_TRAY_OFFLINE);
-		trayIconError = ImageIO.read(IconManager.ICON_TRAY_ERROR);
+		trayIconOnline = ImageIO.read(ResourceManager.ICON_TRAY_LOGO_LARGE);
+		trayIconOffline = ImageIO.read(ResourceManager.ICON_TRAY_OFFLINE);
+		trayIconError = ImageIO.read(ResourceManager.ICON_TRAY_ERROR);
 
 		if( !SystemTray.isSupported() ) {
 			put(STDOUT, "FAILED");

@@ -53,7 +53,7 @@ import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
 import weave.dll.DLLInterface;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -162,7 +162,7 @@ public class Updater extends JFrame
 		setTitle(Settings.UPDATER_TITLE);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(ImageIO.read(IconManager.IMAGE_NULL));
+		setIconImage(ImageIO.read(ResourceManager.IMAGE_NULL));
 		
 		staticLabel = new JLabel("Updating " + Settings.SERVER_NAME + "...");
 		staticLabel.setBounds(20, 10, 400, 20);

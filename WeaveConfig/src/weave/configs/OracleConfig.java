@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 
 public class OracleConfig extends Config 
@@ -42,7 +42,7 @@ public class OracleConfig extends Config
 			setDescription(getConfigName() + " Database delivers industry leading performance, scalability, security and reliability on a choice of clustered or single-servers running Windows, Linux, and UNIX.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_ORACLE));
+			setImage(ImageIO.read(ResourceManager.IMAGE_ORACLE));
 
 		} catch (NumberFormatException | IOException e) {
 			trace(STDERR, e);

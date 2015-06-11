@@ -28,7 +28,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 
 
@@ -64,7 +64,7 @@ public class TomcatConfig extends Config
 							"Java code to run in.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application " +
 						"found <a href='" + getDownloadURL() + "'>here</a>.</b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_TOMCAT));
+			setImage(ImageIO.read(ResourceManager.IMAGE_TOMCAT));
 
 		} catch (IOException e) {
 			trace(STDERR, e);

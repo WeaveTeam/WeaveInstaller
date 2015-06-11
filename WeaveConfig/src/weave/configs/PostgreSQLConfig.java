@@ -28,7 +28,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
 import weave.managers.ConfigManager;
-import weave.managers.IconManager;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 
 
@@ -62,7 +62,7 @@ public class PostgreSQLConfig extends Config
 			setDescription(getConfigName() + " is a powerful, open source object-relational database system. It has more than 15 years of active development and a proven architecture that has earned it a strong reputation for reliability, data integrity, and correctness.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
-			setImage(ImageIO.read(IconManager.IMAGE_POSTGRESQL));
+			setImage(ImageIO.read(ResourceManager.IMAGE_POSTGRESQL));
 
 		} catch (NumberFormatException | IOException e) {
 			trace(STDERR, e);
