@@ -94,22 +94,7 @@ public class AnalystWorkstationPlugin extends Plugin
 	public JPanel getPluginPanel()
 	{
 		if( panel != null ) 
-		{
-			if( isPluginInstalled() )
-			{
-				installButton.setText("Reinstall");
-				removeButton.setVisible(true);
-				removeButton.setEnabled(false);
-				openButton.setVisible(true);
-			}
-			else
-			{
-				installButton.setText("Install");
-				removeButton.setVisible(false);
-				openButton.setVisible(false);
-			}
 			return panel;
-		}
 		
 		panel = super.getPluginPanel();
 		
@@ -208,6 +193,27 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(progressLabel);
 		
 		return getPluginPanel();
+	}
+	
+	@Override public void pluginPanelRefresh()
+	{
+		super.pluginPanelRefresh();
+		
+		if( isPluginInstalled() )
+		{
+			installButton.setText("Reinstall");
+			installButton.setEnabled(!Settings.isOfflineMode());
+			removeButton.setVisible(true);
+			removeButton.setEnabled(false);
+			openButton.setVisible(true);
+		}
+		else
+		{
+			installButton.setText("Install");
+			installButton.setEnabled(!Settings.isOfflineMode());
+			removeButton.setVisible(false);
+			openButton.setVisible(false);
+		}
 	}
 	
 	public void setAllButtonsEnabled(boolean b)

@@ -176,8 +176,8 @@ public class LaunchUtils extends Globals
 		else
 			throw new FileNotFoundException("Updater file not found");
 		
-		if( Settings.OS == OS_ENUM.WINDOWS )
-			return launchElevated(updater, delay);
+//		if( Settings.OS == OS_ENUM.WINDOWS )
+//			return launchElevated(updater, delay);
 		
 		return launch(updater, delay);
 	}

@@ -21,6 +21,8 @@ package weave;
 
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
+import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
 import static weave.utils.TraceUtils.traceln;
 
@@ -420,16 +422,18 @@ public class Installer extends JFrame
 			@Override
 			public void run() {
 				try {
-					if( updateToNewUpdater() == TransferUtils.COMPLETE ) {
-						traceln(STDOUT, StringUtils.rpad("-> Updating WeaveUpdater", ".", Settings.LOG_PADDING_LENGTH));
-						Settings.setDirectoryPermissions();
-					}
+					traceln(STDOUT, StringUtils.rpad("-> Updating WeaveUpdater", ".", Settings.LOG_PADDING_LENGTH));
+					updateToNewUpdater();
+					Settings.setDirectoryPermissions();
+					put(STDOUT, "DONE");
 				} catch (IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				} catch (InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
+					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				}
 			}
 		}, 3000);

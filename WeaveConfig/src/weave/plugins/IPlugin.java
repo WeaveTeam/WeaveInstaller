@@ -25,4 +25,5 @@ public interface IPlugin
 	public Boolean isPluginInstalled();
 	
 	public JPanel getPluginPanel();
+	public void pluginPanelRefresh();
 }

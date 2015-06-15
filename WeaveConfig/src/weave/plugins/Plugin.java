@@ -1,5 +1,6 @@
 package weave.plugins;
 
+import java.awt.Color;
 import java.io.File;
 
 import javax.swing.JPanel;
@@ -52,8 +53,13 @@ public class Plugin extends Globals implements IPlugin
 		JPanel panel = new JPanel();
 		
 		panel.setLayout(null);
+		panel.setBackground(Color.WHITE);
 		
 		return panel;
+	}
+
+	@Override public void pluginPanelRefresh() {
+		
 	}
 	
 	@Override public Boolean isPluginInstalled() 

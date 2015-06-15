@@ -908,13 +908,14 @@ public class HomeSetupPanel extends SetupPanel
 
 				JPanel p = selectedPlugin.getPluginPanel();
 				p.setBounds(0, 0, pluginsPanel.getWidth(), pluginsPanel.getHeight());
-				p.setLayout(null);
-				p.setBackground(Color.WHITE);
+
 				pluginsPanel.removeAll();
 				pluginsPanel.add(p);
 				
 				pluginsPanel.revalidate();
 				pluginsPanel.repaint();
+				
+				selectedPlugin.pluginPanelRefresh();
 			}
 		});
 		panel.add(pluginsTable);
