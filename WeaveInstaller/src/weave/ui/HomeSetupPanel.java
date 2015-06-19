@@ -43,11 +43,11 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -75,6 +75,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -85,7 +86,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.HTMLDocument;
 
-import weave.Function;
 import weave.Globals;
 import weave.Settings;
 import weave.Settings.INSTALL_ENUM;
@@ -95,14 +95,16 @@ import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
 import weave.managers.PluginManager;
+import weave.misc.FileSize;
+import weave.misc.Function;
 import weave.plugins.IPlugin;
 import weave.reflect.Reflectable;
+import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.ObjectUtils;
-import weave.utils.ReflectionUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.Revisions;
 import weave.utils.StringUtils;
@@ -207,7 +209,6 @@ public class HomeSetupPanel extends SetupPanel
 		tabbedPane.addTab("Weave", (weaveTab = createWeaveTab(tabbedPane)));
 		tabbedPane.addTab("Sessions", (sessionsTab = createSessionsTab(tabbedPane)));
 		tabbedPane.addTab("Plugins", (pluginsTab = createPluginsTab(tabbedPane)));
-//		tabbedPane.addTab("Settings", (tab4 = createTab4(tabbedPane)));
 		tabbedPane.addTab("Troubleshoot", (troubleshootTab = createTroubleshootTab(tabbedPane)));
 		tabbedPane.addTab("About", (aboutTab = createAboutTab(tabbedPane)));
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -218,7 +219,12 @@ public class HomeSetupPanel extends SetupPanel
 				
 				if( selectedTab == weaveTab )
 				{
-					refreshRevisionTable();
+					try {
+						refreshRevisionTable();
+					} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
 				}
 				else if( selectedTab == sessionsTab )
 				{
@@ -353,11 +359,7 @@ public class HomeSetupPanel extends SetupPanel
 				new Timer().schedule(new TimerTask() {
 					@Override
 					public void run() {
-						try {
-							refreshInterface();
-						} catch (InterruptedException | IOException e) {
-							trace(STDERR, e);
-						}
+						refreshInterface();
 					}
 				}, 400);
 			}
@@ -370,12 +372,7 @@ public class HomeSetupPanel extends SetupPanel
 				Settings.save();
 				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
 				refreshProgramatically = true;
-				try {
-					refreshInterface();
-				} catch (InterruptedException | IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				}
+				refreshInterface();
 			}
 		});
 		refreshButton.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
@@ -386,12 +383,7 @@ public class HomeSetupPanel extends SetupPanel
 				Settings.save();
 				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
 				refreshProgramatically = true;
-				try {
-					refreshInterface();
-				} catch (InterruptedException | IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				}
+				refreshInterface();
 			}
 		});
 		refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
@@ -556,12 +548,7 @@ public class HomeSetupPanel extends SetupPanel
 					@Override
 					public void run() {
 						refreshProgramatically = true;
-						try {
-							refreshInterface();
-						} catch (InterruptedException | IOException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						}
+						refreshInterface();
 					}
 				}, 1000);
 			}
@@ -590,12 +577,7 @@ public class HomeSetupPanel extends SetupPanel
 					@Override
 					public void run() {
 						refreshProgramatically = true;
-						try {
-							refreshInterface();
-						} catch (InterruptedException | IOException e) {
-							trace(STDERR, e);
-							BugReportUtils.showBugReportDialog(e);
-						}
+						refreshInterface();
 					}
 				}, 1000);
 			}
@@ -620,7 +602,11 @@ public class HomeSetupPanel extends SetupPanel
 		downloadLabel.setVisible(false);
 		panel.add(downloadLabel);
 		
-		revisionTable = new CustomTable(new String[] {"Revision", "Date Downloaded"}, new Object[0][2]);
+		revisionTable = new CustomTable(new String[] {"Revision", "Date Downloaded"}, 
+										new Class<?>[] { String.class, Date.class },
+										new Boolean[] {false, false}, 
+										new Object[0][2],
+										1, SortOrder.DESCENDING);
 		revisionTable.setBounds(10, 150, 300, 150);
 		revisionTable.setVisible(true);
 		new DropTarget(revisionTable, new DropTargetListener() {
@@ -647,7 +633,7 @@ public class HomeSetupPanel extends SetupPanel
 								destination = new File(REV, file.getName());
 								if( file.equals(destination) )
 									continue;
-								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
+								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 							}
 						} catch (InterruptedException | UnsupportedFlavorException | IOException e) {
 							trace(STDERR, e);
@@ -673,7 +659,11 @@ public class HomeSetupPanel extends SetupPanel
 		
 		lastGoodRowID = 0;
 		
-		sessionStateTable = new CustomTable(new String[] {"Name", "Date", "Size"}, new Object[0][3]);
+		sessionStateTable = new CustomTable(new String[] {"Name", "Date", "Size"},
+											new Class<?>[] { String.class, Date.class, FileSize.class },
+											new Boolean[] {true, true, true},
+											new Object[0][3],
+											0, SortOrder.ASCENDING);
 		sessionStateTable.setBounds(0, 0, panel.getWidth() - 10, panel.getHeight() / 2);
 		sessionStateTable.setColumnSizes(new int[] { 200, 75, 50 });
 		sessionStateTable.addTableSelectionListener(new ListSelectionListener() {
@@ -779,10 +769,9 @@ public class HomeSetupPanel extends SetupPanel
 								destination = new File(ROOT, file.getName());
 								if( file.equals(destination) )
 									continue;
-								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE);
+								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 							}
-						} catch (UnsupportedFlavorException | IOException | InterruptedException | NoSuchMethodException | 
-								 SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						} catch (UnsupportedFlavorException | IOException | InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -843,8 +832,7 @@ public class HomeSetupPanel extends SetupPanel
 							"/weave.html?file=" + 
 							URLRequestUtils.encodeURL(sessionState.getName(), StandardCharsets.UTF_8));
 					
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
-						 InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -868,8 +856,7 @@ public class HomeSetupPanel extends SetupPanel
 					Settings.save();
 					
 					LaunchUtils.openAdminConsole();
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
-						 InvocationTargetException e ) {
+				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (IOException | URISyntaxException | InterruptedException e) {
@@ -892,7 +879,11 @@ public class HomeSetupPanel extends SetupPanel
 		pluginsPanel.setBackground(Color.WHITE);
 		panel.add(pluginsPanel);
 		
-		pluginsTable = new CustomTable(new String[] { "Name" }, new Object[0][1]);
+		pluginsTable = new CustomTable( new String[] { "Name" }, 
+										new Class<?>[] { String.class },
+										new Boolean[] { false },
+										new Object[0][1],
+										0, SortOrder.ASCENDING);
 		pluginsTable.setBounds(0, 0, panel.getWidth() / 3, panel.getHeight() - 30);
 		pluginsTable.addTableSelectionListener(new ListSelectionListener() {
 			@Override
@@ -925,178 +916,6 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 	
-	public JPanel createTab4(JComponent parent)
-	{
-		JPanel panel = createTab(parent);
-//		JPanel innerPanel = new JPanel();
-//		JPanel serverUpdateBox = new JPanel();
-//		JPanel weaveUpdateBox = new JPanel();
-//		JPanel maintenanceBox = new JPanel();
-//		JPanel protoextBox = new JPanel();
-//		
-//		innerPanel.setLayout(null);
-//		innerPanel.setSize(panel.getWidth() - 40, 800);
-//		innerPanel.setPreferredSize(new Dimension(parent.getWidth() - 40, 800));
-//		innerPanel.setBackground(Color.WHITE);
-//		
-//
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		// Weave Server Assistant Updates
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		settingsServerUpdatesTitle = BorderFactory.createTitledBorder(null, "Server Assistant Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-//		serverUpdateBox.setBounds(10, 10, innerPanel.getWidth() - 40, 150);
-//		serverUpdateBox.setLayout(null);
-//		serverUpdateBox.setBackground(Color.WHITE);
-//		serverUpdateBox.setBorder(settingsServerUpdatesTitle);
-//		
-//		settingsUpdatesAutoInstallCheckbox = new JCheckBox("Automatically install updates on startup");
-//		settingsUpdatesAutoInstallCheckbox.setBounds(10, 20, 300, 30);
-//		settingsUpdatesAutoInstallCheckbox.setBackground(Color.WHITE);
-//		settingsUpdatesAutoInstallCheckbox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				
-//			}
-//		});
-//		serverUpdateBox.add(settingsUpdatesAutoInstallCheckbox);
-//		
-//		settingsUpdatesCheckNewCheckbox = new JCheckBox("Check for new updates");
-//		settingsUpdatesCheckNewCheckbox.setBounds(10, 50, 170, 30);
-//		settingsUpdatesCheckNewCheckbox.setBackground(Color.WHITE);
-//		settingsUpdatesCheckNewCheckbox.setEnabled(true);
-//		settingsUpdatesCheckNewCheckbox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
-//			}
-//		});
-//		serverUpdateBox.add(settingsUpdatesCheckNewCheckbox);
-//		
-//		settingsUpdatesCheckNewCombobox = new JComboBox<String>();
-//		settingsUpdatesCheckNewCombobox.setBounds(180, 50, 150, 30);
-//		settingsUpdatesCheckNewCombobox.setBackground(Color.WHITE);
-//		settingsUpdatesCheckNewCombobox.setEnabled(settingsUpdatesCheckNewCheckbox.isEnabled());
-//		settingsUpdatesCheckNewCombobox.addItem("Every hour");
-//		settingsUpdatesCheckNewCombobox.addItem("Every day");
-//		settingsUpdatesCheckNewCombobox.addItem("Every week");
-//		settingsUpdatesCheckNewCombobox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				
-//			}
-//		});
-//		serverUpdateBox.add(settingsUpdatesCheckNewCombobox);
-//		
-//
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		// Weave Updates
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		settingsWeaveUpdatesTitle = BorderFactory.createTitledBorder(null, "Weave Updates", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-//		weaveUpdateBox.setBounds(10, 170, innerPanel.getWidth() - 40, 150);
-//		weaveUpdateBox.setLayout(null);
-//		weaveUpdateBox.setBackground(Color.WHITE);
-//		weaveUpdateBox.setBorder(settingsWeaveUpdatesTitle);
-//		
-//		
-//
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		// Maintenance
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		settingsMaintenanceTitle = BorderFactory.createTitledBorder(null, "Maintenance", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.BLUE);
-//		maintenanceBox.setBounds(10, 330, innerPanel.getWidth() - 40, 150);
-//		maintenanceBox.setLayout(null);
-//		maintenanceBox.setBackground(Color.WHITE);
-//		maintenanceBox.setBorder(settingsMaintenanceTitle);
-//		
-//		settingsMaintenanceDeleteLogsCheckbox = new JCheckBox("Delete log files older than ");
-//		settingsMaintenanceDeleteLogsCheckbox.setBounds(10, 22, 180, 25);
-//		settingsMaintenanceDeleteLogsCheckbox.setBackground(Color.WHITE);
-//		settingsMaintenanceDeleteLogsCheckbox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				
-//			}
-//		});
-//		maintenanceBox.add(settingsMaintenanceDeleteLogsCheckbox);
-//		
-//		settingsMaintenanceDeleteLogsTextfield = new JTextField();
-//		settingsMaintenanceDeleteLogsTextfield.setBounds(190, 21, 25, 26);
-//		settingsMaintenanceDeleteLogsTextfield.setBackground(Color.WHITE);
-//		settingsMaintenanceDeleteLogsTextfield.setBorder(new LineBorder(Color.BLACK, 1));
-//		maintenanceBox.add(settingsMaintenanceDeleteLogsTextfield);
-//		
-//		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsTextfield, 0);
-//		maintenanceBox.setComponentZOrder(settingsMaintenanceDeleteLogsCheckbox, 1);
-//
-//		
-//
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		// Protocols & Extensions
-//		////////////////////////////////////////////////////////////////////////////////////////////////
-//		
-//		settingsProtoExtTitle = BorderFactory.createTitledBorder(null, "Protocol & Extension", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font(Settings.FONT, Font.BOLD, 14), Color.GRAY);
-//		protoextBox.setBounds(10, 490, innerPanel.getWidth() - 40, 150);
-//		protoextBox.setLayout(null);
-//		protoextBox.setBackground(Color.WHITE);
-//		protoextBox.setBorder(settingsProtoExtTitle);
-//		
-//		settingsExtCheckbox = new JCheckBox("Enable Weave Extesion");
-//		settingsExtCheckbox.setBounds(10, 20, 300, 30);
-//		settingsExtCheckbox.setBackground(Color.WHITE);
-//		settingsExtCheckbox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				try {
-//					Settings.enableWeaveExtension(settingsExtCheckbox.isSelected());
-//				} catch (IllegalArgumentException e1) {
-//					trace(STDERR, e1);
-//				} catch (IllegalAccessException e1) {
-//					trace(STDERR, e1);
-//				} catch (InvocationTargetException e1) {
-//					trace(STDERR, e1);
-//				}
-//			}
-//		});
-//		protoextBox.add(settingsExtCheckbox);
-//		
-//		settingsProtocolCheckbox = new JCheckBox("Enable Weave Protocol");
-//		settingsProtocolCheckbox.setBounds(10, 50, 300, 30);
-//		settingsProtocolCheckbox.setBackground(Color.WHITE);
-//		settingsProtocolCheckbox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				try {
-//					Settings.enableWeaveProtocol(settingsProtocolCheckbox.isSelected());
-//				} catch (IllegalArgumentException e1) {
-//					trace(STDERR, e1);
-//				} catch (IllegalAccessException e1) {
-//					trace(STDERR, e1);
-//				} catch (InvocationTargetException e1) {
-//					trace(STDERR, e1);
-//				}
-//			}
-//		});
-//		protoextBox.add(settingsProtocolCheckbox);
-//		
-//		
-//		innerPanel.add(serverUpdateBox);
-//		innerPanel.add(weaveUpdateBox);
-//		innerPanel.add(maintenanceBox);
-//		innerPanel.add(protoextBox);
-//		
-//		
-//		settingsScrollPane = new JScrollPane();
-//		settingsScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);
-//		settingsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-//		settingsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//		settingsScrollPane.setViewportView(innerPanel);
-//		settingsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-//		settingsScrollPane.setVisible(true);
-//		
-//		panel.add(settingsScrollPane);
-//		
-		return panel;
-	}
 	public JPanel createTroubleshootTab(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
@@ -1118,6 +937,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		return panel;
 	}
+	
 	public JPanel createAboutTab(JComponent parent)
 	{
 		JPanel panel = createTab(parent);
@@ -1139,7 +959,7 @@ public class HomeSetupPanel extends SetupPanel
 		aboutHTML.setText(	"The Weave Server Assistant is a cross-platform utiliy designed to help " +
 							"users to install Weave and its components to your system with minimal effort. " +
 							"<br><br><br><br><br><br>" +
-							"(c) Institute for Visualization and Perception Research<br>" +
+							"Copyright &#169; Institute for Visualization and Perception Research<br>" +
 							"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
 		String htmlStyle = "body { 	font-family: " + aboutHTML.getFont().getFamily() + "; " +
 									"font-size: " + aboutHTML.getFont().getSize() + "px; }" +
@@ -1197,34 +1017,31 @@ public class HomeSetupPanel extends SetupPanel
 				Thread.sleep(1000);
 				refreshProgramatically = true;
 				refreshInterface();
-			} catch (InterruptedException | IOException e) {
+			} catch (InterruptedException e) {
 				trace(STDERR, e);
 			}
 		}
 	};
 	
-	private void refreshRevisionTable()
+	private void refreshRevisionTable() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		ArrayList<File> revisionList = Revisions.getRevisionsList();
 		Object[][] revisionData = new Object[revisionList.size()][2];
 		File file = null;
-		Date date = new Date();
+		Date date = null;
 		String revisionName = "";
 		
-		try {
-			for( int i = 0; i < revisionList.size(); i++ )
-			{
-				file = revisionList.get(i);
-				revisionName = Revisions.getRevisionVersion(file.getName());
-				date.setTime(file.lastModified());
-	
-				String configVer = (String)ObjectUtils.ternary(
-									ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
-				revisionData[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
-				revisionData[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
-			}
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			trace(STDERR, e);
+		for( int i = 0; i < revisionList.size(); i++ )
+		{
+			date = new Date();
+			file = revisionList.get(i);
+			revisionName = Revisions.getRevisionVersion(file.getName());
+			date.setTime(file.lastModified());
+
+			String configVer = (String)ObjectUtils.ternary(
+								ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
+			revisionData[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
+			revisionData[i][1] = date; //new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 		}
 
 		revisionTable.setData(revisionData).refreshTable();
@@ -1239,30 +1056,22 @@ public class HomeSetupPanel extends SetupPanel
 			ROOT = new File(WEBAPPS, "ROOT");
 			if( ROOT.exists() )
 			{
-				int fileCount = 0;
-				String[] files = ROOT.list();
+				FileFilter filter = new FileFilter() {
+					@Override
+					public boolean accept(File pathname) {
+						return  FileUtils.getExt(pathname).equals("weave") ||
+								FileUtils.getExt(pathname).equals("xml");
+					}
+				};
 				
-				for( int i = 0; i < files.length; i++ )
-					if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") )
-						fileCount++;
-				
-				File sessionFile = null;
-				Date modifiedDate = null;
-				Object[][] data = new Object[fileCount][3];
-				
-				sessionStateTable.setData(new Object[1][3]).refreshTable();
-				fileCount = 0;
+				File[] files = ROOT.listFiles(filter);
+				Object[][] data = new Object[files.length][3];
 				
 				for( int i = 0; i < files.length; i++ )
 				{
-					if( FileUtils.getExt(files[i]).equals("weave") || FileUtils.getExt(files[i]).equals("xml") ) {
-						sessionFile = new File(ROOT, files[i]);
-						modifiedDate = new Date(sessionFile.lastModified());
-						data[fileCount][0] = sessionFile.getName();
-						data[fileCount][1] = new SimpleDateFormat("MM/dd/yy h:mm a").format(modifiedDate);
-						data[fileCount][2] = FileUtils.sizeify(sessionFile.length());
-						fileCount++;
-					}
+					data[i][0] = files[i].getName();
+					data[i][1] = new Date(files[i].lastModified());
+					data[i][2] = new FileSize(files[i].length());
 				}
 				
 				sessionStateTable.setData(data).refreshTable();
@@ -1277,14 +1086,19 @@ public class HomeSetupPanel extends SetupPanel
 			data[i][0] = plugins.get(i).getPluginName();
 		pluginsTable.setData(data).refreshTable();
 	}
-	private void refreshInterface() throws InterruptedException, IOException
+	private void refreshInterface()
 	{
 		traceln(STDOUT, StringUtils.rpad("-> Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
 
 		Settings.canQuit = false;
 		
 		setButtonsEnabled(false);
-		int updateAvailable = UpdateUtils.checkForWeaveUpdate(!refreshProgramatically);
+		int updateAvailable = UpdateUtils.UPDATE_ERROR;
+		try {
+			updateAvailable = UpdateUtils.checkForWeaveUpdate(!refreshProgramatically);
+		} catch (InterruptedException | IOException e) {
+			trace(STDERR, e);
+		}
 		weaveStats.refresh(updateAvailable);
 		refreshProgramatically = false;
 
@@ -1308,7 +1122,12 @@ public class HomeSetupPanel extends SetupPanel
 		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
 		
-		refreshRevisionTable();
+		try {
+			refreshRevisionTable();
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
 	}
 	
 	private void setButtonsEnabled(boolean enabled)

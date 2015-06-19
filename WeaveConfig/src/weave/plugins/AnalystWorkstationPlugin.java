@@ -17,11 +17,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
-import weave.Function;
 import weave.Settings;
 import weave.configs.IConfig;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
+import weave.misc.Function;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.LaunchUtils;

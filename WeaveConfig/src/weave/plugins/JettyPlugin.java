@@ -18,11 +18,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
-import weave.Function;
 import weave.Settings;
 import weave.configs.JettyConfig;
 import weave.managers.DownloadManager;
 import weave.managers.ResourceManager;
+import weave.misc.Function;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.ImageUtils;

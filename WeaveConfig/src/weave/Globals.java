@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import weave.reflect.Reflectable;
-import weave.utils.ReflectionUtils;
+import weave.reflect.ReflectionUtils;
 import weave.utils.TraceUtils;
 
 @Reflectable

@@ -19,46 +19,53 @@
 
 package weave.ui;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import javax.swing.DropMode;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import weave.Settings;
+import weave.misc.FileSize;
+import weave.utils.FileUtils;
 
 @SuppressWarnings("serial")
 public class CustomTable extends JPanel
 {
 	private JTable table;
+	private TableRowSorter<TableModel> sorter;
 	private JScrollPane scrollPane;
 	private String[] columnNames;
+	private Class<?>[] columnClasses;
+	private Boolean[] sortable;
 	private Object[][] data;
+	private int defaultSortColID;
+	private SortOrder defaultSortOrder;
 
-	public CustomTable()
+	public CustomTable(String[] columnNames, Class<?>[] classes, Boolean[] sortable, Object[][] data, int sortCol, SortOrder order)
 	{
 		setLayout(new GridLayout());
 
-		columnNames = new String[0];
-		data = new Object[0][0];
-
-		setColumnNames(columnNames);
-		setData(data).refreshTable();
-	}
-	
-	public CustomTable(String[] columnNames, Object[][] data)
-	{
-		setLayout(new GridLayout());
-		
-		setColumnNames(columnNames);
-		setData(data).refreshTable();
+		setTableStructure(columnNames, classes, sortable, sortCol, order);
+		setData(data).refreshTable(true);
 	}
 	public int getSelectedIndex()
 	{
@@ -81,9 +88,13 @@ public class CustomTable extends JPanel
 	{
 		table.setRowSelectionInterval(i, i);
 	}
-	public CustomTable setColumnNames(String[] names)
+	public CustomTable setTableStructure(String[] names, Class<?>[] classes, Boolean[] sortable, int sortCol, SortOrder order)
 	{
 		this.columnNames = names;
+		this.columnClasses = classes;
+		this.sortable = sortable;
+		this.defaultSortColID = sortCol;
+		this.defaultSortOrder = order;
 		generateTable();
 		return this;
 	}
@@ -113,21 +124,30 @@ public class CustomTable extends JPanel
 	}
 	private void generateTable()
 	{
-		table = new JTable(new DefaultTableModel(null, columnNames)) {
-			public boolean isCellEditable(int rowIndex, int colIndex) {
-				return false;
-			}
-		};
+		table = new JTable(new CustomTableModel(columnNames, columnClasses));
+		sorter = new TableRowSorter<TableModel>(table.getModel());
+		table.setRowSorter(sorter);
+		
+		for( int i = 0; i < sortable.length; i++ ) {
+			sorter.setSortable(i, sortable[i]);
+			table.getColumnModel().getColumn(i).setCellRenderer(new CustomCellRenderer());
+		}
+
 		table.setFont(new Font(Settings.FONT, Font.PLAIN, 11));
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setDragEnabled(true);
 		table.setDropMode(DropMode.INSERT_ROWS);
-//		table.setRowSorter(new TableRowSorter<TableModel>(table.getModel()));
 		scrollPane = new JScrollPane(table);
 		
 		add(scrollPane);
 	}
+	
 	public void refreshTable()
+	{
+		refreshTable(false);
+	}
+	
+	public void refreshTable(boolean sort)
 	{
 		// Add row(s) if needed
 		for( int i = 0; i < data.length; i++ )
@@ -137,7 +157,7 @@ public class CustomTable extends JPanel
 				if( table.getModel().getRowCount() <= i )
 					((DefaultTableModel)table.getModel()).addRow(data[i]);
 				else
-					table.getModel().setValueAt(data[i][j], i, j);
+					((DefaultTableModel)table.getModel()).setValueAt(data[i][j], i, j);
 			}
 		}
 		// Remove row(s) if needed
@@ -147,6 +167,60 @@ public class CustomTable extends JPanel
 			{
 				((DefaultTableModel)table.getModel()).removeRow(i);
 			}
+		}
+		// Sort data based on provided sort
+		if( sort && defaultSortColID != -1 )
+		{
+			List<SortKey> list = new ArrayList<>();
+			list.add(new RowSorter.SortKey(defaultSortColID, defaultSortOrder));
+			sorter.setSortKeys(list);
+			sorter.sort();
+		}
+	}
+	
+	class CustomTableModel extends DefaultTableModel
+	{
+		private Class<?>[] classList = null;
+		
+		public CustomTableModel(String[] columns, Class<?>[] classes) {
+			super(columns, 0);
+			classList = classes;
+		}
+			
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return false;
+		}
+		
+		@Override
+		public Class<?> getColumnClass(int i) {
+			return classList[i];
+		}
+	}
+	
+	class CustomCellRenderer extends DefaultTableCellRenderer
+	{
+		SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy h:mm a");
+		
+		@Override
+		public Component getTableCellRendererComponent( JTable table, Object value, 
+														boolean isSelected, boolean hasFocus,
+														int row, int column) {
+//			System.out.println("\nCell type: " + value.getClass());
+//			System.out.println("Cell value before: " + value);
+			
+			if( value instanceof Date )
+			{
+				value = dateFormat.format(value);
+			}
+			else if( value instanceof FileSize )
+			{
+				value = FileUtils.sizeify(((FileSize)value).getSize());
+			}
+//			System.out.println("Cell value after: " + value);
+
+			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			return cell;
 		}
 	}
 }

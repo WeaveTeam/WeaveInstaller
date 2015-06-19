@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.utils;
+package weave.reflect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -25,7 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import weave.Globals;
-import weave.reflect.Reflectable;
+import weave.utils.ObjectUtils;
+import weave.utils.StringUtils;
 
 public class ReflectionUtils extends Globals
 {

@@ -44,9 +44,9 @@ import org.json.JSONObject;
 
 import weave.Globals;
 import weave.Settings;
+import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
-import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
 import weave.utils.TraceUtils;
 
@@ -152,6 +152,8 @@ public class ServerListener extends Globals
 		{
 			clientSock = s;
 
+			trace(STDOUT, "-> Incomming socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
+			
 			try {
 				in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 				out = new BufferedWriter(new OutputStreamWriter(clientSock.getOutputStream()));
@@ -163,6 +165,8 @@ public class ServerListener extends Globals
 		
 		public void close()
 		{
+			trace(STDOUT, "-> Closing socket connection from " + clientSock.getRemoteSocketAddress());
+
 			try {
 				if( in != null ) in.close();
 				if( out != null ) out.close();

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import weave.Globals;
+import weave.reflect.ReflectionUtils;
 
 public class ObjectUtils extends Globals
 {

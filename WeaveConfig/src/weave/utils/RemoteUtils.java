@@ -29,11 +29,11 @@ import java.net.URL;
 
 import javax.swing.JOptionPane;
 
-import weave.Function;
 import weave.Globals;
 import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncTask;
+import weave.misc.Function;
 import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
@@ -51,6 +51,7 @@ public class RemoteUtils extends Globals
 	public static final String JETTY_VERSION 			= "JettyVersion";
 	
 	public static final String AWS_URL					= "AnalystURL";
+	public static final String AWS_VERSION				= "AnalystVersion";
 	
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	

@@ -39,7 +39,7 @@ import weave.reflect.Reflectable;
 
 public class FileUtils extends TransferUtils
 {
-	private static final int BUFFER_SIZE			= 8 * TransferUtils.KB;
+	private static final int BUFFER_SIZE = 8 * TransferUtils.KB;
 	
 	
 	/**
@@ -205,6 +205,12 @@ public class FileUtils extends TransferUtils
 		assert source != null;
 		assert destination != null;
 
+		// Check to see if we are copying the source to the same location as the destination
+		if( source.equals(destination) )
+			throw new IllegalArgumentException("Source and destination are the same: " + source.getAbsolutePath());
+		
+		assert source != destination;
+		
 		// We need to check to see if the destination file already exists and
 		// to see if the OVERWRITE flag bit was passed.
 		// If it exists, and OVERWRITE bit wasn't passed we need to throw an exception
@@ -759,19 +765,45 @@ public class FileUtils extends TransferUtils
 	 * Get the total number of files in a directory.
 	 * If the directory is actually a file, the return value is 1.
 	 */
-	public static int getNumberOfFilesInDirectory(String dir)
+	public static int getNumberOfFilesInDirectory(String dir, boolean includeSub)
 	{
-		return getNumberOfFilesInDirectory(new File(dir));
+		return getNumberOfFilesInDirectory(dir, new String[] {}, includeSub);
 	}
-	public static int getNumberOfFilesInDirectory(File dir)
+	public static int getNumberOfFilesInDirectory(String dir, String[] extensions, boolean includeSub)
+	{
+		return getNumberOfFilesInDirectory(new File(dir), extensions, includeSub);
+	}
+	
+	public static int getNumberOfFilesInDirectory(File dir, boolean includeSub)
+	{
+		return getNumberOfFilesInDirectory(dir, new String[] {}, includeSub);
+	}
+	public static int getNumberOfFilesInDirectory(File dir, final String[] extensions, final boolean includeSub)
 	{
 		if( !dir.exists() ) 		return 0;
-		if( !dir.isDirectory() )	return 1;
-
+		if( !dir.isDirectory() )
+		{
+			boolean found = extensions.length == 0;
+			for( int i = 0; i < extensions.length; i++ ) {
+				if( getExt(dir).equals(extensions[i]) ) {
+					found = true;
+					break;
+				}
+			}
+			return found ? 1 : 0;
+		}
+		
 		int ret = 0;
+		File newFile = null;
 		String files[] = dir.list();
 		for( String file : files )
-			ret += getNumberOfFilesInDirectory(new File(dir, file));
+		{
+			newFile = new File(dir, file);
+			if( newFile.isDirectory() && !includeSub )
+				continue;
+			
+			ret += getNumberOfFilesInDirectory(newFile, extensions, includeSub);
+		}
 		
 		return ret;
 	}

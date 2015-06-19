@@ -115,7 +115,7 @@ public class LaunchUtils extends Globals
 
 		Thread.sleep(delay);
 		String[] generatedCommands = SyscallCreatorUtils.generate(command);
-		traceln(STDOUT, "-> Elevated Generated command: " + ObjectUtils.toString(generatedCommands));
+		traceln(STDOUT, "-> Elevated command: " + ObjectUtils.toString(generatedCommands));
 		ProcessUtils.run(generatedCommands, getLogFile(STDOUT), getLogFile(STDERR));
 		return true;
 	}

@@ -508,7 +508,7 @@ public class Installer extends JFrame
 			
 			if( Settings.SETUP_COMPLETE )
 				setProgress(15);
-			else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY) > 0 )
+			else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY, false) > 0 )
 				setProgress(7);
 			else if( servlet != null && database != null )
 				setProgress(3);

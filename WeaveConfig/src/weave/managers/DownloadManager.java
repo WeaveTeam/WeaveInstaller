@@ -15,11 +15,11 @@ import java.security.InvalidParameterException;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
-import weave.Function;
 import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
+import weave.misc.Function;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;

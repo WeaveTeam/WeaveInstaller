@@ -36,9 +36,9 @@ import javax.swing.SwingUtilities;
 import weave.Settings.OS_ENUM;
 import weave.configs.IConfig;
 import weave.managers.ConfigManager;
+import weave.reflect.ReflectionUtils;
 import weave.utils.FileUtils;
 import weave.utils.LaunchUtils;
-import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
 
 @SuppressWarnings("serial")

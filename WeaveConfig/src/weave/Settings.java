@@ -54,6 +54,7 @@ import net.jimmc.jshortcut.JShellLink;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
+import weave.misc.Function;
 import weave.reflect.Reflectable;
 import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
@@ -91,7 +92,7 @@ public class Settings extends Globals
 	 * Weave Installer
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0";
+	@Reflectable public static final String SERVER_VER			= "2.0.2 Beta";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
@@ -99,7 +100,7 @@ public class Settings extends Globals
 	 * Weave Updater
 	 */
 	@Reflectable public static final String UPDATER_NAME		= PROJECT_NAME + " Updater";
-	@Reflectable public static final String UPDATER_VER			= "1.1";
+	@Reflectable public static final String UPDATER_VER			= "1.1.0 Beta";
 	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
 	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
 	@Reflectable public static final String UPDATER_NEW_JAR		= "Updater_new.jar";
@@ -224,7 +225,20 @@ public class Settings extends Globals
 		// and any new settings with the default values.
 		save();		 
 
-		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
+		RemoteUtils.isConnectedToInternet(
+			new Function() {
+				@Override
+				public void run() {
+					getNetworkInfo( isOfflineMode() );
+				}
+			}, new Function() {
+				@Override
+				public void run() {
+					getNetworkInfo(true);
+				}
+			}
+		);
+//		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
 		
 //		trace(STDOUT, "\tOS: " + OS);
 //		trace(STDOUT, "\tExact OS: " + EXACT_OS);

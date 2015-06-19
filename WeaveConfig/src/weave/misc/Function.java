@@ -1,4 +1,4 @@
-package weave;
+package weave.misc;
 
 public abstract class Function
 {

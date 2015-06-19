@@ -53,9 +53,9 @@ import weave.Settings;
 import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncTask;
 import weave.configs.IConfig;
+import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
-import weave.utils.ReflectionUtils;
 import weave.utils.UpdateUtils;
 
 public class TrayManager extends Globals
