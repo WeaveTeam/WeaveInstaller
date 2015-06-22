@@ -79,8 +79,7 @@ public class JettyPlugin extends Plugin
 			} catch (InterruptedException e) {
 				trace(STDERR, e);
 			}
-			
-			getPluginPanel();
+			pluginPanelRefresh();
 		}
 	};
 	
@@ -167,8 +166,8 @@ public class JettyPlugin extends Plugin
 		progressLabel.setText("");
 		progressLabel.setVisible(false);
 		panel.add(progressLabel);
-		
-		return getPluginPanel();
+
+		return panel;
 	}
 	
 	@Override public void pluginPanelRefresh()

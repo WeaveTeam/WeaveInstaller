@@ -86,7 +86,7 @@ public class AnalystWorkstationPlugin extends Plugin
 				trace(STDERR, e);
 				BugReportUtils.showBugReportDialog(e);
 			}
-			getPluginPanel();
+			pluginPanelRefresh();
 		}
 	};
 	
@@ -191,8 +191,8 @@ public class AnalystWorkstationPlugin extends Plugin
 		progressLabel.setText("");
 		progressLabel.setVisible(false);
 		panel.add(progressLabel);
-		
-		return getPluginPanel();
+
+		return panel;
 	}
 	
 	@Override public void pluginPanelRefresh()
