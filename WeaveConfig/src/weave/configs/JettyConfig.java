@@ -176,8 +176,7 @@ public class JettyConfig extends Config
 		// Might have been caused by a previous improper shutdown
 		if( Settings.isServiceUp(getHost(), getPort()) )
 		{
-			stopTask.addCallback(stopCallback);
-			stopTask.execute();
+			stopTask.addCallback(stopCallback).execute();
 		}
 		else
 		{

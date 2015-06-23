@@ -23,9 +23,6 @@ import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import javax.swing.JOptionPane;
 
@@ -60,7 +57,7 @@ public class RemoteUtils extends Globals
 	
 	private static String[] getConfigFile()
 	{
-		URLRequestResult result = null;
+		String fileContent = null;
 		
 		if( Settings.isOfflineMode() )
 			return null;
@@ -68,8 +65,8 @@ public class RemoteUtils extends Globals
 		try {
 			if( configTimestamp < (System.currentTimeMillis() / 1000L) )
 			{
-				result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_CONFIG);
-				configFile = result.getResponseContent().split(";");
+				fileContent = URLRequestUtils.getContentBody(Settings.UPDATE_CONFIG);
+				configFile = fileContent.split(";");
 				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
 			}
 		} catch (IOException e) {
@@ -84,7 +81,11 @@ public class RemoteUtils extends Globals
 		if( Settings.isOfflineMode() )
 			return null;
 
-		for( String s : getConfigFile() )
+		String[] configFile = getConfigFile();
+		if( configFile == null )
+			return null;
+		
+		for( String s : configFile )
 			if( s.contains(key) )
 				return s.substring(s.indexOf(":")+1).trim();
 		
@@ -95,14 +96,11 @@ public class RemoteUtils extends Globals
 	@Reflectable
 	public static String[] getRemoteFiles()
 	{
-		URLRequestResult result = null;
-		
 		if( Settings.isOfflineMode() )
 			return null;
 		
 		try {
-			result = URLRequestUtils.request(URLRequestUtils.GET, Settings.UPDATE_FILES);
-			return result.getResponseContent().split(";");
+			return URLRequestUtils.getContentBody(Settings.UPDATE_FILES).split(";");
 		} catch (IOException e) {
 			trace(STDERR, e);
 			JOptionPane.showConfirmDialog(null, 
@@ -126,7 +124,7 @@ public class RemoteUtils extends Globals
 			return null;
 		
 		try {
-			return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_GET_IP).getResponseContent();
+			return URLRequestUtils.getContentBody(Settings.API_GET_IP);
 		} catch (IOException e) {
 			trace(STDERR, e);
 		}
@@ -143,7 +141,7 @@ public class RemoteUtils extends Globals
 	 * @return <code>true</code> if the service is up, <code>false</code> otherwise
 	 */
 	@Reflectable
-	public static boolean isServiceUp(String host, int port)
+	public static Boolean isServiceUp(String host, Integer port)
 	{
 		if( Settings.isOfflineMode() )
 			return false;
@@ -163,64 +161,50 @@ public class RemoteUtils extends Globals
 		}
 		return false;
 	}
-
+	
 	/**
-	 * Determine if an Internet connection can be established
+	 * Check to see if an internet connection to the {@link Settings#IWEAVE_URL} exists.<br>
+	 * This executes synchronously in the UI thread and returns the result back to the caller.
 	 * 
-	 * @return TRUE if there is an Internet connection, FALSE otherwise
+	 * @return <code>true</code> if a connection can be established, <code>false</code> otherwise
 	 */
-	public static Boolean isConnectedToInternet()
+	public static boolean isConnectedToInternet()
 	{
-		class ITC {
-			boolean isConnected = false;
-		}
-		final ITC itc = new ITC();
-		
-//		trace(STDOUT, "-> Checking Internet Connection...");
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL url 				= null;
-				HttpURLConnection conn 	= null;
-				try {
-					url = new URL(Settings.IWEAVE_URL);
-					conn = (HttpURLConnection) url.openConnection();
-					conn.setRequestMethod("GET");
-					conn.setReadTimeout(1500);
-					conn.setUseCaches(false);
-					conn.connect();
-				} catch (ConnectException e) {
-					// Don't trace error here
-					itc.isConnected = false;
-				} catch (IOException e) {
-					trace(STDERR, e);
-					itc.isConnected = false;
-				} finally {
-					if( conn != null )
-						conn.disconnect();
-				}
-				itc.isConnected = true;
-			}
-		});
 		try {
-			t.start();
-			t.join(2000);
-			t.interrupt();
-			t = null;
-		} catch (InterruptedException e) {
+			URLRequestUtils.request(URLRequestUtils.GET, Settings.IWEAVE_URL);
+			return true;
+		} catch (IOException e) {
 			trace(STDERR, e);
 		}
-		
-		Settings.isConnectedToInternet = itc.isConnected;
-		
-//		if( itc.isConnected )
-//			put(STDOUT, "CONNECTED");
-//		else
-//			put(STDOUT, "FAILED");
-		
-		return itc.isConnected;
+		return false;
 	}
-	
+
+	/**
+	 * Check to see if an internet connection to the {@link Settings#IWEAVE_URL} exists.<br>
+	 * This uses a callback implementation in a multi-threaded environment to keep the execution of
+	 * long running tasks off the UI thread.
+	 * 
+	 * <code><pre>
+	 * RemoteUtils.isConnectedToInternet(
+	 * 	new Function() {
+	 * 		public void run() {
+	 * 			// Connected to internet
+	 * 		}
+	 * 	},
+	 * 	new Function() {
+	 * 		public void run() {
+	 * 			// Not connected to internet
+	 * 		}
+	 * 	}
+	 * );
+	 * </pre></code>
+	 * 
+	 * @param ifTrue A {@link Function} to run if a connection to the internet <b>can</b> be established
+	 * @param ifFalse A {@link Function} to run if a connection to the internet <b>can not</b> be established
+	 * 
+	 * @see Function
+	 * @see Settings#IWEAVE_URL
+	 */
 	public static void isConnectedToInternet(final Function ifTrue, final Function ifFalse)
 	{
 		AsyncCallback callback = new AsyncCallback() {
@@ -235,13 +219,7 @@ public class RemoteUtils extends Globals
 		AsyncTask task = new AsyncTask() {
 			@Override
 			public Object doInBackground() {
-				try {
-					URLRequestUtils.request(URLRequestUtils.GET, Settings.IWEAVE_URL);
-					return true;
-				} catch (IOException e) {
-					trace(STDERR, e);
-				}
-				return false;
+				return isConnectedToInternet();
 			}
 		};
 		task.addCallback(callback).execute();

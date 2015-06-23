@@ -89,7 +89,6 @@ import javax.swing.text.html.HTMLDocument;
 import weave.Globals;
 import weave.Settings;
 import weave.Settings.INSTALL_ENUM;
-import weave.async.AsyncTask;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
@@ -253,44 +252,32 @@ public class HomeSetupPanel extends SetupPanel
 				}
 				else if( selectedTab == troubleshootTab )
 				{
-					AsyncTask task = new AsyncTask() {
-						@Override
-						public Object doInBackground() {
-							try {
-								if( Settings.isOfflineMode() )
-								{
-									troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
-									return null;
-								}
-								
-								troubleshootHTML.setPage(Settings.API_FAQ + "?" + System.currentTimeMillis());
-								
-								// Remove all link listeners
-								for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )
-									troubleshootHTML.removeHyperlinkListener(h);
-								// Add new link listener
-								troubleshootHTML.addHyperlinkListener(new HyperlinkListener() {
-									@Override
-									public void hyperlinkUpdate(HyperlinkEvent e) {
-										if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
-										{
-											try {
-												LaunchUtils.browse(e.getURL().toURI());
-											} catch (IOException | InterruptedException | URISyntaxException ex) {
-												trace(STDERR, ex);
-												BugReportUtils.showBugReportDialog(ex);
-											}
-										}
+					if( Settings.isOfflineMode() )
+					{
+						troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
+					}
+					else
+					{
+						RemoteUtils.isConnectedToInternet(
+							new Function() {
+								@Override
+								public void run() {
+									try {
+										troubleshootHTML.setPage(Settings.API_FAQ + "?" + System.currentTimeMillis());
+									} catch (IOException e) {
+										trace(STDERR, e);
+										troubleshootHTML.setText("<br><center>There was an error trying to load the FAQ</center>");
 									}
-								});
-							} catch (IOException e) {
-								trace(STDERR, e);
-								troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
+								}
+							}, 
+							new Function() {
+								@Override
+								public void run() {
+									troubleshootHTML.setText("<br><center>No internet connection found</center>");
+								}
 							}
-							return null;
-						}
-					};
-					task.execute();
+						);
+					}
 				}
 			}
 		});
@@ -830,7 +817,7 @@ public class HomeSetupPanel extends SetupPanel
 							Settings.LOCALHOST + ":" + 
 							ConfigManager.getConfigManager().getActiveContainer().getPort() +
 							"/weave.html?file=" + 
-							URLRequestUtils.encodeURL(sessionState.getName(), StandardCharsets.UTF_8));
+							URLRequestUtils.encode(sessionState.getName(), StandardCharsets.UTF_8));
 					
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
 					trace(STDERR, e);
@@ -927,6 +914,26 @@ public class HomeSetupPanel extends SetupPanel
 		troubleshootHTML.setContentType("text/html");
 		troubleshootHTML.setText("<br><center>Loading....</center>");
 		troubleshootHTML.setVisible(true);
+		
+		// Remove all link listeners
+		for( HyperlinkListener h : troubleshootHTML.getHyperlinkListeners() )
+			troubleshootHTML.removeHyperlinkListener(h);
+		
+		// Add new link listener
+		troubleshootHTML.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if( e.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+				{
+					try {
+						LaunchUtils.browse(e.getURL().toURI());
+					} catch (IOException | InterruptedException | URISyntaxException ex) {
+						trace(STDERR, ex);
+						BugReportUtils.showBugReportDialog(ex);
+					}
+				}
+			}
+		});
 
 		troubleshootScrollPane = new JScrollPane(troubleshootHTML, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		troubleshootScrollPane.setBounds(0, 0, parent.getWidth() - 10, parent.getHeight() - 30);

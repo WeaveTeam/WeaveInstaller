@@ -167,8 +167,8 @@ public class Config extends Globals implements IConfig
 	@Reflectable
 	@Override public boolean isConfigLoaded() 			{ return 	_loaded; }
 	@Override public void setHomepageURL(String s)		{			_homepage = s; }
-	@Override public void setDownloadURL(String s) 		{ 			_downloadURL = s; }
 	@Override public void setWebappsDirectory(File f) 	{ 			_webapps = f; }
+	@Override public void setDownloadURL(String s) 		{ 			_downloadURL = s; }
 	@Override public void setInstallFile(File f) 		{ 			_install_file = f; }
 	@Override public void setInstallVersion(String s)	{			_version = s; }
 	@Override public void setHost(String h)				{			_host = h; }

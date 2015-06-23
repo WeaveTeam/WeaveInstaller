@@ -19,7 +19,16 @@ public class URLRequestUtils extends Globals
 	public static final String POST = "POST";
 	public static final int TIMEOUT = 3000;
 	
-	public static String encodeURL(String url, Charset charset) throws UnsupportedEncodingException
+	/**
+	 * Encode a given string into <i>application/x-www-form-urlencoded</i> format.
+	 * 
+	 * @param url The string to encode
+	 * @param charset The charset encoding scheme
+	 * @return The encoded string
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	public static String encode(String url, Charset charset) throws UnsupportedEncodingException
 	{
 		return URLEncoder.encode(url, charset.displayName())
 					.replaceAll("\\+", "%20")
@@ -30,11 +39,31 @@ public class URLRequestUtils extends Globals
 					.replaceAll("\\%7E", "~");
 	}
 	
+	/**
+	 * Creates a new HTTP request with the given request method and URL string.<br>
+	 * The URL parameters for this request will be null.
+	 * 
+	 * @param method {@link #GET} or {@link #POST}
+	 * @param urlStr The string URL to make a connection to
+	 * @return A {@link URLRequestResult} object that holds the response headers and result body
+	 * 
+	 * @throws IOException
+	 */
 	public static URLRequestResult request(String method, String urlStr) throws IOException
 	{
 		return request(method, urlStr, null);
 	}
 	
+	/**
+	 * Creates a new HTTP request with the given request method, URL string, and parameters.
+	 * 
+	 * @param method {@link #GET} or {@link #POST}
+	 * @param urlStr The string URL to make a connection to
+	 * @param params The URL parameters to pass to the server
+	 * @return A {@link URLRequestResult} object that holds the response headers and result body
+	 * 
+	 * @throws IOException
+	 */
 	public static URLRequestResult request(final String method, final String urlStr, final URLRequestParams params) throws IOException
 	{
 		if( Settings.isOfflineMode() )
@@ -101,22 +130,22 @@ public class URLRequestUtils extends Globals
 		return result;
 	}
 	
-	public static String getContentHeader(final String url, final String field) throws InterruptedException, IOException
-	{
-		return getContentHeader(new URL(url), field);
-	}
-	public static String getContentHeader(final URL url, final String field) throws InterruptedException, IOException
+	public static String getContentHeader(String url, String field) throws IOException
 	{
 		if( Settings.isOfflineMode() )
 			return null;
 		
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setInstanceFollowRedirects(true);
-		conn.setRequestMethod(GET);
-		conn.setConnectTimeout(TIMEOUT);
-		conn.connect();
-
-		return new URLRequestResult(conn, "").getResponseHeader(field);
+		URLRequestResult result = request(GET, url);
+		return result.getResponseHeader(field);
+	}
+	
+	public static String getContentBody(String url) throws IOException
+	{
+		if( Settings.isOfflineMode() )
+			return null;
+		
+		URLRequestResult result = request(GET, url);
+		return result.getResponseContent();
 	}
 }
 

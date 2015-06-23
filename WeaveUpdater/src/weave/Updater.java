@@ -49,6 +49,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncTask;
@@ -138,7 +139,7 @@ public class Updater extends JFrame
 						JOptionPane.YES_NO_OPTION, 
 						JOptionPane.WARNING_MESSAGE ))
 				{
-					Settings.LAUNCH_MODE = Settings.LAUNCH_ENUM.OFFLINE_MODE;
+					Settings.LAUNCH_MODE = LAUNCH_ENUM.OFFLINE_MODE;
 					Settings.save();
 					LaunchUtils.launchWeaveUpdater(1000);
 					Settings.shutdown();

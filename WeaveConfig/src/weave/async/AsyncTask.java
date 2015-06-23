@@ -59,10 +59,11 @@ public abstract class AsyncTask extends Globals
 		callbacks.remove(c);
 		return this;
 	}
-	public void removeAllCallbacks() {
+	public AsyncTask removeAllCallbacks() {
 		Iterator<AsyncCallback> it = callbacks.iterator();
 		while( it.hasNext() )
 			removeCallback(it.next());
+		return this;
 	}
 	
 	
