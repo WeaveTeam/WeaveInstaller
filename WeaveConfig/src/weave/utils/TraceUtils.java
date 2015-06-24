@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -28,11 +28,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
+import weave.Globals;
 import weave.Settings;
-import weave.includes.IUtils;
 
-public class TraceUtils implements IUtils 
+public class TraceUtils extends Globals
 {
 	public static int STDOUT = 0;
 	public static int STDERR = 1;
@@ -43,10 +44,9 @@ public class TraceUtils implements IUtils
 	
 	private static ArrayList<String> pipes = new ArrayList<String>( Arrays.asList("stdout", "stderr") );
 	
-	@Override
-	public String getID() 
+	public static String getSimpleClassAndMsg( Throwable e )
 	{
-		return "TraceUtils";
+		return e.getClass().getSimpleName() + ": " + e.getLocalizedMessage();
 	}
 	
 	public static String getStackTrace( Throwable e )
@@ -71,6 +71,7 @@ public class TraceUtils implements IUtils
 	synchronized public static boolean trace( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -91,10 +92,37 @@ public class TraceUtils implements IUtils
 		}
 		return true;
 	}
+	
+	synchronized public static boolean traceln( int pipe, List<String> dump)
+	{
+		try {
+			d = new Date();
+			File logFile = getLogFile(pipe);
+			FileWriter fw = new FileWriter(logFile, true);
+			BufferedWriter bw = new BufferedWriter(fw);
+	
+			if( !logFile.getParentFile().exists() )	logFile.getParentFile().mkdirs();
+			if( !logFile.exists() )					logFile.createNewFile();
+			
+			for( String line : dump )
+			{
+				bw.write(Settings.N_L);
+				bw.write(tf.format(d) + " " + line);
+			}
+			bw.flush();
+			bw.close();
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 	synchronized public static boolean traceln( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -119,6 +147,7 @@ public class TraceUtils implements IUtils
 	synchronized public static boolean put( int pipe, String dump )
 	{
 		try {
+			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);

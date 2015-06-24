@@ -22,6 +22,10 @@
 	
 	
 	<target name="clean">
+		<!--
+		<delete dir="${env.APPDATA}/.weave/libs/" failonerror="false" />
+		-->
+		
 		<delete dir="WeaveConfig/bin/" failonerror="false" />
 		<delete dir="WeaveLauncher/bin/" failonerror="false" />
 		<delete dir="WeaveUpdater/bin/" failonerror="false" />
@@ -52,12 +56,20 @@
 	
 	
 	<target name="Config">
-		<javac srcdir="WeaveConfig/src/" destdir="WeaveConfig/bin/" debug="true">
+		<javac  srcdir="WeaveConfig/src/"
+				destdir="WeaveConfig/bin/" 
+				includeantruntime="false"
+				debug="true">
 			<classpath refid="WeaveConfigLibs" />
 		</javac>
 		
 		<copy todir="WeaveConfig/bin/resources/">
 			<fileset dir="WeaveConfig/src/resources/" />
+		</copy>
+		
+		<mkdir dir="${env.APPDATA}/.weave/libs/" />
+		<copy todir="${env.APPDATA}/.weave/libs/">
+			<fileset dir="WeaveConfig/libs/" includes="**.jar" />
 		</copy>
 	</target>
 
@@ -71,12 +83,10 @@
 
 		<javac 	srcdir="WeaveLauncher/src/" 
 				destdir="WeaveLauncher/bin/" 
-				classpathref="WeaveConfigIncludes"
-				debug="true"></javac>
-		
-		<copy todir="WeaveLauncher/bin/resources/" failonerror="false">
-			<fileset dir="WeaveLauncher/src/resources/" />
-		</copy>
+				includeantruntime="false"
+				debug="true">
+			<classpath refid="WeaveConfigIncludes" />
+		</javac>
 		
         <jar basedir="WeaveLauncher/bin/" destfile="WeaveLauncher/build/Launcher.jar" filesetmanifest="mergewithoutmain">
             <manifest>
@@ -100,22 +110,27 @@
 		<echo message="Building Updater..." />
 
 		<javac 	srcdir="WeaveUpdater/src/" 
-				destdir="WeaveUpdater/bin/" 
-				classpathref="WeaveConfigIncludes"
-				debug="true"></javac>
+				destdir="WeaveUpdater/bin/"
+				includeantruntime="false"
+				failonerror="false"
+				debug="true">
+			<classpath refid="WeaveConfigLibs" />
+			<classpath refid="WeaveConfigIncludes" />
+		</javac>
 		
 		<copy todir="WeaveUpdater/bin/resources/" failonerror="false">
 			<fileset dir="WeaveUpdater/src/resources/" />
 		</copy>
 		
-        <jar basedir="WeaveUpdater/bin/" destfile="WeaveUpdater/build/Updater_new.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="WeaveUpdater/build/Updater_new.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
                 <attribute name="Main-Class" value="weave.Updater"/>
-                <attribute name="Class-Path" value="."/>
+            	<attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar ../libs/jshortcut-0.4-oberzalek.jar"/>
             </manifest>
             <fileset dir="WeaveConfig/bin/" />
+        	<fileset dir="WeaveUpdater/bin/" />
         </jar>
 
 		<waitfor><available file="WeaveUpdater/build/Updater_new.jar" /></waitfor>
@@ -131,28 +146,31 @@
 
 		<javac 	srcdir="WeaveInstaller/src/" 
 				destdir="WeaveInstaller/bin/" 
-				classpathref="WeaveConfigIncludes" 
+				includeantruntime="false"
 				failonerror="false"
-				debug="true"></javac>
+				debug="true">
+			<classpath refid="WeaveConfigLibs" />
+			<classpath refid="WeaveConfigIncludes" />
+		</javac>
 		
 		<copy todir="WeaveInstaller/bin/resources/" failonerror="false">
 			<fileset dir="WeaveInstaller/src/resources/" />
 		</copy>
 
-		<jar basedir="WeaveInstaller/bin/" destfile="WeaveInstaller/build/Installer.jar" filesetmanifest="mergewithoutmain">
+		<jar destfile="WeaveInstaller/build/Server.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
                 <attribute name="Main-Class" value="weave.Installer" />
-                <attribute name="Class-Path" value="."/>
+                <attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar ../libs/jshortcut-0.4-oberzalek.jar"/>
             </manifest>
             <fileset dir="WeaveConfig/bin/" />
-			<exclude />
+			<fileset dir="WeaveInstaller/bin/" />
         </jar>
 
-		<waitfor><available file="WeaveInstaller/build/Installer.jar" /></waitfor>
-        <copy file="WeaveInstaller/build/Installer.jar" todir="${env.APPDATA}/.weave/bin/" />
-		<waitfor><available file="${env.APPDATA}/.weave/bin/Installer.jar" /></waitfor>
+		<waitfor><available file="WeaveInstaller/build/Server.jar" /></waitfor>
+        <copy file="WeaveInstaller/build/Server.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="${env.APPDATA}/.weave/bin/Server.jar" /></waitfor>
 	</target>
 	
 </project>

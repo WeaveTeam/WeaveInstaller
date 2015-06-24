@@ -26,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import weave.Settings;
+import weave.utils.UpdateUtils;
 
 @SuppressWarnings("serial")
 public class WeaveStats extends JPanel 
@@ -38,7 +39,7 @@ public class WeaveStats extends JPanel
 		setLayout(null);
 		setBackground(new Color(0xFFFFFF));
 		
-		desc = new JLabel("Weave Update:");
+		desc = new JLabel("Status:");
 		desc.setFont(new Font(Settings.FONT, Font.BOLD, 14));
 		
 		status = new JLabel("Loading...");
@@ -52,8 +53,8 @@ public class WeaveStats extends JPanel
 		
 		desc.setBounds(0, 0, 115, 25);
 		status.setBounds(115, 0, 140, 25);
-		desc2.setBounds(0, 25, 140, 20);
-		lastUpdateTime.setBounds(115, 25, 140, 20);
+		desc2.setBounds(0, 30, 140, 20);
+		lastUpdateTime.setBounds(115, 30, 140, 20);
 
 		add(desc);
 		add(status);
@@ -68,12 +69,14 @@ public class WeaveStats extends JPanel
 	 */
 	public void refresh(int _status)
 	{
-		if( _status == 1 )
-		{
+		if( _status == UpdateUtils.UPDATE_AVAILABLE ) {
 			status.setText("Update Available");
 			status.setForeground(new Color(0x004F00));
-		} else if( _status == 0 ){
+		} else if( _status == UpdateUtils.NO_UPDATE_AVAILABLE ) {
 			status.setText("Up to Date");
+			status.setForeground(Color.BLACK);
+		} else if( _status == UpdateUtils.UPDATE_OFFLINE ) {
+			status.setText("Offline...");
 			status.setForeground(Color.BLACK);
 		} else {
 			status.setText("Updating Error");

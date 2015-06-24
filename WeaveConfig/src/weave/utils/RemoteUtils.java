@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,175 +19,209 @@
 
 package weave.utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
 
-import javax.swing.JFrame;
+import java.io.IOException;
+
 import javax.swing.JOptionPane;
 
+import weave.Globals;
 import weave.Settings;
+import weave.async.AsyncCallback;
+import weave.async.AsyncTask;
+import weave.misc.Function;
+import weave.reflect.Reflectable;
 
-public class RemoteUtils
+public class RemoteUtils extends Globals
 {
-	public static final String WEAVE_UPDATES_URL		= "WeaveUpdatesURL";
+	public static final String WEAVE_BINARIES_URL		= "WeaveBinariesURL";
+	public static final String WEAVE_TAGS_URL			= "WeaveTagsURL";
 	
-	public static final String WEAVE_INSTALLER_VERSION 	= "WeaveInstallerVersion";
+	public static final String WEAVE_SERVER_INSTALL_URL	= "WeaveServerInstallURL";
+	public static final String WEAVE_SERVER_UPDATES_URL	= "WeaveServerUpdatesURL";
+	public static final String WEAVE_SERVER_VERSION 	= "WeaveServerVersion";
 	public static final String WEAVE_UPDATER_VERSION 	= "WeaveUpdaterVersion";
+	public static final String WEAVE_LAUNCHER_VERSION	= "WeaveLauncherVersion";
 
 	public static final String JETTY_URL 				= "JettyURL";
 	public static final String JETTY_VERSION 			= "JettyVersion";
 	
+	public static final String AWS_URL					= "AnalystURL";
+	public static final String AWS_VERSION				= "AnalystVersion";
+	
 	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
 	
-	public static List<String> entriesToCheck			= new ArrayList<String>( Arrays.asList( WEAVE_UPDATER_VERSION, 
-																								WEAVE_INSTALLER_VERSION,
-																								SHORTCUT_VER));
-	public static List<String> lookupEntries			= new ArrayList<String>( Arrays.asList( Settings.UPDATER_VER,
-																								Settings.INSTALLER_VER,
-																								Settings.SHORTCUT_VER));
-	/**
-	 * Assign new values to lookupEntries
-	 * 
-	 * Fixed SHORTCUT_VER bug
-	 */
-	public static void refreshLookupValues()
+	private static long 	configTimestamp				= 0;
+	private static String[] configFile					= null;
+	
+	private static String[] getConfigFile()
 	{
-		entriesToCheck = new ArrayList<String>( Arrays.asList( 	WEAVE_UPDATER_VERSION,
-																WEAVE_INSTALLER_VERSION,
-																SHORTCUT_VER));
-		lookupEntries = new ArrayList<String>( Arrays.asList( 	Settings.UPDATER_VER,
-																Settings.INSTALLER_VER,
-																Settings.SHORTCUT_VER ));
+		String fileContent = null;
+		
+		if( Settings.isOfflineMode() )
+			return null;
+			
+		try {
+			if( configTimestamp < (System.currentTimeMillis() / 1000L) )
+			{
+				fileContent = URLRequestUtils.getContentBody(Settings.UPDATE_CONFIG);
+				configFile = fileContent.split(";");
+				configTimestamp = (System.currentTimeMillis() / 1000L) + (60 * 60 * 6);
+			}
+		} catch (IOException e) {
+			trace(STDERR, e);
+		}
+		return configFile;
 	}
 	
-	/**
-	 * Check to see if an update is available for download.
-	 * 
-	 * @return TRUE if update exists, FALSE otherwise
-	 */
-	public static boolean isUpdateAvailable() 
+	@Reflectable
+	public static String getConfigEntry(String key)
 	{
-		if( Settings.isConnectedToInternet() )
-		{
-			File tempFile;
-			boolean missingFile = false;
-			boolean outOfDateFile = false;
-			
-			refreshLookupValues();
-			
-			for( int i = 0; i < entriesToCheck.size(); i++ )
-			{
-				String value = getConfigEntry( entriesToCheck.get(i) );
-				if( value == null ) return false;
-				
-				outOfDateFile |= !(value).equals(lookupEntries.get(i));
-			}
-			
-			String[] files = getRemoteFiles();
-			for( String f : files ) {
-				tempFile = new File(Settings.WEAVE_ROOT_DIRECTORY, f.trim());
-				if( !tempFile.exists() ) {
-					missingFile = true;
-					break;
-				}
-			}
-			return ( missingFile || outOfDateFile );
-		}
-		else 
-		{
+		if( Settings.isOfflineMode() )
+			return null;
+
+		String[] configFile = getConfigFile();
+		if( configFile == null )
+			return null;
+		
+		for( String s : configFile )
+			if( s.contains(key) )
+				return s.substring(s.indexOf(":")+1).trim();
+		
+		BugReportUtils.autoSubmitBugReport(new Exception("Error: \"" + key + "\" does not exist in RemoteUtils"));
+		return null;
+	}
+	
+	@Reflectable
+	public static String[] getRemoteFiles()
+	{
+		if( Settings.isOfflineMode() )
+			return null;
+		
+		try {
+			return URLRequestUtils.getContentBody(Settings.UPDATE_FILES).split(";");
+		} catch (IOException e) {
+			trace(STDERR, e);
 			JOptionPane.showConfirmDialog(null, 
 				"A connection to the internet could not be established.\n\n" +
 				"Please connect to the internet and try again.", 
 				"No Connection", 
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-			
-			if( Settings.CURRENT_PROGRAM_NAME.equals(Settings.UPDATER_NAME) )
-				Settings.shutdown( JFrame.ERROR );
+		}
+		return null;
+	}
+	
+	/**
+	 * Get the remote IP of the user's computer
+	 * 
+	 * @return 	The external IP of the user's or <code>null</code> if they are
+	 * 			in offline mode or a connection timeout is reached.
+	 */
+	public static String getIP()
+	{
+		if( Settings.isOfflineMode() )
+			return null;
+		
+		try {
+			return URLRequestUtils.getContentBody(Settings.API_GET_IP);
+		} catch (IOException e) {
+			trace(STDERR, e);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Use the Remote API to access if a service is up from outside of the network.
+	 * 
+	 * @param host The host/IP of the service
+	 * @param port The port number of the service
+	 * 
+	 * @return <code>true</code> if the service is up, <code>false</code> otherwise
+	 */
+	@Reflectable
+	public static Boolean isServiceUp(String host, Integer port)
+	{
+		if( Settings.isOfflineMode() )
+			return false;
+		
+		URLRequestParams params = new URLRequestParams();
+		params.add("ip", host);
+		params.add("port", "" + port);
+		
+		try {
+			return URLRequestUtils
+						.request(URLRequestUtils.GET, Settings.API_SOCKET, params)
+						.getResponseContent()
+						.equals("1");
+
+		} catch (IOException e) {
+			trace(STDERR, e);
 		}
 		return false;
 	}
 	
-	@SuppressWarnings("deprecation")
-	private static String[] getConfigFile()
-	{
-		String content = "";
-		
-		try {
-			URL url = new URL(Settings.UPDATE_CONFIG);
-			String line = "";
-			InputStream is = url.openStream();
-			DataInputStream dis = new DataInputStream(new BufferedInputStream(is));
-			
-			while( (line = dis.readLine()) != null )
-				content += line;
-		} catch (Exception e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
-		return content.split(";");
-	}
-	
-	public static String getConfigEntry(String key)
-	{
-		for( String s : getConfigFile() )
-			if( s.contains(key) )
-				return s.substring(s.indexOf(":")+1).trim();
-		
-		BugReportUtils.autoSubmitBugReport(new Exception("Error: " + key + " does not exist in RemoteUtils"));
-		return null;
-	}
-	
-	@SuppressWarnings("deprecation")
-	public static String[] getRemoteFiles()
-	{
-		String content = "";
-
-		try {
-			URL url = new URL(Settings.UPDATE_FILES);
-			String line = "";
-			InputStream is = url.openStream();
-			DataInputStream dis = new DataInputStream(new BufferedInputStream(is));
-			
-			while( (line = dis.readLine()) != null )
-				content += line;
-		} catch (Exception e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
-		return content.split(";");
-	}
-	
-	public static String getIP()
+	/**
+	 * Check to see if an internet connection to the {@link Settings#IWEAVE_URL} exists.<br>
+	 * This executes synchronously in the UI thread and returns the result back to the caller.
+	 * 
+	 * @return <code>true</code> if a connection can be established, <code>false</code> otherwise
+	 */
+	public static boolean isConnectedToInternet()
 	{
 		try {
-			URL url = new URL(Settings.API_GET_IP);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			StringBuilder response = new StringBuilder();
-			String inputLine;
-			
-			while( (inputLine = in.readLine()) != null ) {
-				response.append(inputLine);
-			}
-			
-			in.close();
-			
-			return response.toString();
-			
-		} catch (MalformedURLException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			URLRequestUtils.request(URLRequestUtils.GET, Settings.IWEAVE_URL);
+			return true;
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 		}
-		return null;
+		return false;
+	}
+
+	/**
+	 * Check to see if an internet connection to the {@link Settings#IWEAVE_URL} exists.<br>
+	 * This uses a callback implementation in a multi-threaded environment to keep the execution of
+	 * long running tasks off the UI thread.
+	 * 
+	 * <code><pre>
+	 * RemoteUtils.isConnectedToInternet(
+	 * 	new Function() {
+	 * 		public void run() {
+	 * 			// Connected to internet
+	 * 		}
+	 * 	},
+	 * 	new Function() {
+	 * 		public void run() {
+	 * 			// Not connected to internet
+	 * 		}
+	 * 	}
+	 * );
+	 * </pre></code>
+	 * 
+	 * @param ifTrue A {@link Function} to run if a connection to the internet <b>can</b> be established
+	 * @param ifFalse A {@link Function} to run if a connection to the internet <b>can not</b> be established
+	 * 
+	 * @see Function
+	 * @see Settings#IWEAVE_URL
+	 */
+	public static void isConnectedToInternet(final Function ifTrue, final Function ifFalse)
+	{
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				Boolean result = (Boolean) o;
+				
+				if( result )	ifTrue.call();
+				else			ifFalse.call();
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				return isConnectedToInternet();
+			}
+		};
+		task.addCallback(callback).execute();
 	}
 }

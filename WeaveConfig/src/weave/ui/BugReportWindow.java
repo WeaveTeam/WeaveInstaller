@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,11 +19,13 @@
 
 package weave.ui;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,24 +33,21 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import weave.Settings;
-import weave.utils.TraceUtils;
-import weave.utils.TrayManager;
+import weave.utils.LaunchUtils;
 
 @SuppressWarnings("serial")
 public class BugReportWindow extends JFrame 
@@ -76,76 +75,109 @@ public class BugReportWindow extends JFrame
 	public BugReportWindow(Throwable e)
 	{
 		_instance = this;
-		
-		_instance.setSize(400, 300); 	// 394 x 272 (inner)
+
+		_instance.setSize(400, 325); 	// 394 x 297 (inner)
 		_instance.setResizable(false);
 		_instance.setLayout(null);
+		_instance.setBackground(new Color(0xF0F0F0));
 		_instance.setTitle("Bug Reporter");
 		_instance.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		_instance.setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
 
-		Icon icon 						= new ImageIcon( resizeImage(30, 30, TrayManager.trayIconOffline) );
-		JLabel iconLabel 				= new JLabel(icon);
 		JEditorPane titleContainer 		= new JEditorPane();
+		JEditorPane exceptionContainer	= new JEditorPane();
 		JEditorPane messageContainer 	= new JEditorPane();
 		final JCheckBox checkbox 		= new JCheckBox("Tell developers about the bug", true);
-		final JButton details 			= new JButton("Details...");
+		final JButton detailsButton 	= new JButton("Details...");
 		final JTextArea commentPanel 	= new JTextArea(defaultComment);
 		final JScrollPane commentScroller = new JScrollPane(commentPanel);
 		JButton close					= new JButton("Close");
 		
-		iconLabel.setBounds(20, 10, 30, 30);
-		iconLabel.setVisible(true);
-		
 		String title = "<b>" + Settings.CURRENT_PROGRAM_NAME + " has encountered a bug</b>";
-		
-		titleContainer.setBounds(65, 15, 275, 30);
+		titleContainer.setBounds(20, 15, 354, 30);
 		titleContainer.setContentType("text/html");
 		titleContainer.setText(title);
-		titleContainer.setBackground(new Color(0xF0F0F0));
+		titleContainer.setOpaque(true);
+		titleContainer.setBackground(new Color(240,240,240,0));
 		titleContainer.setEditable(false);
 		titleContainer.setVisible(true);
+		titleContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
+
+		String exception = "<center><i>" + getSimpleClassAndMsg(e) + "</i></center>";
+		exceptionContainer.setBounds(20, 40, 354, 45);
+		exceptionContainer.setContentType("text/html");
+		exceptionContainer.setText(exception);
+		exceptionContainer.setOpaque(true);
+		exceptionContainer.setBackground(new Color(240,240,240,0));
+		exceptionContainer.setEditable(false);
+		exceptionContainer.setVisible(true);
+		exceptionContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
 		
-		String message  = "Continued use of the tool may cause stability issues.<br />";
-			   message += "It is recommended that you close the tool and try again.";
-		
-		messageContainer.setBounds(20, 50, 354, 55);
+		String  message  = "Continued use of the tool may cause stability issues.<br />";
+				message += "It is recommended that you close the tool and try again.";
+		messageContainer.setBounds(20, 90, 354, 45);
 		messageContainer.setContentType("text/html");
 		messageContainer.setText(message);
-		messageContainer.setBackground(new Color(0xF0F0F0));
+		messageContainer.setOpaque(true);
+		messageContainer.setBackground(new Color(240,240,240,0));
 		messageContainer.setEditable(false);
 		messageContainer.setVisible(true);
+		messageContainer.addMouseListener(new MouseListener() {
+			@Override public void mouseReleased(MouseEvent e) {
+				_instance.invalidate();
+				_instance.repaint();
+			}
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) { }
+		});
 		
-		details.setBounds(284, 110, 90, 25);
-		details.addActionListener(new ActionListener() {
+		detailsButton.setBounds(284, 140, 90, 25);
+		detailsButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if( Desktop.isDesktopSupported() ) {
-					if( TraceUtils.getLogFile(TraceUtils.STDERR).exists() ) {
-						try {
-							Desktop.getDesktop().open(TraceUtils.getLogFile(TraceUtils.STDERR));
-						} catch (IOException e) {
-							TraceUtils.trace(TraceUtils.STDERR, e);
-						}
-					}
+				try {
+					if( getLogFile(STDERR).exists() )
+						LaunchUtils.open(getLogFile(STDERR).getAbsolutePath());
+				} catch (IOException | InterruptedException e) {
+					trace(STDERR, e);
 				}
 			}
 		});
-		details.setEnabled(true);
-		details.setVisible(true);
+		detailsButton.setEnabled(true);
+		detailsButton.setVisible(true);
 		
-		checkbox.setBounds(20, 110, 190, 25);
+		checkbox.setBounds(20, 140, 250, 25);
 		checkbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				if( checkbox.isSelected() ) {
 					CLOSE_OPTION = YES_OPTION;
-					details.setEnabled(true);
+					detailsButton.setEnabled(true);
 					commentPanel.setEnabled(true);
 					commentScroller.setEnabled(true);
 				} else {
 					CLOSE_OPTION = NO_OPTION;
-					details.setEnabled(false);
+					detailsButton.setEnabled(false);
 					commentPanel.setEnabled(false);
 					commentScroller.setEnabled(false);
 				}
@@ -158,19 +190,19 @@ public class BugReportWindow extends JFrame
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				if( commentPanel.getText().trim().length() == 0 )
-					commentPanel.setText("Additional Comments...");
+					commentPanel.setText(defaultComment);
 			}
 			@Override
 			public void focusGained(FocusEvent arg0) {
-				if( commentPanel.getText().trim().equals("Additional Comments...") )
+				if( commentPanel.getText().trim().equals(defaultComment) )
 					commentPanel.setText("");
 			}
 		});
 		
-		commentScroller.setBounds(40, 140, 334, 75);
+		commentScroller.setBounds(20, 170, 354, 75);
 		commentScroller.setVisible(true);
 		
-		close.setBounds(157, 225, 80, 25);
+		close.setBounds(157, 250, 80, 25);
 		close.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -184,10 +216,10 @@ public class BugReportWindow extends JFrame
 		close.setEnabled(true);
 		close.setVisible(true);
 		
-		_instance.add(iconLabel);
 		_instance.add(titleContainer);
+		_instance.add(exceptionContainer);
 		_instance.add(messageContainer);
-		_instance.add(details);
+		_instance.add(detailsButton);
 		_instance.add(checkbox);
 		_instance.add(commentScroller);
 		_instance.add(close);
@@ -205,16 +237,6 @@ public class BugReportWindow extends JFrame
 			@Override public void windowClosed(WindowEvent arg0) { }
 			@Override public void windowActivated(WindowEvent arg0) { }
 		});
-	}
-	
-	private static BufferedImage resizeImage(int width, int height, Image original)
-	{
-		BufferedImage resized = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
-		Graphics2D g = resized.createGraphics();
-		g.drawImage(original, 0, 0, width, height, null);
-		g.dispose();
-		
-		return resized;
 	}
 	
 	public class _internal

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,42 +19,32 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getLogFile;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
+import static weave.utils.TraceUtils.getStackTrace;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.HeadlessException;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONObject;
-
+import weave.Globals;
 import weave.Settings;
-import weave.includes.IUtils;
 import weave.ui.BugReportWindow;
 
-public class BugReportUtils implements IUtils
+public class BugReportUtils extends Globals
 {
-	@Override
-	public String getID() 
-	{
-		return "BugReportUtils";
-	}
-	
 	public static void autoSubmitBugReport( final Throwable e )
 	{
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Bug detected !!");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Stack Trace in " + TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath() );
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
+		traceln(STDOUT, "");
+		traceln(STDOUT, "!! Bug detected !!");
+		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
+		traceln(STDOUT, "");
 
 		submitReport(e, "");
 	}
@@ -64,10 +54,13 @@ public class BugReportUtils implements IUtils
 		Settings.canQuit = false;
 		
 		final BugReportWindow brw = BugReportWindow.instance(e);
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Bug detected !!");
-		TraceUtils.traceln(TraceUtils.STDOUT, "!! Stack Trace in " + TraceUtils.getLogFile(TraceUtils.STDERR).getAbsolutePath() );
-		TraceUtils.traceln(TraceUtils.STDOUT, "");
+		traceln(STDOUT, "");
+		traceln(STDOUT, "!! Bug detected !!");
+		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
+		traceln(STDOUT, "");
+		
+		for( WindowListener l : brw.getWindowListeners() )
+			brw.removeWindowListener(l);
 		
 		brw.addWindowListener(new WindowListener() {
 			@Override public void windowOpened(WindowEvent arg0) { }
@@ -75,14 +68,14 @@ public class BugReportUtils implements IUtils
 			@Override public void windowDeiconified(WindowEvent arg0) { }
 			@Override public void windowDeactivated(WindowEvent arg0) {	}
 			@Override public void windowClosing(WindowEvent arg0) {
-				TraceUtils.trace(TraceUtils.STDOUT, "-> Should send bug report?........");
+				trace(STDOUT, StringUtils.rpad("-> Should send bug report?", ".", Settings.LOG_PADDING_LENGTH));
 				if( brw.CLOSE_OPTION == BugReportWindow.YES_OPTION ) {
-					TraceUtils.put(TraceUtils.STDOUT, "YES");
+					put(STDOUT, "YES");
 					
 					String c = ( brw.data.comment.trim().equals(BugReportWindow.defaultComment) ? "" : brw.data.comment );
 					submitReport( e, c );
 				} else {
-					TraceUtils.put(TraceUtils.STDOUT, "NO");
+					put(STDOUT, "NO");
 				}
 				Settings.canQuit = true;
 			}
@@ -94,45 +87,28 @@ public class BugReportUtils implements IUtils
 	
 	private static void submitReport(Throwable e, String comment)
 	{
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Sending Bug report.............");
+		trace(STDOUT, StringUtils.rpad("-> Sending Bug report", ".", Settings.LOG_PADDING_LENGTH));
 
 		try {
-			String stack = TraceUtils.getStackTrace(e);
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("os", Settings.getExactOS());
-			map.put("updr_ver", Settings.UPDATER_VER);
-			map.put("instll_ver", Settings.INSTALLER_VER);
-			map.put("comment", comment);
-			map.put("stack", stack);
+			String stack = getStackTrace(e);
 			
-			JSONObject json = new JSONObject(map);
-			HttpClient client = new DefaultHttpClient();
-			HttpPost post = new HttpPost(Settings.API_BUG_REPORT);
-			System.out.println(json.toString());
-	
-			StringEntity params = new StringEntity("json="+json.toString());
-			post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-			post.setEntity(params);
+			URLRequestParams params = new URLRequestParams();
+			params.add("os", Settings.getExactOS());
+			params.add("updr_ver", Settings.UPDATER_VER);
+			params.add("instll_ver", Settings.SERVER_VER);
+			params.add("comment", comment);
+			params.add("stack", stack);
+			params.add("epoch", ""+(System.currentTimeMillis()/1000));
 			
-			HttpResponse response = client.execute(post);
-			InputStream is = response.getEntity().getContent();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			StringBuilder sb = new StringBuilder();
+			URLRequestResult result = URLRequestUtils.request(URLRequestUtils.POST, Settings.API_BUG_REPORT, params);
 			
-			String line = "";
-			while( (line = br.readLine()) != null )
-				sb.append(line + Settings.N_L);
+			put(STDOUT, (result.getResponseContent().equals("1") ? "SUCCESSFUL" : "ERROR")
+						+ " [ " + result.getResponseHeader(null) + " ]" 
+						+ " : " + result.getResponseContent().replaceAll("\\<.*?>", ""));
 			
-			System.out.println("");
-			System.out.println(sb.toString());
-			System.out.println("");
-			
-		} catch (ClientProtocolException e1) {	
-			TraceUtils.trace(TraceUtils.STDERR, e1);
 		} catch (IOException e1) {
-			TraceUtils.trace(TraceUtils.STDERR, e1);
+			trace(STDERR, e1);
+			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e1) + ")");
 		}
-		
-		TraceUtils.put(TraceUtils.STDOUT, "DONE");
 	}
 }

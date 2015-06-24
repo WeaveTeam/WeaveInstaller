@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,108 +19,124 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import weave.includes.IUtils;
+import weave.Globals;
 
-public class ProcessUtils implements IUtils
+public class ProcessUtils extends Globals
 {
 	protected static Runtime runtime = Runtime.getRuntime();
 	protected static Process proccess = null;
 	
-	protected static InputStream inStream;
-	protected static InputStreamReader inStreamReader;
-	protected static BufferedReader buffReader;
-	
-	private static Thread currentThread = null;
-	
-	public ProcessUtils(){
+	public static Map<String, List<String>> run(List<String> cmds) throws IOException, InterruptedException
+	{
+		String[] strList = cmds.toArray(new String[cmds.size()]);
+		return run(strList);
 	}
+	public static Map<String, List<String>> run(String cmds[]) throws IOException, InterruptedException
+	{
+		return run(cmds, (File)null, (File)null);
+	}
+	public static Map<String, List<String>> run(String cmds[], String stdout, String stderr) throws IOException, InterruptedException
+	{
+		return run(cmds, new File(stdout), new File(stderr));
+	}
+	public static Map<String, List<String>> run(String cmds[], File stdout, File stderr) throws IOException, InterruptedException
+	{
+		Map<String, List<String>> returnMap = new HashMap<String, List<String>>();
+		ProcInternals internals = new ProcInternals();
+		internals.output = new ArrayList<String>();
+		internals.error = new ArrayList<String>();
+		
+		if( cmds == null )
+			throw new NullPointerException("Runtime cannot run NULL commands.");
+		
+		proccess = runtime.exec(cmds);
 
-	@Override
-	public String getID() {
-		return "ProcessUtils";
-	}
-	
-	
-	public static ArrayList<String> runAndWait( List<String> cmds ) throws IOException, InterruptedException
-	{
-		String[] strList = new String[cmds.size()];
-		return runAndWait(strList);
-	}
-	public static ArrayList<String> runAndWait( final String cmds[] ) throws InterruptedException
-	{
-		ProcInternals proc = new ProcInternals();
-		ProccessRunnable pr = new ProccessRunnable(cmds, proc); 
-		currentThread = new Thread(pr);
+		ProcessStream outputStream = new ProcessStream(proccess.getInputStream(), internals.output, stdout);
+		ProcessStream errorStream = new ProcessStream(proccess.getErrorStream(), internals.error, stderr);
 		
-		currentThread.start();
-		currentThread.join();
+		outputStream.start();
+		errorStream.start();
 		
-		return proc.result;
-	}
-	public static void stopWaiting()
-	{
-		if( currentThread.isAlive() )
-		{
-			currentThread.interrupt();
-			currentThread = null;
-		}
+		proccess.waitFor();
+		
+		returnMap.put("output", internals.output);
+		returnMap.put("error", internals.error);
+		
+		return returnMap;
 	}
 }
 
 class ProcInternals
 {
-	public ArrayList<String> result = null;
+	public List<String> output = null;
+	public List<String> error = null;
 }
 
-class ProccessRunnable extends ProcessUtils implements Runnable
+class ProcessStream extends Thread
 {
-	private String cmds[] = null;
-	ProcInternals proc = null;
+	private InputStream is = null;
+	private BufferedReader reader = null;
+	private BufferedWriter writer = null;
+	private List<String> list = null;
+	private File output = null;
 	
-	public ProccessRunnable(String cmds[], ProcInternals proc)
+	public ProcessStream(InputStream is, List<String> list)
 	{
-		this.cmds = cmds;
-		this.proc = proc;
-		this.proc.result = new ArrayList<String>();
+		this(is, list, null);
 	}
 	
+	public ProcessStream(InputStream is, List<String> list, File output)
+	{
+		this.is = is;
+		this.list = list;
+		this.output = output;
+	}
 	
 	@Override
-	public void run() {
-		
-		String line = "";
-		
+	public void run()
+	{
 		try {
-			proccess = runtime.exec(cmds);
-			proccess.waitFor();
 
-			inStream = proccess.getInputStream();
-			inStreamReader = new InputStreamReader(inStream);
-			buffReader = new BufferedReader(inStreamReader);
-			
-			while( (line = buffReader.readLine()) != null )
-				proc.result.add(line);
-			
-			buffReader.close();
-			
-			proccess.getOutputStream().close();
-			proccess.getInputStream().close();
-			proccess.getErrorStream().close();
-			proccess.destroy();
-			
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
+			String line = "";
+			reader = new BufferedReader(new InputStreamReader(is));
+			if( output != null ) {
+				writer = new BufferedWriter(new FileWriter(output, true));
+				writer.newLine();
+			}
+		
+			while( (line = reader.readLine()) != null ) {
+//				System.out.println(line);
+				list.add(line);
+				if( writer != null ) {
+					writer.write(line);
+					writer.newLine();
+					writer.flush();
+				}
+			}
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
+		} finally {
+			try {
+				if( reader != null ) 	reader.close();
+				if( writer != null )	writer.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 }

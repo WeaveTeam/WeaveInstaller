@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="WeaveConfig/libs"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="libs/commons-codec-1.6.jar"/>
 	<classpathentry kind="lib" path="libs/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="libs/fluent-hc-4.2.5.jar"/>
@@ -11,6 +15,9 @@
 	<classpathentry kind="lib" path="libs/JSON-java.jar"/>
 	<classpathentry kind="lib" path="libs/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="libs/jshortcut-0.4-oberzalek.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6.0_43"/>
+	<classpathentry kind="lib" path="libs/jfxrt.jar"/>
+	<classpathentry kind="lib" path="libs/JTattoo-1.6.10.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="libs/JSplitButton_1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

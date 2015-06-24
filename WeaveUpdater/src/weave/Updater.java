@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,6 +19,12 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -30,7 +36,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.zip.ZipException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,9 +49,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import sun.java2d.HeadlessGraphicsEnvironment;
+import weave.Settings.LAUNCH_ENUM;
+import weave.async.AsyncCallback;
+import weave.async.AsyncObserver;
+import weave.async.AsyncTask;
 import weave.dll.DLLInterface;
-import weave.includes.IUtilsInfo;
+import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -50,10 +62,12 @@ import weave.utils.IdentityUtils;
 import weave.utils.LaunchUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
-import weave.utils.TraceUtils;
-import weave.utils.TrayManager;
+import weave.utils.StringUtils;
+import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
+
+import com.jtattoo.plaf.fast.FastLookAndFeel;
 
 @SuppressWarnings("serial")
 public class Updater extends JFrame
@@ -65,42 +79,58 @@ public class Updater extends JFrame
 	public 	JLabel			statusLabel 	= null;
 	public	JProgressBar 	statusProgress	= null;
 	public 	JButton			cancelButton	= null;
+	
 	private boolean			isUpdate		= false;
 	
 	private final String _TMP_UPDATE_ZIPFILE_NAME = "updates.zip";
-	private final String _TMP_UPDATE_FOLDER_NAME = Settings.F_S + "updates" + Settings.F_S;
 	
 	public static void main( String[] args ) 
 	{
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel(FastLookAndFeel.class.getCanonicalName());
+		} catch (ClassNotFoundException e) {
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (ClassNotFoundException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (InstantiationException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalAccessException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (UnsupportedLookAndFeelException e1) {	trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			}
+		} catch (InstantiationException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		}
+		
+		try {
 			Thread.sleep(1000);
 			
+			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
 			Settings.init();
 			
-			Thread.sleep(1000);
 			if( !Settings.getLock() )
 			{
-				JOptionPane.showMessageDialog(null, Settings.CURRENT_PROGRAM_NAME + " is already running.", "Error", JOptionPane.ERROR_MESSAGE);
+				int ownerID = Integer.parseInt(FileUtils.getFileContents(Settings.SLOCK_FILE));
+				JOptionPane.showMessageDialog(null, 
+						Settings.CURRENT_PROGRAM_NAME + " is already running with pid: " + ownerID + ".\n\n" +
+						"Please stop that one before starting another.", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
 			
-			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
+			traceln(STDOUT, "");
+			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
-			TraceUtils.traceln(TraceUtils.STDOUT, "");
-			TraceUtils.traceln(TraceUtils.STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
-
-			if( !Desktop.isDesktopSupported() || HeadlessGraphicsEnvironment.isHeadless() )
+			if( !Desktop.isDesktopSupported() )
 			{
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! Fault detected !!");
-				TraceUtils.traceln(TraceUtils.STDOUT, "!! System does not support Java Desktop Features" );
-				TraceUtils.traceln(TraceUtils.STDOUT, "");
+				traceln(STDOUT, "");
+				traceln(STDOUT, "!! Fault detected !!");
+				traceln(STDOUT, "!! System does not support Java Desktop Features" );
+				traceln(STDOUT, "");
 				Settings.shutdown(ABORT);
 				return;
 			}
 			
-			if( !Settings.isOfflineMode() && !Settings.isConnectedToInternet() )
+			if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 			{
 				if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
 						"It appears you have no connection to the internet.\n" +
@@ -109,7 +139,7 @@ public class Updater extends JFrame
 						JOptionPane.YES_NO_OPTION, 
 						JOptionPane.WARNING_MESSAGE ))
 				{
-					Settings.LAUNCH_MODE = Settings.MODE.OFFLINE_MODE;
+					Settings.LAUNCH_MODE = LAUNCH_ENUM.OFFLINE_MODE;
 					Settings.save();
 					LaunchUtils.launchWeaveUpdater(1000);
 					Settings.shutdown();
@@ -119,12 +149,8 @@ public class Updater extends JFrame
 			}
 			updater = new Updater();
 			
-		} catch (ClassNotFoundException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InstantiationException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {			TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (UnsupportedLookAndFeelException e) {	TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (IOException e) {						TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {				TraceUtils.trace(TraceUtils.STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IOException e) {						trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
 	}
 	
@@ -137,9 +163,9 @@ public class Updater extends JFrame
 		setTitle(Settings.UPDATER_TITLE);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(screen.width/2 - getWidth()/2, screen.height/2 - getHeight()/2);
-		setIconImage(TrayManager.trayIconOnline);
+		setIconImage(ImageIO.read(ResourceManager.IMAGE_NULL));
 		
-		staticLabel = new JLabel("Updating " + Settings.INSTALLER_NAME + "...");
+		staticLabel = new JLabel("Updating " + Settings.SERVER_NAME + "...");
 		staticLabel.setBounds(20, 10, 400, 20);
 		staticLabel.setFont(new Font(Settings.FONT, Font.PLAIN, 15));
 		staticLabel.setVisible(true);
@@ -169,12 +195,10 @@ public class Updater extends JFrame
 		cancelButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if( Settings.downloadLocked )
-					Settings.downloadCanceled = true;
-				else {
-					if( Settings.canQuit )
-						Settings.shutdown();
-				}
+				if( Settings.transferLocked )
+					Settings.transferCancelled = true;
+				else
+					Settings.shutdown();
 			}
 		});
 		cancelButton.setVisible(true);
@@ -196,252 +220,267 @@ public class Updater extends JFrame
 		setVisible(true);
 		
 		
-		/*=================================================
-		 * This is strictly for the offline mode
-		 *================================================*/
+		//=================================================
+		// This is strictly for the offline mode
+		//=================================================
 		if( Settings.isOfflineMode() )
 		{
 			setTitle(getTitle() + " [OFFLINE MODE]");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Offline Mode enabled...");
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
+			traceln(STDOUT, "-> Offline Mode Enabled...");
+			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
 
 			staticLabel.setText(Settings.UPDATER_NAME);
-			statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
-			
-			Thread.sleep(1000);
-			
-			LaunchUtils.launchWeaveInstaller();
+			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
+
+			Settings.setDirectoryPermissions();
+			LaunchUtils.launchWeaveInstaller(1000);
 			
 			Settings.shutdown();
 		}
+
+		
+		//=================================================
+		// Everything below this is for online launching
+		//=================================================
+		traceln(STDOUT, StringUtils.rpad("-> Online Mode Enabled", ".", Settings.LOG_PADDING_LENGTH));
 		
 		
-		/*=================================================
-		 * Everything below this is for online launching
-		 *================================================*/
-		
-		// Need to check if this WeaveInstaller tool 
+		// Need to check if this tool 
 		// has a unique ID assigned to it
 		Settings.canQuit = false;
 		if( !Settings.hasUniqueID() ) {
 			Settings.UNIQUE_ID = IdentityUtils.createID();
 			Settings.save();
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
+			traceln(STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
 		}
 		Settings.canQuit = true;
 
-		isUpdate = UpdateUtils.isUpdateAvailable();
 		
-		if( isUpdate )
+		// Check to see if there is an update available and if 
+		// we should update at this time
+		traceln(STDOUT, StringUtils.rpad("-> Checking for updates", ".", Settings.LOG_PADDING_LENGTH));
+		isUpdate = UpdateUtils.isServerUpdateAvailable();
+		
+		if( isUpdate || Settings.UPDATE_OVERRIDE )
 		{
-			TraceUtils.traceln(TraceUtils.STDOUT, "-> Update is available!");
-
-			int status = downloadUpdate();
+			put(STDOUT, "AVAILABLE");
 			
-			if( status == DownloadUtils.FAILED )
-			{
-				
-			}
-			else if( status == DownloadUtils.CANCELLED )
-			{
-				if( JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, "Would you like to launch anyway?", "Download Cancelled", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
-					Settings.shutdown();
-				}
-			}
-			else if( status == DownloadUtils.COMPLETE ) 
-			{
-				StatsUtils.logUpdate();
-				installUpdate();
-			}
+			Settings.UPDATE_OVERRIDE = false;
+			Settings.save();
+
+			downloadUpdate();
 		}
-
-		StatsUtils.noop();
-		
-		cleanUp();
-		moveToNewFolder();
-		
-		String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
-		if( ver != null )
-			createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
-		Thread.sleep(1000);
-		
-		TraceUtils.traceln(TraceUtils.STDOUT, "-> Launching " + Settings.INSTALLER_NAME + "...");
-		statusLabel.setText("Launching " + Settings.INSTALLER_NAME + "...");
-
-		while( !Settings.canQuit ) Thread.sleep(1000);
-
-		LaunchUtils.launchWeaveInstaller(1000);
-
-		StatsUtils.noop();
-		Thread.sleep(50);
-		Settings.shutdown();
-	}
-	
-	private int downloadUpdate()
-	{
-		int status = 0;
-		
-		try {
-			String link = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_UPDATES_URL);
-			if( link == null )
-				return 0;
-			
-			File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
-
-			if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() ) 
-				Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
-			
-			if( destination.exists() ) 
-				destination.delete();
-			
-			destination.createNewFile();
-			
-			TraceUtils.trace(TraceUtils.STDOUT, "-> Downloading update.............");
-			statusLabel.setText("Downloading update....");
-			statusProgress.setIndeterminate(false);
-			statusProgress.setValue(0);
-
-			IUtilsInfo downloadInfo = new IUtilsInfo() {
-				@Override
-				public void onProgressUpdate() {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							statusProgress.setValue( info.progress );
-							statusLabel.setText( String.format("Downloading update....%d%%", info.progress) );
-						}
-					});
-				}
-			};
-			
-			Settings.downloadLocked = true;
-			Settings.downloadCanceled = false;
-			
-			DownloadUtils d = new DownloadUtils();
-			d.addEventListener(null, downloadInfo);
-			status = d.downloadWithInfo(link, destination);
-			
-			Settings.downloadCanceled = false;
-			Settings.downloadLocked = false;
-			
-			switch( status ) {
-				case DownloadUtils.FAILED:
-					TraceUtils.put(TraceUtils.STDOUT, "FAILED");
-					statusLabel.setForeground(Color.RED);
-					statusLabel.setText("Download Failed....");
-					break;
-					
-				case DownloadUtils.CANCELLED:
-					TraceUtils.put(TraceUtils.STDOUT, "CANCELLED");
-					statusLabel.setText("Cancelling download...");
-					break;
-				
-				case DownloadUtils.COMPLETE:
-					TraceUtils.put(TraceUtils.STDOUT, "DONE");
-					statusLabel.setText("Download complete....");
-					break;
-			}
-			
-			d.removeEventListener();
-			System.gc();
-			Thread.sleep(2000);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		}
-		return status;
-	}
-	private void installUpdate()
-	{
-		File zipFile = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
-		File unzippedFile = new File(Settings.UNZIP_DIRECTORY, _TMP_UPDATE_FOLDER_NAME);
-		
-		TraceUtils.trace(TraceUtils.STDOUT, "-> Installing update..............");
-		
-		try {
-			
-			IUtilsInfo zipInfo = new IUtilsInfo() {
-				@Override
-				public void onProgressUpdate() {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							statusProgress.setValue( info.progress / 2 );
-							statusLabel.setText( String.format("Extracting update....%d%%", info.progress / 2 ) );
-						}
-					});
-				}
-			};
-			IUtilsInfo fileInfo = new IUtilsInfo() {
-				@Override
-				public void onProgressUpdate() {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							statusProgress.setValue(50 + info.progress / 2 );
-							statusLabel.setText( String.format("Installing update....%d%%", 50 + info.progress / 2 ));
-						}
-					});
-				}
-			};
-
-			Settings.canQuit = false;
-			
-			statusLabel.setText("Extracting update....");
-			statusProgress.setIndeterminate(false);
-			Thread.sleep(500);
-			
-			statusProgress.setValue(0);
-			statusLabel.setText("Extracting update....0%" );
-			Thread.sleep(800);
-			
-			ZipUtils zu = new ZipUtils();
-			zu.addEventListener(null, zipInfo, zipFile);
-			zu.extractZipWithInfo(zipFile, unzippedFile);
-			
-			statusProgress.setValue( 50 );
-			statusLabel.setText( "Installing update....50%" );
-			Thread.sleep(800);
-			
-			FileUtils fu = new FileUtils();
-			fu.addEventListener(null, fileInfo, unzippedFile, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
-			fu.copyWithInfo(unzippedFile, Settings.WEAVE_ROOT_DIRECTORY, FileUtils.OVERWRITE | FileUtils.OPTION_MULTIPLE_FILES);
-			
-			statusProgress.setValue( 100 );
-			statusLabel.setText( "Installing update....100%" );
-			Thread.sleep(800);
-			
-			System.gc();
-			statusLabel.setText("Install complete....");
-			TraceUtils.put(TraceUtils.STDOUT, "DONE");
-			
-			Settings.canQuit = true;
-			
-			zu.removeEventListener();
-			fu.removeEventListener();
-			
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+		else
+		{
+			put(STDOUT, "NONE");
+			finish();
 		}
 	}
 	
-	private void cleanUp() throws InterruptedException
+	private void downloadUpdate() throws IOException
 	{
-		statusLabel.setText("Cleaning up...");
-		statusProgress.setString("");
-		statusProgress.setIndeterminate(true);
+		// Get update URL
+		final URL url;
+		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_SERVER_UPDATES_URL);
+		if( urlStr == null ) {
+			JOptionPane.showConfirmDialog(null, 
+				"A connection to the internet could not be established.\n\n" +
+				"Please connect to the internet and try again.", 
+				"No Connection", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+			Settings.shutdown(JFrame.NORMAL);
+		}
+		url = new URL(urlStr);
+		
+		final File destination = new File(Settings.DOWNLOADS_TMP_DIRECTORY, _TMP_UPDATE_ZIPFILE_NAME);
+		if( !Settings.DOWNLOADS_TMP_DIRECTORY.exists() ) 
+			Settings.DOWNLOADS_TMP_DIRECTORY.mkdirs();
+		
+		if( destination.exists() ) 
+			destination.delete();
+		destination.createNewFile();
+		
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if( info.max == -1 ) {
+							// Unknown max size
+							statusProgress.setIndeterminate(true);
+							statusLabel.setText( String.format("Downloading update....  %s", FileUtils.sizeify(info.cur)));
+						} else {
+							// Known max size
+							statusProgress.setValue( info.percent );
+							statusLabel.setText( String.format("Downloading update....  %d%%", info.percent));
+						}
+					}
+				});
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+				
+				Settings.transferCancelled = false;
+				Settings.transferLocked = false;
+				
+				try {
+					switch( returnCode )
+					{
+						case TransferUtils.COMPLETE:
+							put(STDOUT, "DONE");
+							statusLabel.setText("Download complete....");
+							
+							StatsUtils.logUpdate();
+							Thread.sleep(2000);
+							installUpdate(destination);
+							break;
+						case TransferUtils.CANCELLED:
+							put(STDOUT, "CANCELLED");
+							statusLabel.setText("Cancelling download...");
+							
+							if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
+									"Would you like to launch anyway?", "Download Cancelled", 
+									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE))
+							{
+								Settings.setDirectoryPermissions();
+								LaunchUtils.launchWeaveInstaller();
+							}
+							Settings.shutdown();
+							break;
+						case TransferUtils.FAILED:
+							put(STDOUT, "FAILED");
+							statusLabel.setForeground(Color.RED);
+							statusLabel.setText("Download Failed....");
+							break;
+						case TransferUtils.OFFLINE:
+							break;
+					}
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(url);
+					o = DownloadUtils.download(url, destination, observer, 500 * DownloadUtils.KB);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		trace(STDOUT, StringUtils.rpad("-> Downloading update", ".", Settings.LOG_PADDING_LENGTH));
+		statusLabel.setText("Downloading update....");
+		statusProgress.setIndeterminate(false);
 		statusProgress.setValue(0);
-		System.gc();
-		Settings.cleanUp();
+
+		Settings.transferLocked = true;
+		Settings.transferCancelled = false;
+		
+		task.addCallback(callback).execute();
+	}
+	
+	private void installUpdate(final File zipFile)
+	{
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						statusProgress.setValue( info.percent );
+						statusLabel.setText( String.format("Installing update....%d%%", info.percent ) );
+					}
+				});
+			}
+		};
+		AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				statusLabel.setText("Install complete....");
+				put(STDOUT, "DONE");
+				finish();
+			}
+		};
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				Object o = TransferUtils.FAILED;
+				try {
+					observer.init(zipFile);
+					o = ZipUtils.extract(zipFile, Settings.WEAVE_ROOT_DIRECTORY, ZipUtils.OVERWRITE, observer);
+				} catch (ZipException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return o;
+			}
+		};
+
+		trace(STDOUT, StringUtils.rpad("-> Installing update", ".", Settings.LOG_PADDING_LENGTH));
+		
+		Settings.canQuit = false;
+		statusProgress.setIndeterminate(false);
+		
+		task.addCallback(callback).execute();
+	}
+	
+	private void finish()
+	{
+		try {
+			System.gc();
+			Settings.canQuit = true;
+			Thread.sleep(2000);
+			
+			StatsUtils.noop();
+			upgradeOldStuff();
+			Settings.setDirectoryPermissions();
+			
+			String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
+			if( ver != null )
+				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
+			Thread.sleep(1000);
+			
+			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME);
+			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
+	
+			while( !Settings.canQuit ) Thread.sleep(1000);
+	
+			LaunchUtils.launchWeaveInstaller(1000);
+		} catch (InterruptedException | IOException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+
+		Settings.shutdown();
 	}
 	
 	private void createShortcut( boolean overwrite ) throws IOException, InterruptedException
 	{
-		if( Settings.OS == Settings.OS_TYPE.WINDOWS ) 
+		if( Settings.OS == Settings.OS_ENUM.WINDOWS ) 
 		{
 			File shortcut = new File(Settings.DESKTOP_DIRECTORY, Settings.PROJECT_NAME + ".lnk"); 
 			if( !shortcut.exists() || overwrite )
@@ -449,7 +488,8 @@ public class Updater extends JFrame
 				if( !shortcut.exists() )
 				{
 					statusLabel.setText("Creating shortcut...");
-					JOptionPane.showConfirmDialog(null, "    A shortcut will be added to your desktop.      \n\n" +
+					JOptionPane.showConfirmDialog(null, 
+							"    A shortcut will be added to your desktop.      \n\n" +
 							"    Please use the shortcut for future use.",
 							Settings.UPDATER_NAME,
 							JOptionPane.OK_CANCEL_OPTION,
@@ -460,24 +500,25 @@ public class Updater extends JFrame
 				Settings.createShortcut( overwrite );
 				Thread.sleep(200);
 				try {
-					TraceUtils.traceln(TraceUtils.STDOUT, "-> Refreshing Windows Explorer...");
+					traceln(STDOUT, StringUtils.rpad("-> Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
+					Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
+					trace(STDERR, e);
+//					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		}
 	}
 	
-	private void moveToNewFolder() throws IOException, InterruptedException
+	private void upgradeOldStuff() throws IOException, InterruptedException
 	{
 		File oldDir = new File(Settings.APPDATA_DIRECTORY, Settings.F_S + "WeaveUpdater" + Settings.F_S);
 		
 		if( oldDir.exists() ) {
 			File oldRevs = new File(oldDir, Settings.F_S + "revisions" + Settings.F_S);
 			if( oldRevs.exists() )
-				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY);
+				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 			FileUtils.recursiveDelete(oldDir);
 		}
 	}

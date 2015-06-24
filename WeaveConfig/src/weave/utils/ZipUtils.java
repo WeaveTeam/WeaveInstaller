@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,161 +19,279 @@
 
 package weave.utils;
 
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import weave.includes.IUtils;
-import weave.includes.IUtilsInfo;
+import weave.async.AsyncObserver;
 
-public class ZipUtils implements IUtils
+public class ZipUtils extends TransferUtils
 {
-	private IUtilsInfo _func = null;
+	public static final byte[] MAGIC_BYTES = { 'P', 'K', 0x3, 0x4 };
 	
-	private static ZipUtils _instance = null;
-	private static ZipUtils instance()
-	{
-		if( _instance == null )
-			_instance = new ZipUtils();
-		return _instance;
-	}
-	
-	@Override
-	public String getID()
-	{
-		return "ZipUtils";
-	}
-	
-	
-	/*
-	 * ZipUtils.extractZip( zip, destination )
+	/**
+	 * Extract a zip file to the destination location.
 	 * 
-	 * Will extract a zip file to the destination.
-	 * No stats will be supplied with this extractZip.
-	 */
-	public static void extractZip( String zipFileName, String destination ) throws InterruptedException
-	{
-		instance().extractZipWithInfo(new File(zipFileName), new File(destination));
-	}
-	public static void extractZip( File zipFile, File destination ) throws InterruptedException
-	{
-		instance().extractZipWithInfo(zipFile, destination);
-	}
-	
-	
-	/*
-	 * ZipUtils.extractZipWithInfo( zip, destination )
+	 * @param zipFile The zip file to extract
+	 * @param destination The location to extract the contents to
+	 * @return The status code <code>COMPLETE, CANCELLED, FAILED</code>
 	 * 
-	 * Will extract a zip file to the destination
-	 * Stats can be tracked through the `info` object.
+	 * @throws IOException 
+	 * @throws ZipException 
+	 * @throws InterruptedException 
 	 */
-	public void extractZipWithInfo( String zipFileName, String destination ) throws InterruptedException
+	public static int extract( File zipFile, File destination ) throws ZipException, IOException, InterruptedException
 	{
-		extractZipWithInfo(new File(zipFileName), new File(destination));
+		return extract(zipFile, destination, NO_FLAGS);
 	}
-	public void extractZipWithInfo( final File zipFile, final File destination ) throws InterruptedException
+	
+	/**
+	 * Extract a zip file to the destination location.
+	 * 
+	 * @param zipFile The zip file to extract
+	 * @param destination The location to extract the contents to
+	 * @param flags Bits to specify how the observer status should be followed
+	 * @return The status code <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException 
+	 * @throws ZipException 
+	 * @throws InterruptedException 
+	 */
+	public static int extract( File zipFile, File destination, int flags) throws ZipException, IOException, InterruptedException
 	{
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ZipFile zip = new ZipFile(zipFile);
-					Enumeration<?> enu = zip.entries();
-					
-					while (enu.hasMoreElements()) 
-					{
-						ZipEntry zipEntry = (ZipEntry) enu.nextElement();
-						String name = zipEntry.getName();
-						File outputFile = new File(destination, name);
-						
-						if( zipEntry.isDirectory() )
-						{
-							if( !outputFile.exists() )	outputFile.mkdirs();
-							if( _func != null )			updateInfo(1, _func.info.max);
-							Thread.sleep(100);
-							continue;
-						}
+		return extract(zipFile, destination, flags, null);
+	}
 
-						InputStream is = zip.getInputStream(zipEntry);
-						FileOutputStream fos = new FileOutputStream(outputFile);
-						FileUtils.copy(is, fos);
-						
-						if( _func != null )	updateInfo(1, _func.info.max);
-						
-						Thread.sleep(100);
-					}
-					zip.close();
-				} catch (ZipException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				} catch (IOException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				} catch (InterruptedException e) {
-					TraceUtils.trace(TraceUtils.STDERR, e);
-				}
-			}
-		});
-		t.start();
-		t.join();
+	/**
+	 * Extract a zip file to the destination location.
+	 * 
+	 * @param zipFile The zip file to extract
+	 * @param destination The location to extract the contents to
+	 * @param flags Bits to specify how the observer status should be followed
+	 * @param observer The async observer to watch the status
+	 * @return The status code <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException 
+	 * @throws ZipException 
+	 * @throws InterruptedException 
+	 */
+	public static int extract( File zipFile, File destination, int flags, AsyncObserver observer) throws ZipException, IOException, InterruptedException
+	{
+		return extract(zipFile, destination, flags, observer, 0);
 	}
 	
-	
-	/*
-	 * ZipUtils.getNumberOfEntriesInZip( zip )
+	/**
+	 * Extract a zip file to the destination location.
 	 * 
-	 * Get the number of entries in the zip file.
+	 * @param zipFile The zip file to extract
+	 * @param destination The location to extract the contents to
+	 * @param flags Bits to specify how the observer status should be followed
+	 * @param observer The async observer to watch the status
+	 * @param throttle The transfer limit of the operation
+	 * @return The status code <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException 
+	 * @throws ZipException 
+	 * @throws InterruptedException 
 	 */
-	@SuppressWarnings("unused")
-	private static int getNumberOfEntriesInZip( String zip )
+	public static int extract( File zipFile, File destination, int flags, AsyncObserver observer, int throttle ) throws ZipException, IOException, InterruptedException
+	{
+		if( zipFile == null || destination == null )
+			throw new NullPointerException("Zip File or Destination File is null");
+		
+		assert zipFile != null;
+		assert destination != null;
+		
+		if( destination.exists() && (flags & OVERWRITE) == 0 )
+			throw new FileAlreadyExistsException(destination.getAbsolutePath());
+		
+		int result = COMPLETE;
+		ZipFile zip = new ZipFile(zipFile);
+		Enumeration<? extends ZipEntry> enu = zip.entries();
+		ZipEntry zipEntry = null;
+		
+		while (enu.hasMoreElements()) 
+		{
+			zipEntry = (ZipEntry) enu.nextElement();
+			File outputFile = new File(destination, zipEntry.getName());
+			
+			if( zipEntry.isDirectory() )
+			{
+				if( !outputFile.exists() )	outputFile.mkdirs();
+				continue;
+			}
+			
+			InputStream is = zip.getInputStream(zipEntry);
+			FileOutputStream fos = new FileOutputStream(outputFile);
+			result &= FileUtils.copy(is, fos, observer, throttle);
+		}
+		zip.close();
+		
+		return result;
+	}
+
+	public static List<String> getZipEntries(File zipFile) throws ZipException, IOException
+	{
+		if( zipFile == null )
+			throw new NullPointerException("Zip File is null");
+		
+		assert zipFile != null;
+		
+		List<String> fileList = new ArrayList<String>();
+		ZipFile zip = new ZipFile(zipFile);
+		Enumeration<? extends ZipEntry> enu = zip.entries();
+		ZipEntry entry = null;
+		
+		while(enu.hasMoreElements())
+		{
+			entry = (ZipEntry) enu.nextElement();
+			fileList.add(entry.getName());
+		}
+		zip.close();
+		
+		return fileList;
+	}
+
+	/**
+	 * Check how many entries are in a zip file.<br>
+	 * If the zip file provided doesn't exist or is not a file,
+	 * the return value is 0.
+	 * 
+	 * @param zip The zip file to check
+	 * @return The number of entries in the zip
+	 */
+	public static int getNumberOfEntriesInZip( String zip )
 	{
 		return getNumberOfEntriesInZip(new File(zip));
 	}
-	private static int getNumberOfEntriesInZip( File zip )
+	
+	/**
+	 * Check how many entries are in a zip file.<br>
+	 * If the zip file provided doesn't exist or is not a file,
+	 * the return value is 0.
+	 * 
+	 * @param zip The zip file to check
+	 * @return The number of entries in the zip
+	 */
+	public static int getNumberOfEntriesInZip( File zip )
 	{
+		if( zip == null )
+			throw new NullPointerException("Zip File is null");
+		
+		assert zip != null;
+		
 		if( !zip.exists() )	return 0;
 		if( !zip.isFile() )	return 0;
 		
 		try {
 			ZipFile z = new ZipFile(zip);
-			return z.size();
+			int size = z.size(); 
+			z.close();
+			return size;
 		} catch (ZipException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 		
 		return 0;
 	}
 	
-	public void addEventListener(IUtils parent, IUtilsInfo func, String zip)
+	/**
+	 * Check to see if the file is a zip file.<br><br>
+	 * The ZIP file format can be determined by detecting  
+	 * {@link #MAGIC_BYTES} at the start of the zip file.
+	 * 
+	 * @param zip The file to check
+	 * @return <code>true</code> if the file is a zip file, <code>false</code> otherwise
+	 * @throws IOException
+	 */
+	public static boolean isZip(File zip) throws IOException
 	{
-		addEventListener(parent, func, new File(zip));
+		byte[] buffer = new byte[MAGIC_BYTES.length];
+		
+		if( zip == null )
+			throw new NullPointerException("Zip file is null");
+		
+		assert zip != null;
+		
+		// If the file is a directory, it surely isn't a zip
+		if( zip.isDirectory() )
+			return false;
+		
+		InputStream in = new DataInputStream(new FileInputStream(zip));
+		in.read(buffer);
+		in.close();
+		
+		for( int i = 0; i < buffer.length; i++ )
+			if( buffer[i] != MAGIC_BYTES[i] )
+				return false;
+		return true;
 	}
-	public void addEventListener(IUtils parent, IUtilsInfo func, File zip)
+
+	/**
+	 * Get the uncompressed size of a zip file.
+	 * 
+	 * @param zip The zip file to get the size of
+	 * @return The uncompressed size of the zip
+	 * 
+	 * @throws ZipException
+	 * @throws IOException
+	 */
+	public static long getUncompressedSize(String zip) throws ZipException, IOException
 	{
-		_func = func;
-		_func.info.parent = parent;
-		_func.info.min = 0;
-		_func.info.cur = 0;
-		_func.info.max = getNumberOfEntriesInZip(zip);
-		_func.info.progress = 0;
+		return getUncompressedSize(new File(zip));
 	}
-	public void removeEventListener()
+	
+	/**
+	 * Get the uncompressed size of a zip file.
+	 * 
+	 * @param zip The zip file to get the size of
+	 * @return The uncompressed size of the zip
+	 * 
+	 * @throws ZipException
+	 * @throws IOException
+	 */
+	public static long getUncompressedSize(File zip) throws ZipException, IOException
 	{
-		_func = null;
-	}
-	private void updateInfo(int cur, int max)
-	{
-		if( _func != null )
+		if( zip == null )
+			throw new NullPointerException("Zip file is null");
+		
+		assert zip != null;
+		
+		if( !zip.exists() ) 
+			throw new FileNotFoundException();
+		if( !zip.isFile() )
+			return 0L;
+		
+		long length = 0L;
+		ZipFile z = new ZipFile(zip);
+		Enumeration<?> zipEnum = z.entries();
+		ZipEntry entry = null;
+		
+		while(zipEnum.hasMoreElements())
 		{
-			_func.info.cur += cur;
-			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
-			_func.onProgressUpdate();
+			entry = (ZipEntry)zipEnum.nextElement();
+			length += entry.getSize();
 		}
+		z.close();
+		
+		return length;
 	}
 }

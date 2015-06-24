@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,145 +19,717 @@
 
 package weave.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
-import weave.includes.IUtils;
-import weave.includes.IUtilsInfo;
+import weave.Settings;
+import weave.async.AsyncObserver;
+import weave.async.AsyncTask;
+import weave.reflect.Reflectable;
 
-public class FileUtils implements IUtils
+public class FileUtils extends TransferUtils
 {
-	public static final int OVERWRITE				= ( 1 << 1 );
-	public static final int OPTION_SINGLE_FILE 		= ( 1 << 2 );
-	public static final int OPTION_MULTIPLE_FILES 	= ( 1 << 3 );
-	private static final int OPTION_DEFAULT			= OPTION_SINGLE_FILE;
+	private static final int BUFFER_SIZE = 8 * TransferUtils.KB;
 	
-	public static final int FAILED					= 0;
-	public static final int COMPLETE				= 1;
-	public static final int CANCELLED				= 2;
 	
-	private IUtilsInfo _func = null;
-	
-	private static FileUtils _instance = null;
-	private static FileUtils instance()
-	{
-		if( _instance == null )
-			_instance = new FileUtils();
-		return _instance;
-	}
-	
-	@Override
-	public String getID()
-	{
-		return "FileUtils";
-	}
-
-	/*
-	 * FileUtils.copy( source, destination )
+	/**
+	 * Copy the source file to the destination file
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	File a = new File( "path/to/file", name );
+	 * 	File b = new File( "other/path/to/file", name );
 	 * 
-	 * Will copy a file from the source location to the destination location.
-	 * No stats will be supplied on this copy.
-	 */
-	public static int copy( String source, String destination ) throws IOException, InterruptedException
-	{
-		return copy( source, destination, OPTION_DEFAULT );
-	}
-	public static int copy( File source, File destination ) throws IOException, InterruptedException
-	{
-		return copy( source, destination, OPTION_DEFAULT );
-	}
-	public static int copy( InputStream source, OutputStream destination ) throws IOException, InterruptedException
-	{
-		return copy( source, destination, OPTION_DEFAULT );
-	}
-
-	/*
-	 * FileUtils.copy( source, destination, flags )
+	 * 	FileUtils.copy( a, b );
+	 * </pre>
+	 * </code>
 	 * 
-	 * Will copy a file from the source location to the destination location
-	 * with a overwrite flag bit.
-	 * No stats will be supplied on this copy.
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public static int copy( String source, String destination, int flags ) throws IOException, InterruptedException
+	public static int copy(File source, File destination) throws FileNotFoundException, IOException, InterruptedException
 	{
-		return instance().copyWithInfo(source, destination, flags);
-	}
-	public static int copy( File source, File destination, int flags ) throws IOException, InterruptedException
-	{
-		return instance().copyWithInfo(source, destination, flags);
-	}
-	public static int copy( InputStream source, OutputStream destination, int flags ) throws IOException, InterruptedException
-	{
-		return instance().copyWithInfo(source, destination, flags);
+		return copy(source, destination, NO_FLAGS);
 	}
 
 	
-	/*
-	 * FileUtils.renameTo( source, destination )
+	
+	/**
+	 * Copy the source file to the destination file
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	File a = new File( "path/to/file", name );
+	 * 	File b = new File( "other/path/to/file", name );
 	 * 
-	 * Will rename a file from the source location to the destination location.
-	 * Default operation is to not overwrite if destination file exists.
+	 * 	FileUtils.copy( a, b, {@link FileUtils#SINGLE_FILE} | {@link FileUtils#OVERWRITE} );
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public static boolean renameTo( String source, String destination )
+	public static int copy(File source, File destination, int flags) throws FileNotFoundException, IOException, InterruptedException
 	{
-		return renameTo(source, destination, 0);
-	}
-	public static boolean renameTo( File source, File destination )
-	{
-		return renameTo(source, destination, 0);
+		return copy(source, destination, flags, null);
 	}
 	
 	
-	/*
-	 * FileUtils.renameTo( source, destination, flags )
+	
+	/**
+	 * Copy the source file to the destination file
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final File a = new File( src, file );
+	 * 	final File b = new File( dest, file );
 	 * 
-	 * Will rename a file from the source location to the destination location.
-	 * The user is given the option to supply an overwrite flag to overwrite
-	 * if the destination file already exists.
+	 * 	{@link AsyncObserver} observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// RUN UPDATE CODE HERE
+	 * 			progressBar.setProgress( info.progress );
+	 * 		}
+	 * 	};
+	 * 	IAsyncCallback callback = new IAsyncCallback() {
+	 * 		public void run(Object o) {
+	 * 			// RUN CALLBACK CODE HERE
+	 * 			//
+	 * 			// The result Object o will be the return value
+	 * 			// from the call to {@link AsyncTask#doInBackground()} 
+	 * 		}
+	 * 	};
+	 * 	{@link AsyncTask} task = new AsyncTask() {
+	 * 		public Object doInBackground() {
+	 * 			return FileUtils.copy(a, b, {@link FileUtils#OVERWRITE} | {@link FileUtils#SINGLE_FILE}, observer);
+	 * 		}
+	 * 	};
+	 * 	task.addCallback( callback );
+	 * 	task.execute();
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @param observer The observer to provide stats to
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public static boolean renameTo( String source, String destination, int flags )
+	public static int copy(File source, File destination, int flags, AsyncObserver observer) throws FileNotFoundException, IOException, InterruptedException
 	{
-		return renameTo(new File(source), new File(destination), flags);
+		return copy(source, destination, flags, observer, 0);
 	}
-	public static boolean renameTo( File source, File destination, int flags )
+	
+	
+	
+	/**
+	 * Copy the source file to the destination file.
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	final File a = new File( src, file );
+	 * 	final File b = new File( dest, file );
+	 * 
+	 * 	AsyncObserver observer = new AsyncObserver() {
+	 * 		public void onUpdate() {
+	 * 			// RUN UPDATE CODE HERE
+	 * 			progressBar.setProgress( info.progress );
+	 * 		}
+	 * 	};
+	 * 	IAsyncCallback callback = new IAsyncCallback() {
+	 * 		public void run(Object o) {
+	 * 			// RUN CALLBACK CODE HERE
+	 * 			//
+	 * 			// The result Object o will be the return value
+	 * 			// from the call to {@link AsyncTask#doInBackground()} 
+	 * 		}
+	 * 	};
+	 * 	AsyncTask task = new AsyncTask() {
+	 * 		public Object doInBackground() {
+	 * 			return FileUtils.copy(a, b, {@link FileUtils#OVERWRITE} | {@link FileUtils#SINGLE_FILE}, observer, 2 * {@link FileUtils#MB});
+	 * 		}
+	 * 	};
+	 * 	task.addCallback( callback );
+	 * 	task.execute();
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @param observer The observer to provide stats to
+	 * @param throttle The max transfer speed
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int copy(File source, File destination, int flags, AsyncObserver observer, int throttle) throws FileNotFoundException, IOException, InterruptedException
 	{
-		if( destination.exists() )
-			if( (flags & OVERWRITE ) != 0 )
-				recursiveDelete(destination);
-			else
-				return false;
+		long timestamp = 0;
 		
-		return source.renameTo(destination);
+		// Check to see if either of the file(s) are null and throw an error if they are
+		if( source == null || destination == null )
+			throw new NullPointerException("Source File or Destination File is null");
+		
+		// If no error was thrown, we can then assert that both files are non-null
+		assert source != null;
+		assert destination != null;
+
+		// Check to see if we are copying the source to the same location as the destination
+		if( source.equals(destination) )
+			throw new IllegalArgumentException("Source and destination are the same: " + source.getAbsolutePath());
+		
+		assert source != destination;
+		
+		// We need to check to see if the destination file already exists and
+		// to see if the OVERWRITE flag bit was passed.
+		// If it exists, and OVERWRITE bit wasn't passed we need to throw an exception
+		if( destination.exists() && (flags & OVERWRITE) == 0 )
+			throw new FileAlreadyExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
+		
+		int status = COMPLETE;
+		
+		if( source.isDirectory() ) 
+		{
+			destination.mkdirs();
+			
+			String files[] = source.list();
+			for( String file : files )
+				status &= copy(new File(source, file), new File(destination, file), flags, observer, throttle);
+		}
+		else
+		{
+			if( (flags & PRESERVE) > 0 ) timestamp = source.lastModified();
+			
+			status &= copy(new FileInputStream(source), new FileOutputStream(destination), observer, throttle);
+			
+			if( (flags & PRESERVE) > 0 ) destination.setLastModified(timestamp);
+		}
+		return status;
 	}
+
 	
 	
-	/*
-	 * FileUtils.getFileContents( file )
+	/**
+	 * Copy the contents of the InputStream to the OutputStream
 	 * 
-	 * This can read a text file line by line and return it as a string.
+	 * @param in The InputStream to read from
+	 * @param out The OutputStream to write to
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public static String getFileContents(String f) throws FileNotFoundException
+	public static int copy(InputStream in, OutputStream out) throws IOException, InterruptedException
 	{
-		return getFileContents(new File(f));
+		return copy(in, out, null);
 	}
-	public static String getFileContents(File f) throws FileNotFoundException
+	
+	
+	
+	/**
+	 * Copy the contents of the InputStream to the OutputStream
+	 * 
+	 * @param in The InputStream to read from
+	 * @param out The OutputStream to write to
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @param observer The observer to provide stats to
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int copy(InputStream in, OutputStream out, AsyncObserver observer) throws IOException, InterruptedException
+	{
+		return copy(in, out, observer, 0);
+	}
+	
+	
+	
+	/**
+	 * Copy the contents of the InputStream to the OutputStream
+	 * 
+	 * @param in The InputStream to read from
+	 * @param out The OutputStream to write to
+	 * @param flags Class flags <code>OVERWRITE, OPTION_SINGLE_FILE, OPTION_MULTIPLE_FILES</code>
+	 * @param observer The observer to provide stats to
+	 * @param throttle The max transfer speed
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int copy(InputStream in, OutputStream out, AsyncObserver observer, int throttle) throws IOException, InterruptedException
+	{
+		int n;
+		int limit = 0, bps = 0, seconds = 0, aveSpeed = 1;
+		long size = 0L;
+		long speedLongNew 	= 0L, speedLongOld = System.currentTimeMillis();
+		long cancelLongNew 	= 0L, cancelLongOld = System.currentTimeMillis();
+		byte[] buf = new byte[BUFFER_SIZE];
+		
+		
+		// Check to see if either the input or output stream(s) are null and throw an error if they are
+		if( in == null || out == null )
+			throw new NullPointerException("InputStream or OutputStream is null");
+		
+		// If no error is thrown, we can then assert that the streams are non-null.
+		assert in != null;
+		assert out != null;
+		
+		
+		while( (n = in.read(buf)) > 0 ) 
+		{
+			out.write(buf, 0, n);
+			size += n;
+			bps += n;
+			speedLongNew = System.currentTimeMillis();
+			cancelLongNew = System.currentTimeMillis();
+			
+			
+			// If an observer has been supplied to this function we want to 
+			// track the progress of this operation and provide feedback
+			// to the observer
+			if( observer != null ) {
+				if( speedLongNew - speedLongOld > 1000 ) {
+					observer.info.speed = bps;
+					bps = 0;
+					seconds++;
+					speedLongOld = speedLongNew;
+					aveSpeed = (int) (size / seconds); 
+				}
+				observer.info.cur += n;
+				observer.info.percent = (int) (observer.info.cur * 100 / observer.info.max);
+				observer.info.time = (int) ((observer.info.max - size) / aveSpeed);
+				observer.onUpdate();
+			}
+			
+			
+			// Check every so often to see if the global cancel variable
+			// has been changed, indicating that the transfer should be 
+			// canceled.
+			if( cancelLongNew - cancelLongOld > 200 ) {
+				cancelLongOld = cancelLongNew;
+				if( Settings.transferCancelled == true ) {
+					in.close();
+					out.close();
+					return CANCELLED;
+				}
+			}
+			
+			
+			// This is an optional argument that allows the transfer to be
+			// throttled to a specific speed. 
+			// NOTE: this should only be used for testing
+			if( throttle > 0 ) {
+				limit += n;
+				if( limit >= ( throttle / 10 )) {
+					limit = 0;
+					Thread.sleep(100);
+				}
+			}
+		}
+		out.flush();
+		in.close();
+		out.close();
+		return COMPLETE;
+	}
+	
+
+	/**
+	 * Move or rename the source file to the destination file.
+	 * Default operation is to not overwrite the destination file if it already exists.
+	 * 
+	 * @param source The source file to move
+	 * @param destination The destination file of where the source will be moved to
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException 
+	 */
+	public static int move( String source, String destination ) throws IOException, InterruptedException
+	{
+		return move(source, destination, NO_FLAGS);
+	}
+	
+	
+	
+	/**
+	 * Move or rename the source file to the destination file.
+	 * Default operation is to not overwrite the destination file if it already exists.
+	 * 
+	 * @param source The source file to move
+	 * @param destination The destination file of where the source will be moved to
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException 
+	 */
+	public static int move( File source, File destination ) throws IOException, InterruptedException
+	{
+		return move(source, destination, NO_FLAGS);
+	}
+	
+	
+	
+	/**
+	 * Move or rename the source file to the destination file.
+	 * 
+	 * @param source The source file to move
+	 * @param destination The destination file of where the source will be moved to
+	 * @param flags Big flags to specify if the file should be overwritten.
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException 
+	 */
+	public static int move( String source, String destination, int flags ) throws IOException, InterruptedException
+	{
+		return move(new File(source), new File(destination), flags);
+	}
+	
+	
+	
+	/**
+	 * Move or rename the source file to the destination file.
+	 * 
+	 * @param source The source file to move
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @return The result status <code>COMPLETE, CANCELLED, FAILED</code>
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException 
+	 */
+	public static int move( File source, File destination, int flags ) throws FileNotFoundException, IOException, InterruptedException
+	{
+		return move(source, destination, flags, null);
+	}
+	
+	
+	/**
+	 * Move or rename the source file to the destination file.
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @param observer The observer to provide stats to
+	 * @return Returns the result code <code>COMPLETE, FAILED, CANCELLED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int move( File source, File destination, int flags, AsyncObserver observer ) throws FileNotFoundException, IOException, InterruptedException
+	{
+		return move(source, destination, flags, observer, 0);
+	}
+
+	
+	/**
+	 * 
+	 * @param source The source file
+	 * @param destination The destination file
+	 * @param flags Bit flags {@link TransferUtils#NO_FLAGS}, {@link TransferUtils#OVERWRITE}, {@link TransferUtils#PRESERVE}
+	 * @param observer The observer to provide stats to
+	 * @param throttle The max transfer speed
+	 * @return The result code <code>COMPLETE, FAILED, CANCELLED</code>
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int move( File source, File destination, int flags, AsyncObserver observer, int throttle ) throws FileNotFoundException, IOException, InterruptedException
+	{
+		int cp = copy(source, destination, flags, observer, throttle);
+		recursiveDelete(source);
+		
+		return cp;
+	}
+	
+
+	/**
+	 * Get the extension of a file
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * Windows:
+	 * 	File f1 = new File("C:/Program Files/SomeFileName.txt");
+	 * 
+	 * Unix:
+	 * 	File f2 = new File("/users/lib/SomeOtherName.xml");
+	 * 	File f3 = new File("/var/lib/files.var/README");
+	 * 	
+	 * 	FileUtils.getExt( f1 )	=	"txt"
+	 * 	FileUtils.getExt( f2 )	= 	"xml"
+	 * 	FileUtils.getExt( f3 )	=	""
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param f The file
+	 * @return The extension of the file
+	 */
+	public static String getExt(File f)
+	{
+		return getExt(f.getAbsolutePath());
+	}
+	
+	
+	
+	/**
+	 * Get the extension of a file
+	 * <br><br>
+	 * Example Usage:
+	 * <code>
+	 * <pre>
+	 * 	String str1 = "C:/Program Files/SomeFileName.txt";
+	 * 	String str2 = "/users/lib/SomeOtherName.xml";
+	 * 	String str3 = "/var/lib/files.var/README";
+	 * 	
+	 * 	FileUtils.getExt( str1 )	=	"txt"
+	 * 	FileUtils.getExt( str2 )	= 	"xml"
+	 * 	FileUtils.getExt( str3 )	=	""
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param s The string path of the file
+	 * @return The extension of the file
+	 */
+	public static String getExt(String s)
+	{
+		int idx1 = s.lastIndexOf("/");
+		int idx2 = s.lastIndexOf(".");
+		if( idx2 > idx1 )
+			return s.substring( idx2 + 1 );
+		
+		// The file does not have an extension
+		return "";
+	}
+
+	
+
+	/**
+	 * Get the entire file contents of a file as a string.
+	 * 
+	 * @param s The path to the file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
+	 */
+	public static String getFileContents(String s) throws IOException
+	{
+		return getFileContents(new File(s));
+	}
+	
+	
+	
+	/**
+	 * Get the entire file contents of a file as a string.
+	 * 
+	 * @param f The file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
+	 */
+	public static String getFileContents(File f) throws IOException
+	{
+		return getFileContents(new FileInputStream(f));
+	}
+	
+	
+	/**
+	 * Get the entire file contents of a file as a string.
+	 * 
+	 * @param in The input stream to the file
+	 * @return The file contents
+	 * 
+	 * @throws IOException
+	 */
+	public static String getFileContents(InputStream in) throws IOException
 	{
 		String contents = "";
+		String line = "";
 		
-		Scanner scanner = new Scanner(f);
-		while( scanner.hasNextLine() )
-			contents += scanner.nextLine();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		while( (line = reader.readLine()) != null )
+			contents += line;
+		reader.close();
 		
 		return contents;
 	}
+	
+
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
+	public static String sizeify(long size)
+	{
+		return sizeify((double)size);
+	}
+	
+
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
+	public static String sizeify(int size)
+	{
+		return sizeify( (double)size );
+	}
+
+	
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
+	public static String sizeify(String size)
+	{
+		return sizeify(Double.parseDouble(size));
+	}
+	
+
+	
+	/**
+	 * Get a human readable size of a value.
+	 * 
+	 * @param size The value to convert
+	 * @return The size as a human readable string
+	 */
+	public static String sizeify(double size)
+	{
+		int i = 0;
+		List<String> s = Arrays.asList("B", "KB", "MB", "GB", "TB");
+		
+		while( (size/1024) > 1 )
+		{
+			size = size / 1024;
+			i++;
+		}
+		return String.format("%." + i + "f %s", size, s.get(i));
+	}
+	
+	@Reflectable
+	public static boolean setReadable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setReadable(p, a);
+	}
+	@Reflectable
+	public static boolean setWritable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setWritable(p, a);
+	}
+	@Reflectable
+	public static boolean setExecutable(String path, Boolean p, Boolean a)
+	{
+		return new File(path).setExecutable(p, a);
+	}
+	
+	@Reflectable
+	public static boolean setPermissions(String path, Integer permissions) throws SecurityException
+	{
+		return setPermissions(new File(path), permissions);
+	}
+	@Reflectable
+	public static boolean setPermissions(File file, Integer permissions) throws SecurityException
+	{
+		boolean perm = true;
+		int u = permissions & 0xF00;
+		int o = permissions & 0x00F;
+		// Other
+		if( o == 0x007 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(true, false);
+			perm &= file.setExecutable(true, false);
+		} else if( o == 0x006 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(true, false);
+			perm &= file.setExecutable(false, false);
+		} else if( o == 0x005 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(true, false); 
+		} else if( o == 0x004 ) {
+			perm &= file.setReadable(true, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(false, false); 
+		} else if( o == 0x000 ) {
+			perm &= file.setReadable(false, false);
+			perm &= file.setWritable(false, false);
+			perm &= file.setExecutable(false, false);
+		}
+		// User
+		if( u == 0x700 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(true);
+			perm &= file.setExecutable(true);
+		} else if( u == 0x600 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(true);
+			perm &= file.setExecutable(false);
+		} else if( u == 0x500 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(false);
+			perm &= file.setExecutable(true);
+		} else if( u == 0x400 ) {
+			perm &= file.setReadable(true);
+			perm &= file.setWritable(false);
+			perm &= file.setExecutable(false);
+		}
+		
+		return perm;
+	}
+	/*
+	 * FileUtils.getClassPath( class )
+	 * 
+	 * Get the current class path of the specified class.
+	 */
+	public static String getClassPath(Class<?> c)
+	{
+		return c.getProtectionDomain().getCodeSource().getLocation().getPath();
+	}
+	
 	
 	
 	/*
@@ -193,185 +765,75 @@ public class FileUtils implements IUtils
 	 * Get the total number of files in a directory.
 	 * If the directory is actually a file, the return value is 1.
 	 */
-	public static int getNumberOfFilesInDirectory(String dir)
+	public static int getNumberOfFilesInDirectory(String dir, boolean includeSub)
 	{
-		return getNumberOfFilesInDirectory(new File(dir));
+		return getNumberOfFilesInDirectory(dir, new String[] {}, includeSub);
 	}
-	public static int getNumberOfFilesInDirectory(File dir)
+	public static int getNumberOfFilesInDirectory(String dir, String[] extensions, boolean includeSub)
+	{
+		return getNumberOfFilesInDirectory(new File(dir), extensions, includeSub);
+	}
+	
+	public static int getNumberOfFilesInDirectory(File dir, boolean includeSub)
+	{
+		return getNumberOfFilesInDirectory(dir, new String[] {}, includeSub);
+	}
+	public static int getNumberOfFilesInDirectory(File dir, final String[] extensions, final boolean includeSub)
 	{
 		if( !dir.exists() ) 		return 0;
-		if( !dir.isDirectory() )	return 1;
-
+		if( !dir.isDirectory() )
+		{
+			boolean found = extensions.length == 0;
+			for( int i = 0; i < extensions.length; i++ ) {
+				if( getExt(dir).equals(extensions[i]) ) {
+					found = true;
+					break;
+				}
+			}
+			return found ? 1 : 0;
+		}
+		
 		int ret = 0;
+		File newFile = null;
 		String files[] = dir.list();
 		for( String file : files )
-			ret += getNumberOfFilesInDirectory(new File(dir, file));
+		{
+			newFile = new File(dir, file);
+			if( newFile.isDirectory() && !includeSub )
+				continue;
+			
+			ret += getNumberOfFilesInDirectory(newFile, extensions, includeSub);
+		}
 		
 		return ret;
 	}
 
-
-	/*
-	 * FileUtils.copyWithInfo( source, destination, flags )
-	 * 
-	 * Will copy a file from the source location to the destination location.
-	 * Stats can be tracked through the `info` object.
-	 * 
-	 * IF flags & MULTIPLE_FILES
-	 * 		stats will be ( files moved / total files )
-	 * 
-	 * IF flags & SINGLE_FILE
-	 * 		stats will be ( bytes moved / total bytes )
-	 */
-	public int copyWithInfo(String source, String destination, int flags) throws IOException, InterruptedException
+	public static File getPathRoot(String s)
 	{
-		return copyWithInfo(new File(source), new File(destination), flags);
+		return getPathRoot(new File(s));
 	}
-	public int copyWithInfo(File source, File destination, int flags) throws IOException, InterruptedException
+	public static File getPathRoot(File f)
 	{
-		FileInternalUtils fiu = new FileInternalUtils();
-		fiu.status = COMPLETE;
-		
-		if( source.isDirectory() ) {
-			if( !destination.exists() ) destination.mkdirs();
-			
-			String files[] = source.list();
-			
-			for( String file : files )
-			{
-				File srcFile = new File( source, file );
-				File destFile = new File( destination, file );
-				
-				fiu.status &= copyWithInfo( srcFile, destFile, flags );
-			}
-			
-		} else {
-			
-			InputStream in = new FileInputStream(source);
-			OutputStream out = new FileOutputStream(destination, true);
-
-			if( destination.exists() )
-				if( ((flags & OVERWRITE) != 0 ) )
-					destination.delete();
-				else
-					return FAILED;
-			
-			destination.createNewFile();
-			
-			fiu.status &= copyWithInfo(in, out, flags);
-			if( ((flags & OPTION_MULTIPLE_FILES) != 0) && (_func != null) ) 	updateInfo(1, _func.info.max);
-		}
-		return fiu.status;
-	}
-	public int copyWithInfo(final InputStream in, final OutputStream out, final int flags) throws InterruptedException
-	{
-		final FileInternalUtils fiu = new FileInternalUtils();
-		fiu.status = COMPLETE;
-		
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					int length= 0;
-					byte[] buffer = new byte[4*1024*1024];
-					
-					while ((length = in.read(buffer)) > 0)
-					{
-						out.write(buffer, 0, length);
-						out.flush();
-						
-						if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) ) 	updateInfo(length, _func.info.max);
-					}
-
-					if( ((flags & OPTION_SINGLE_FILE) != 0) && (_func != null) )		setInfo(_func.info.max, _func.info.max);
-				} catch( IOException ex) {
-					TraceUtils.trace(TraceUtils.STDERR, ex);
-					fiu.status = FAILED;
-				} finally {
-					try {
-						in.close();
-						out.close();
-					} catch (IOException e) {
-						TraceUtils.trace(TraceUtils.STDERR, e);
-					}
-				}
-			}
-		});
-		t.start();
-		t.join();
-		return fiu.status;
+		File p = f;
+		while( p.getParentFile() != null )
+			p = p.getParentFile();
+		return p;
 	}
 	
-
-	/*
-	 * FileUtils.sizeify( size )
-	 * 
-	 * Will return a String representation of the size given in bytes.
-	 */
-	public static String sizeify( long size )
+	public static long getSize(String file)
 	{
-		return sizeify( (double)size );
+		return getSize(new File(file));
 	}
-	public static String sizeify( int size )
+	public static long getSize(File file)
 	{
-		double d = size;
-		return sizeify(d);
-	}
-	public static String sizeify( double size )
-	{
-		int i = 0;
-		List<String> s = Arrays.asList("B", "KB", "MB", "GB", "TB");
+		long length = 0L;
 		
-		while( (size/1024) > 1 )
-		{
-			size = size / 1024;
-			i++;
-		}
-		return String.format("%." + i + "f %s", size, s.get(i));
+		if( file.isDirectory() )
+			for( File f : file.listFiles() )
+				length += getSize(f);
+		else
+			length += file.length();
+		
+		return length;
 	}
-	
-	
-	public void addEventListener(IUtils parent, IUtilsInfo func, String source, int flags)
-	{
-		addEventListener(parent, func, new File(source), flags);
-	}
-	public void addEventListener(IUtils parent, IUtilsInfo func, File source, int flags)
-	{
-		_func = func;
-		_func.info.parent = parent;
-		_func.info.min = 0;
-		_func.info.cur = 0;
-		if( (flags & OPTION_MULTIPLE_FILES) != 0 ) 		_func.info.max = getNumberOfFilesInDirectory(source);
-		else if( (flags & OPTION_SINGLE_FILE) != 0 )	_func.info.max = (int) source.length();	// only up to 2GB
-		_func.info.progress = 0;
-	}
-	public void removeEventListener()
-	{
-		_func = null;
-	}
-	private void updateInfo(int cur, int max)
-	{
-		if( _func != null )
-		{
-			_func.info.cur += cur;
-			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
-			_func.onProgressUpdate();
-		}
-	}
-	private void setInfo(int cur, int max)
-	{
-		if( _func != null )
-		{
-			_func.info.cur = cur;
-			_func.info.max = max;
-			_func.info.progress = _func.info.cur * 100 / _func.info.max;
-			_func.onProgressUpdate();
-		}
-	}
-}
-
-class FileInternalUtils
-{
-	int status;
 }

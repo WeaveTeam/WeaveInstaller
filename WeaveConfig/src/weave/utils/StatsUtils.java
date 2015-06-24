@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Copyright (C) 2008-2014 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -19,101 +19,101 @@
 
 package weave.utils;
 
-import java.io.BufferedReader;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.trace;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
+import weave.Globals;
 import weave.Settings;
+import weave.async.AsyncTask;
+import weave.managers.ConfigManager;
 
-public class StatsUtils 
+public class StatsUtils extends Globals
 {
 	public static void logUpdate()
 	{
 		logUpdate( false );
 	}
 	
-	@SuppressWarnings("unused")
 	public static void logUpdate( boolean forced )
 	{
-		URL url					= null;
-		HttpURLConnection conn 	= null;
+		if( Settings.isOfflineMode() )
+			return;
 		
-		String query	= "action=UPDATE&"
-						+ "uniqueID=" + Settings.UNIQUE_ID + "&"
-						+ "forced=" + ( ( forced ) ? "1" : "0" );
+		final URLRequestParams params = new URLRequestParams();
+		params.add("action", 	"UPDATE");
+		params.add("uniqueID",	Settings.UNIQUE_ID);
+		params.add("forced", 	(forced ? "1" : "0"));
 		
-		try {
-			url = new URL(Settings.API_STATS_LOG + "?" + query);
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("GET");
-			conn.setDoOutput(true);
-			conn.setUseCaches(false);
-			conn.setRequestProperty("Content-Type", "multipart/form-data");
-			conn.setRequestProperty("charset", "utf-8");
-			conn.connect();
-			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			
-			String line;
-			while( (line = reader.readLine()) != null ) ;
-//				System.out.printf("%s\n", line);
-			
-			reader.close();
-			
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} finally {
-			if( conn != null )
-				conn.disconnect();
-		}
+		AsyncTask task = new AsyncTask() {
+			@Override
+			public Object doInBackground() {
+				try {
+					return URLRequestUtils.request(URLRequestUtils.GET, Settings.API_STATS_LOG, params);
+				} catch (IOException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+				return null;
+			}
+		};
+		task.execute();
 	}
 
-	@SuppressWarnings("unused")
 	public static void noop()
 	{
-		URL url 				= null;
-		HttpURLConnection conn 	= null;
-		
-		String query 	= "uniqueID=" + Settings.UNIQUE_ID + "&"
-						+ "os=" + Settings.getExactOS() + "&";
-		
-		query += "server=";
-		if( Settings.ACTIVE_CONTAINER_PLUGIN == null )
-			query += "NONE&";
-		else
-			query += Settings.ACTIVE_CONTAINER_PLUGIN.getPluginName() + "&";
-		
-		query += "database=";
-		if( Settings.ACTIVE_DATABASE_PLUGIN == null )
-			query += "NONE";
-		else
-			query += Settings.ACTIVE_DATABASE_PLUGIN.getPluginName();
+		if( Settings.isOfflineMode() )
+			return;
 		
 		try {
-			url = new URL(Settings.API_STATS_LIVE + "?" + query);
-			conn = (HttpURLConnection)url.openConnection();
-			conn.setRequestMethod("GET");
-			conn.setDoOutput(true);
-			conn.setUseCaches(false);
-			conn.setRequestProperty("Content-Type", "multipart/form-data");
-			conn.setRequestProperty("charset", "utf-8");
-			conn.connect();
+			final URLRequestParams params = new URLRequestParams();
+			params.add("uniqueID", 	Settings.UNIQUE_ID);
+			params.add("os", 		Settings.getExactOS());
+			params.add("server", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getConfigName", "NONE"));
+			params.add("database", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveDatabase(), "getConfigName", "NONE"));
 			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			AsyncTask task = new AsyncTask() {
+				@Override
+				public Object doInBackground() {
+					try {
+						return URLRequestUtils.request(URLRequestUtils.POST, Settings.API_STATS_LIVE, params);
+					} catch (UnknownHostException e ) {
+						// Do nothing here, not a bug
+						// Fires when Java cannot find the URL in DNS
+					} catch (SocketException e) {
+						// Do nothing here, not a bug
+						// Fires when Java tries to connect to the HttpURLConnection 
+					} catch (SocketTimeoutException e) {
+						// Do nothing here, not a bug
+					} catch (IOException e) {
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+					}
+					return null;
+				}
+			};
+			task.execute();
 			
-			String line;
-			while( (line = reader.readLine()) != null ) ;
-//				System.out.printf("%s\n", line);
-			
-			reader.close();
-			
-		} catch (IOException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} finally {
-			if( conn != null )
-				conn.disconnect();
+		} catch (NoSuchMethodException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (SecurityException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalArgumentException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		} catch (InvocationTargetException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 	}
 }

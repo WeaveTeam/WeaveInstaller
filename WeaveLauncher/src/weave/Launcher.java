@@ -19,15 +19,27 @@
 
 package weave;
 
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.trace;
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import weave.Settings.OS_ENUM;
+import weave.configs.IConfig;
+import weave.managers.ConfigManager;
+import weave.reflect.ReflectionUtils;
+import weave.utils.FileUtils;
+import weave.utils.LaunchUtils;
+import weave.utils.StringUtils;
 
 @SuppressWarnings("serial")
 public class Launcher extends JFrame
@@ -38,6 +50,14 @@ public class Launcher extends JFrame
 	
 	public static void main( final String[] args )
 	{
+		if( !Desktop.isDesktopSupported() ) {
+			System.out.println("!! Desktop functionality not supported.");
+			System.exit(NORMAL);
+		}
+		
+		Settings.CURRENT_PROGRAM_NAME = Settings.LAUNCHER_NAME;
+		Settings.init();
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -62,39 +82,102 @@ public class Launcher extends JFrame
 		panel.setBackground(Color.BLACK);
 		add(panel);
 
-		String program = "";
+		String path = "";
 		int delay = 0;
 		
 		setState(JFrame.ICONIFIED);
 
 		try {
 			if( args.length == 0 ) System.exit(NORMAL);
-			if( args.length > 0 ) program = args[0];
+			if( args.length > 0 ) path = args[0];
 			if( args.length > 1 ) delay = Integer.parseInt(args[1]);
-			
-			File prog = new File(program);
-			
-			if( !Desktop.isDesktopSupported() ) {
-				System.out.println("!! Desktop functionality not supported.");
-				System.exit(NORMAL);
+
+			// Handle special cases first
+			//
+			// Examples:
+			//		weave://reflect/weave/Settings/testAPIStr
+			// 		weave://server/start
+			//		weave://server/stop
+			if( StringUtils.beginsWith(path, Settings.PROJECT_PROTOCOL) )
+			{
+				String[] params = path.substring(Settings.PROJECT_PROTOCOL.length()).split("/");
+				String component = params[0];
+				
+				if( component.equals("reflect") )
+				{
+					ReflectionUtils.reflectMethod(params[1], params[2], params[3]);
+				}
+				else if( component.equals("server") ) 
+				{
+					String cmd = params[1];
+					if( cmd.equals("start") )
+						LaunchUtils.launchWeaveInstaller(delay);
+					else if( cmd.equals("stop") )
+						Settings.shutdown();
+				} 
+				else if( component.equals("updater") )
+				{
+					String cmd = params[1];
+					if( cmd.equals("start") )
+						LaunchUtils.launchWeaveUpdater(delay);
+					else if( cmd.equals("stop") )
+						Settings.shutdown();
+				}
+				else
+				{
+					throw new IllegalArgumentException("Invalid protocol component: " + component);
+				}
 			}
-			if( !prog.exists() ) {
-				System.out.println("!! Program not found: \"" + prog.getCanonicalPath() + "\"");
-				JOptionPane.showMessageDialog(null, 
-						"Program not found: \n\"" + prog.getCanonicalPath() + "\"", 
-						"File Not Found", 
-						JOptionPane.ERROR_MESSAGE);
-				System.exit(NORMAL);
-			}
 			
-			Desktop.getDesktop().open(prog.getCanonicalFile());
-			Thread.sleep(delay);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		} catch (Exception e3) {
-			e3.printStackTrace();
+			
+			// Examples:
+			//
+			//		C:\path\to\file\Obesity.weave
+			//		/usr/var/path/to/file/saved_session.weave
+			else if( StringUtils.endsWith(path, Settings.PROJECT_EXTENSION) )
+			{
+				ConfigManager.getConfigManager().initializeConfigs();
+				IConfig cfg = ConfigManager.getConfigManager().getActiveContainer();
+
+				if( cfg == null )
+					System.exit(NORMAL);
+				traceln(STDOUT, "-> cfg: " + cfg.getConfigName());
+				
+				File webapps = cfg.getWebappsDirectory();
+				if( webapps == null )
+					System.exit(NORMAL);
+				traceln(STDOUT, "-> webapps: " + webapps.getAbsolutePath());
+				
+				File ROOT = new File(webapps, "ROOT");
+				traceln(STDOUT, "-> ROOT: " + ROOT.getAbsolutePath());
+				if( !ROOT.exists() )
+					System.exit(NORMAL);
+				
+				File src = new File(path);
+				File dest = new File(ROOT, src.getName());
+				
+				FileUtils.copy(src, dest, FileUtils.SINGLE_FILE | FileUtils.OVERWRITE);
+				LaunchUtils.browse("http://" + 
+						Settings.LOCALHOST + ":" +
+						ConfigManager.getConfigManager().getActiveContainer().getPort() +
+						"/weave.html?file=" + dest.getName(), 0);
+			}
+			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_ENUM.WINDOWS ) 
+			{
+				traceln(STDOUT, StringUtils.rpad("-> Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
+				LaunchUtils.launchElevated(path, delay);
+			}
+			else
+			{
+				LaunchUtils.open(path, delay);
+			}
+
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		} catch (IOException e) {
+			trace(STDERR, e);
+		} catch (Exception e) {
+			trace(STDERR, e);
 		}
 		
 		System.exit(NORMAL);

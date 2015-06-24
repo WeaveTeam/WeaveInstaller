@@ -21,28 +21,44 @@ package weave.inc;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import weave.Globals;
+
 @SuppressWarnings("serial")
-public class SetupPanel extends JPanel implements ISetupPanel 
+public class SetupPanel extends JPanel implements ISetupPanel
 {
-	protected int 					currentPanel ;
-	protected int 					maxPanels 	 ;
-	public 	  ArrayList<JPanel> 	panels 		 = new ArrayList<JPanel>();
+	public static final int LEFT_PANEL_WIDTH 	= 150;
+	public static final int LEFT_PANEL_HEIGHT 	= 375;
 	
-	@Override
+	public static final int BOTTOM_PANEL_WIDTH 	= 600;
+	public static final int BOTTOM_PANEL_HEIGHT = 50;
+	
+	public static final int RIGHT_PANEL_WIDTH 	= 450;
+	public static final int RIGHT_PANEL_HEIGHT 	= 375;
+	
+	public static Map<String, Object> globalHashMap;
+	
+	public ArrayList<JPanel> panels = new ArrayList<JPanel>();
+	protected int currentPanel;
+	protected int maxPanels;
+	
+	public SetupPanel()
+	{
+		globalHashMap = Globals.globalHashMap;
+	}
+	
 	public int getCurrentPanelIndex() {
 		return currentPanel;
 	}
 
-	@Override
 	public int getNumberOfPanels() {
 		return maxPanels;
 	}
 
-	@Override
 	public void nextPanel() {
 		if( currentPanel < maxPanels)
 		{
@@ -51,7 +67,6 @@ public class SetupPanel extends JPanel implements ISetupPanel
 		}
 	}
 
-	@Override
 	public void previousPanel() {
 		if( currentPanel > 0 )
 		{
@@ -60,20 +75,25 @@ public class SetupPanel extends JPanel implements ISetupPanel
 		}
 	}
 
-	@Override
-	public void showPanels() {
+	public boolean isFirstPanel() {
+		return getCurrentPanelIndex() == 0;
+	}
+
+	public boolean isLastPanel() {
+		return getCurrentPanelIndex() == getNumberOfPanels() - 1;
+	}
+	
+	public void showFirstPanel() {
 		hidePanels();
 		currentPanel = 0;
 		panels.get(currentPanel).setVisible(true);
 	}
 
-	@Override
 	public void hidePanels() {
 		for( int i = 0; i < maxPanels; i++ )
 			panels.get(i).setVisible(false);
 	}
 
-	@Override
 	public void addActionToButton(JButton button, ActionListener action) {
 		button.addActionListener(action);
 	}
