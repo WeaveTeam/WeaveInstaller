@@ -137,12 +137,13 @@ public class JettyConfig extends Config
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
 					File logStdout = new File(basePath + Settings.F_S + "logs" + Settings.F_S, getLogFile(STDOUT).getName());
 					File logStderr = new File(basePath + Settings.F_S + "logs" + Settings.F_S, getLogFile(STDERR).getName());
-					String[] START = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
-											"jetty.logs=\"" + basePath + "/logs/\" " +
-											"jetty.home=\"" + basePath + "\" " +
-											"jetty.base=\"" + basePath + "\" " +
-											"jetty.port=" + _port + " " +
-											"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty");
+					String cmd = 	"java -jar -Xmx1024m \"" + basePath + "start.jar\" " +
+									"jetty.logs=\"" + basePath + "/logs/\" " +
+									"jetty.home=\"" + basePath + "\" " +
+									"jetty.base=\"" + basePath + "\" " +
+									"jetty.port=" + _port + " " +
+									"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty";
+					String[] START = SyscallCreatorUtils.generate(cmd);
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
 				} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException |
@@ -193,9 +194,11 @@ public class JettyConfig extends Config
 
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
-			String[] STOP = SyscallCreatorUtils.generate("java -jar \"" + basePath + "start.jar\" " +
-												"jetty.base=\"" + basePath + "\" " +
-												"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop");
+			String cmd = 	"java -jar \"" + basePath + "start.jar\" " +
+							"jetty.base=\"" + basePath + "\" " +
+							"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty --stop";
+			String[] STOP = SyscallCreatorUtils.generate(cmd);
+			
 			return ProcessUtils.run(STOP);
 		} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException | 
 				 IllegalArgumentException | InvocationTargetException | IOException e) {
