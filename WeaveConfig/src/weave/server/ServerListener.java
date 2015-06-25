@@ -165,7 +165,7 @@ public class ServerListener extends Globals
 		
 		public void close()
 		{
-			trace(STDOUT, "-> Closing socket connection from " + clientSock.getRemoteSocketAddress());
+			trace(STDOUT, "-> Closing socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
 
 			try {
 				if( in != null ) in.close();
@@ -224,9 +224,16 @@ public class ServerListener extends Globals
 				Object o = null;
 				
 				if( sigs != null && args != null )
+				{
+					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs, ", ") + " )");
+					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(args, ", ") + " )");
 					o = ReflectionUtils.reflectMethod(pkg, clzz, call, sigs, args);
+				}
 				else
+				{
+					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call);
 					o = ReflectionUtils.reflectField(pkg, clzz, call);
+				}
 
 				if( o == null )						out.write( "NULL" );
 				else if( o instanceof String )		out.write( (String)ObjectUtils.ternary(o, "NULL") );

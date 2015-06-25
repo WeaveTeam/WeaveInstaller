@@ -26,6 +26,7 @@ import static weave.utils.TraceUtils.trace;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,6 +46,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.text.html.HTMLDocument;
 
 import weave.Settings;
 import weave.utils.LaunchUtils;
@@ -61,6 +63,7 @@ public class BugReportWindow extends JFrame
 	private static 	BugReportWindow _instance 			= null;
 	private 		Dimension 		screen 				= Toolkit.getDefaultToolkit().getScreenSize();
 	private			boolean			closedWithButton	= false;
+	private 		int				MARGIN				= 20;
 	
 	public _internal data = new _internal();
 	
@@ -76,7 +79,7 @@ public class BugReportWindow extends JFrame
 	{
 		_instance = this;
 
-		_instance.setSize(400, 325); 	// 394 x 297 (inner)
+		_instance.setSize(450, 350); 	// 394 x 297 (inner)
 		_instance.setResizable(false);
 		_instance.setLayout(null);
 		_instance.setBackground(new Color(0xF0F0F0));
@@ -92,15 +95,20 @@ public class BugReportWindow extends JFrame
 		final JTextArea commentPanel 	= new JTextArea(defaultComment);
 		final JScrollPane commentScroller = new JScrollPane(commentPanel);
 		JButton close					= new JButton("Close");
+		Font titleFont 					= new Font(Settings.FONT, Font.BOLD, 11);
+		Font textFont					= new Font(Settings.FONT, Font.PLAIN, 10);
+		String titleCSSRule				= "body { font-family: " + titleFont.getFamily() + "; font-size: " + titleFont.getSize() + "px; }";
+		String textCSSRule				= "body { font-family: " + textFont.getFamily() + ";  font-size: " + textFont.getSize() + "px; }";
 		
 		String title = "<b>" + Settings.CURRENT_PROGRAM_NAME + " has encountered a bug</b>";
-		titleContainer.setBounds(20, 15, 354, 30);
+		titleContainer.setBounds(MARGIN, 10, getWidth() - 2 * MARGIN, 35);
 		titleContainer.setContentType("text/html");
 		titleContainer.setText(title);
 		titleContainer.setOpaque(true);
 		titleContainer.setBackground(new Color(240,240,240,0));
 		titleContainer.setEditable(false);
 		titleContainer.setVisible(true);
+		((HTMLDocument)titleContainer.getDocument()).getStyleSheet().addRule(titleCSSRule);
 		titleContainer.addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {
 				_instance.invalidate();
@@ -113,13 +121,15 @@ public class BugReportWindow extends JFrame
 		});
 
 		String exception = "<center><i>" + getSimpleClassAndMsg(e) + "</i></center>";
-		exceptionContainer.setBounds(20, 40, 354, 45);
+		exceptionContainer.setBounds(MARGIN, 45, getWidth() - 2 * MARGIN, 50);
 		exceptionContainer.setContentType("text/html");
 		exceptionContainer.setText(exception);
+		exceptionContainer.setFont(new Font(Settings.FONT, Font.PLAIN, 12));
 		exceptionContainer.setOpaque(true);
 		exceptionContainer.setBackground(new Color(240,240,240,0));
 		exceptionContainer.setEditable(false);
 		exceptionContainer.setVisible(true);
+		((HTMLDocument)exceptionContainer.getDocument()).getStyleSheet().addRule(textCSSRule);
 		exceptionContainer.addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {
 				_instance.invalidate();
@@ -133,13 +143,14 @@ public class BugReportWindow extends JFrame
 		
 		String  message  = "Continued use of the tool may cause stability issues.<br />";
 				message += "It is recommended that you close the tool and try again.";
-		messageContainer.setBounds(20, 90, 354, 45);
+		messageContainer.setBounds(MARGIN, 95, getWidth() - 2 * MARGIN, 55);
 		messageContainer.setContentType("text/html");
 		messageContainer.setText(message);
 		messageContainer.setOpaque(true);
 		messageContainer.setBackground(new Color(240,240,240,0));
 		messageContainer.setEditable(false);
 		messageContainer.setVisible(true);
+		((HTMLDocument)messageContainer.getDocument()).getStyleSheet().addRule(textCSSRule);
 		messageContainer.addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {
 				_instance.invalidate();
@@ -150,23 +161,8 @@ public class BugReportWindow extends JFrame
 			@Override public void mouseEntered(MouseEvent e) { }
 			@Override public void mouseClicked(MouseEvent e) { }
 		});
-		
-		detailsButton.setBounds(284, 140, 90, 25);
-		detailsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					if( getLogFile(STDERR).exists() )
-						LaunchUtils.open(getLogFile(STDERR).getAbsolutePath());
-				} catch (IOException | InterruptedException e) {
-					trace(STDERR, e);
-				}
-			}
-		});
-		detailsButton.setEnabled(true);
-		detailsButton.setVisible(true);
-		
-		checkbox.setBounds(20, 140, 250, 25);
+
+		checkbox.setBounds(MARGIN, 150, getWidth() - 2 * MARGIN - 100, 25);
 		checkbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
@@ -186,6 +182,21 @@ public class BugReportWindow extends JFrame
 		checkbox.setVisible(true);
 		checkbox.setSelected(true);
 		
+		detailsButton.setBounds(getWidth() - 100 - MARGIN, 150, 100, 25);
+		detailsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					if( getLogFile(STDERR).exists() )
+						LaunchUtils.open(getLogFile(STDERR).getAbsolutePath());
+				} catch (IOException | InterruptedException e) {
+					trace(STDERR, e);
+				}
+			}
+		});
+		detailsButton.setEnabled(true);
+		detailsButton.setVisible(true);
+		
 		commentPanel.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent arg0) {
@@ -199,10 +210,10 @@ public class BugReportWindow extends JFrame
 			}
 		});
 		
-		commentScroller.setBounds(20, 170, 354, 75);
+		commentScroller.setBounds(MARGIN, 180, getWidth() - 2 * MARGIN, 75);
 		commentScroller.setVisible(true);
 		
-		close.setBounds(157, 250, 80, 25);
+		close.setBounds(getWidth() / 2 - 50, 260, 100, 25);
 		close.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {

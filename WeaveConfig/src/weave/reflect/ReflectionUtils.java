@@ -41,7 +41,7 @@ public class ReflectionUtils extends Globals
 		while( c != null )
 		{
 			annotations = c.getAnnotations();
-			sb.append(ObjectUtils.toString(annotations, ",\n\t") + " ");
+			sb.append(ObjectUtils.toString(annotations, ", ") + " ");
 //			sb.append("[ ");
 //			for( int i = 0; i < annotations.length; i++ )
 //				sb.append(annotations[i] + " ");

@@ -37,9 +37,11 @@ import weave.Globals;
 import weave.Settings;
 import weave.Settings.OS_ENUM;
 import weave.managers.ConfigManager;
+import weave.reflect.Reflectable;
 
 public class LaunchUtils extends Globals
 {
+	@Reflectable
 	public static Boolean browse(String path) throws IOException, URISyntaxException, InterruptedException
 	{
 		return browse(path, 100);
@@ -61,6 +63,8 @@ public class LaunchUtils extends Globals
 		Desktop.getDesktop().browse(path);
 		return true;
 	}
+	
+	@Reflectable
 	public static Boolean open(String path) throws IOException, InterruptedException 
 	{
 		return open(path, 100);
@@ -76,6 +80,25 @@ public class LaunchUtils extends Globals
 		
 		Thread.sleep(delay);
 		Desktop.getDesktop().open(file);
+		return true;
+	}
+	
+	@Reflectable
+	public static Boolean edit(String path) throws InterruptedException, IOException
+	{
+		return edit(path, 100);
+	}
+	public static Boolean edit(String path, int delay) throws InterruptedException, IOException
+	{
+		return edit(new File(path), delay);
+	}
+	public static Boolean edit(File file, int delay) throws InterruptedException, IOException
+	{
+		if( !Desktop.isDesktopSupported() )
+			return false;
+		
+		Thread.sleep(delay);
+		Desktop.getDesktop().edit(file);
 		return true;
 	}
 	public static Boolean launchElevated(String path, int delay) throws InterruptedException, IOException
