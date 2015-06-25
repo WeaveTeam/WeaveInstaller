@@ -24,7 +24,7 @@ import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.StringUtils;
-import weave.utils.TimeUtils;
+import weave.utils.TimerUtils;
 import weave.utils.TransferUtils;
 import weave.utils.ZipUtils;
 
@@ -177,14 +177,14 @@ public class DownloadManager
 						label.setText(
 							String.format("Downloading - %d%% - %s - %s (%s)", 
 								info.percent, 
-								TimeUtils.format("%s s remaining", info.time),
+								TimerUtils.format("%s s remaining", info.time),
 								FileUtils.sizeify(info.cur),
 								DownloadUtils.speedify(info.speed)) );
 					else
 						label.setText(
 							String.format("Downloading - %d%% - %s - %s (%s)",
 								info.percent, 
-								TimeUtils.format("%m:%ss remaining", info.time),
+								TimerUtils.format("%m:%ss remaining", info.time),
 								FileUtils.sizeify(info.cur),
 								DownloadUtils.speedify(info.speed)) );
 				}

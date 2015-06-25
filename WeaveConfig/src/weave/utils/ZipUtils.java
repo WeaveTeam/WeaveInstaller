@@ -162,6 +162,7 @@ public class ZipUtils extends TransferUtils
 			fileList.add(entry.getName());
 		}
 		zip.close();
+		System.out.println("fileList: " + fileList);
 		
 		return fileList;
 	}

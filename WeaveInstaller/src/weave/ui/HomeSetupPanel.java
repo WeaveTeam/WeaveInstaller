@@ -137,11 +137,6 @@ public class HomeSetupPanel extends SetupPanel
 	// ============== Plugins Tab ============== //
 	public CustomTable pluginsTable;
 	public JPanel pluginsPanel;
-//	public JEditorPane pluginsPane;
-//	public JScrollPane pluginsScrollPane;
-//	public JButton pluginsInstallButton;
-//	public JProgressBar pluginsProgressBar;
-//	public JLabel pluginsProgressLabel;
 	
 	// ============== Settings Tab ============== //
 	public JScrollPane settingsScrollPane;
@@ -469,6 +464,8 @@ public class HomeSetupPanel extends SetupPanel
 					if( index < 0 )
 						return;
 					
+					setButtonsEnabled(false);
+					
 					String file = Revisions.getRevisionsList().get(index).getAbsolutePath();
 	
 					// Get the active servlet container
@@ -520,6 +517,8 @@ public class HomeSetupPanel extends SetupPanel
 				if( index < 0 )
 					return;
 				
+				setButtonsEnabled(false);
+				
 				if( JOptionPane.showConfirmDialog(
 						null, 
 						"Deleting revisions cannot be undone.\n\nAre you sure you want to continue?", 
@@ -550,6 +549,8 @@ public class HomeSetupPanel extends SetupPanel
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+				setButtonsEnabled(false);
+				
 				if( JOptionPane.showConfirmDialog(
 						null, 
 						"Auto-cleaned revisions will be deleted\nand cannot be undone.\n\nAre you sure you want to continue?",
@@ -836,11 +837,14 @@ public class HomeSetupPanel extends SetupPanel
 			public void actionPerformed(ActionEvent a) 
 			{
 				try {
-					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
-												new Class<?>[] { Integer.class },
-												new Object[] { 15 });
-					Settings.SETUP_COMPLETE = true;
-					Settings.save();
+					if( !Settings.SETUP_COMPLETE )
+					{
+						ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
+								new Class<?>[] { Integer.class },
+								new Object[] { 15 });
+						Settings.SETUP_COMPLETE = true;
+						Settings.save();
+					}
 					
 					LaunchUtils.openAdminConsole();
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
@@ -1118,13 +1122,6 @@ public class HomeSetupPanel extends SetupPanel
 		progressbar.setString("");
 		progressbar.setValue(0);
 		
-//		pluginsProgressLabel.setVisible(false);
-//		pluginsProgressLabel.setText("");
-//		pluginsProgressBar.setVisible(false);
-//		pluginsProgressBar.setIndeterminate(true); 
-//		pluginsProgressBar.setString(""); 
-//		pluginsProgressBar.setValue(0); 
-
 		setButtonsEnabled(true);
 		installButton.setEnabled(updateAvailable == UpdateUtils.UPDATE_AVAILABLE);
 		cleanButton.setEnabled(Revisions.getNumberOfRevisions() > Settings.recommendPrune);
@@ -1139,8 +1136,8 @@ public class HomeSetupPanel extends SetupPanel
 	
 	private void setButtonsEnabled(boolean enabled)
 	{
-		refreshButton.setEnabled(enabled);
 		installButton.setEnabled(enabled);
+		refreshButton.setEnabled(enabled);
 		deployButton.setEnabled(enabled);
 		deleteButton.setEnabled(enabled);
 		cleanButton.setEnabled(enabled);

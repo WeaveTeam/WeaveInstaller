@@ -198,8 +198,9 @@ public class AnalystWorkstationPlugin extends Plugin
 	@Override public void pluginPanelRefresh()
 	{
 		super.pluginPanelRefresh();
+		boolean isInstalled = isPluginInstalled();
 		
-		if( isPluginInstalled() )
+		if( isInstalled )
 		{
 			installButton.setText("Reinstall");
 			installButton.setEnabled(!Settings.isOfflineMode());

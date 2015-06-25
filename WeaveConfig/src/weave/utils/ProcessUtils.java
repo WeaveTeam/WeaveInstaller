@@ -41,19 +41,62 @@ public class ProcessUtils extends Globals
 	protected static Runtime runtime = Runtime.getRuntime();
 	protected static Process proccess = null;
 	
+	/**
+	 * Creates a new process for the command list to run in.
+	 * 
+	 * @param cmds The list of commands
+	 * @return A mapping containing the <code>output</code> and <code>error</code> returned from the process
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static Map<String, List<String>> run(List<String> cmds) throws IOException, InterruptedException
 	{
 		String[] strList = cmds.toArray(new String[cmds.size()]);
 		return run(strList);
 	}
+	
+	/**
+	 * Creates a new process for the command list to run in.
+	 * 
+	 * @param cmds The list of commands
+	 * @return A mapping containing the <code>output</code> and <code>error</code> returned from the process
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static Map<String, List<String>> run(String cmds[]) throws IOException, InterruptedException
 	{
 		return run(cmds, (File)null, (File)null);
 	}
+	
+	/**
+	 * Creates a new process for the command list to run in.
+	 * 
+	 * @param cmds The list of commands
+	 * @param stdout The standard output file to write to
+	 * @param stderr The standard error file to write to
+	 * @return A mapping containing the <code>output</code> and <code>error</code> returned from the process
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static Map<String, List<String>> run(String cmds[], String stdout, String stderr) throws IOException, InterruptedException
 	{
 		return run(cmds, new File(stdout), new File(stderr));
 	}
+	
+	/**
+	 * Creates a new process for the command list to run in.
+	 * 
+	 * @param cmds The list of commands
+	 * @param stdout The standard output file to write to
+	 * @param stderr The standard error file to write to
+	 * @return A mapping containing the <code>output</code> and <code>error</code> returned from the process
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public static Map<String, List<String>> run(String cmds[], File stdout, File stderr) throws IOException, InterruptedException
 	{
 		Map<String, List<String>> returnMap = new HashMap<String, List<String>>();
@@ -111,7 +154,6 @@ class ProcessStream extends Thread
 	public void run()
 	{
 		try {
-
 			String line = "";
 			reader = new BufferedReader(new InputStreamReader(is));
 			if( output != null ) {

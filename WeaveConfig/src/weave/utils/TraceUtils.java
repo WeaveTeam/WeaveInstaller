@@ -62,6 +62,14 @@ public class TraceUtils extends Globals
 		return dump;
 	}
 
+	/**
+	 * Prints out the {@link Throwable} to the log file specified by <code>pipe</code>
+	 * and also prints it out to the screen. 
+	 * 
+	 * @param pipe The log file pipe to print to. {@link TraceUtils#STDOUT} or {@link TraceUtils#STDERR}
+	 * @param e The throwable exception
+	 * @return <code>true</code> if the stack trace was written successfully, <code>false</code> otherwise
+	 */
 	synchronized public static boolean trace( int pipe, Throwable e )
 	{
 		String dump = getStackTrace(e);

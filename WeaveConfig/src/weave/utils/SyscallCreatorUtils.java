@@ -6,6 +6,13 @@ import weave.Settings.OS_ENUM;
 
 public class SyscallCreatorUtils extends Globals
 {
+	/**
+	 * Generates a system independent string list that can be passed to {@link ProcessUtils#run(String[])}.
+	 * This follows the system's native syntax for running a command in its own shell.
+	 *  
+	 * @param cmd The command to run in the shell
+	 * @return A string list of the shell program, shell carry, and command
+	 */
 	public static String[] generate(String cmd)
 	{
 		String shell = "";

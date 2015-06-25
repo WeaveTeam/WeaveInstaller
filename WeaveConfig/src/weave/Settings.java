@@ -60,7 +60,7 @@ import weave.server.ServerListener;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ProcessUtils;
-import weave.utils.RegEdit;
+import weave.utils.RegistryUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StringUtils;
 import weave.utils.SyscallCreatorUtils;
@@ -691,25 +691,25 @@ public class Settings extends Globals
 		// 	weave://
 		if( enable )
 		{
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER,
+			RegistryUtils.writeString(
+					RegistryUtils.HKEY_CURRENT_USER,
 					"Software\\Classes\\weave", 
-					RegEdit.REG_SZ, 
+					RegistryUtils.REG_SZ, 
 					"", "URL:weave Protocol");
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER,
+			RegistryUtils.writeString(
+					RegistryUtils.HKEY_CURRENT_USER,
 					"Software\\Classes\\weave", 
-					RegEdit.REG_SZ,
+					RegistryUtils.REG_SZ,
 					"\"URL Protocol\"", "");
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER, 
+			RegistryUtils.writeString(
+					RegistryUtils.HKEY_CURRENT_USER, 
 					"Software\\Classes\\weave\\shell\\open\\command", 
-					RegEdit.REG_EXPAND_SZ, 
+					RegistryUtils.REG_EXPAND_SZ, 
 					"", "cmd /C start /MIN java -jar \"^%APPDATA^%\\.weave\\bin\\Launcher.jar\" \"%1\"");
 		}
 		else
 		{
-			RegEdit.deleteKey(RegEdit.HKEY_CURRENT_USER, "Software\\Classes\\weave", null);
+			RegistryUtils.deleteKey(RegistryUtils.HKEY_CURRENT_USER, "Software\\Classes\\weave", null);
 		}
 		
 		DLLInterface.refresh();
@@ -724,15 +724,15 @@ public class Settings extends Globals
 		// .weave extension
 		if( enable )
 		{
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER, 
+			RegistryUtils.writeString(
+					RegistryUtils.HKEY_CURRENT_USER, 
 					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.weave\\UserChoice",
-					RegEdit.REG_SZ,
+					RegistryUtils.REG_SZ,
 					"Progid", "weavefile");
-			RegEdit.writeString(
-					RegEdit.HKEY_CURRENT_USER,
+			RegistryUtils.writeString(
+					RegistryUtils.HKEY_CURRENT_USER,
 					"Software\\Classes\\weavefile\\DefaultIcon", 
-					RegEdit.REG_EXPAND_SZ, 
+					RegistryUtils.REG_EXPAND_SZ, 
 					"", "\"^%APPDATA^%\\.weave\\bin\\file.ico\"");
 //			RegEdit.writeString(
 //					RegEdit.HKEY_CURRENT_USER,
@@ -742,12 +742,12 @@ public class Settings extends Globals
 		}
 		else
 		{
-			RegEdit.deleteKey(
-					RegEdit.HKEY_CURRENT_USER,
+			RegistryUtils.deleteKey(
+					RegistryUtils.HKEY_CURRENT_USER,
 					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.weave", 
 					null);
-			RegEdit.deleteKey(
-					RegEdit.HKEY_CURRENT_USER, 
+			RegistryUtils.deleteKey(
+					RegistryUtils.HKEY_CURRENT_USER, 
 					"Software\\Classes\\weavefile",
 					null);
 		}

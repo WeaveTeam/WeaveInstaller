@@ -4,8 +4,11 @@ import java.util.concurrent.TimeUnit;
 
 import weave.Globals;
 
-public class TimeUtils extends Globals
+public class TimerUtils extends Globals
 {
+	private static final String[] FORMATS = {"h", "m", "s"};
+	private static final int MAX_FORMAT_COUNT = 4;
+	
 	private static TimeInternals parse(long seconds)
 	{
 		TimeInternals ti = new TimeInternals();
@@ -20,15 +23,14 @@ public class TimeUtils extends Globals
 	public static String format(String format, long seconds)
 	{
 		String ret = new String(format);
-		String formats[] = {"h", "m", "s"};
 		TimeInternals ti = parse(seconds);
 		
-		for( int i = 4; i > 0; i-- )
+		for( int i = MAX_FORMAT_COUNT; i > 0; i-- )
 		{
-			for( int j = 0; j < formats.length; j++ )
+			for( int j = 0; j < FORMATS.length; j++ )
 			{
-				String replace = StringUtils.repeat(formats[j], i);
-				ret = ret.replace("%"+replace, String.format("%0" + i + "d", ti.getTime(formats[j])));
+				String replace = StringUtils.repeat(FORMATS[j], i);
+				ret = ret.replace("%"+replace, String.format("%0" + i + "d", ti.getTime(FORMATS[j])));
 			}
 		}
 		

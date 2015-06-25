@@ -15,11 +15,11 @@ public class StringUtils extends Globals
 	 * </pre>
 	 * </p>
 	 * 
-	 * @see #endsWith(String, String)
-	 * 
 	 * @param word The base word you want to test
 	 * @param test The word that you are testing with
 	 * @return <code>true</code> if the test is at the beginning, false otherwise
+	 * 
+	 * @see #endsWith(String, String)
 	 */
 	public static boolean beginsWith(String word, String test)
 	{
@@ -37,11 +37,11 @@ public class StringUtils extends Globals
 	 * </pre>
 	 * </p>
 	 * 
-	 * @see #beginsWith(String, String)
-	 * 
 	 * @param word The base word you want to test
 	 * @param test The word that you are testing with
 	 * @return <code>true</code> if the test is at the end, false otherwise
+	 * 
+	 * @see #beginsWith(String, String)
 	 */
 	public static boolean endsWith(String word, String test)
 	{
@@ -87,14 +87,34 @@ public class StringUtils extends Globals
 		if( str.length() < length )
 			return str;
 		
-		return str.substring(0, length) + "...";
+		return str.substring(0, length);
 	}
 	
+	/**
+	 * Left pad the desired <code>text</code> with the <code>padding</code> value to fill the <code>width</code>.
+	 * 
+	 * @param text The text to display
+	 * @param padding The padding value that will get repeated
+	 * @param width The width of the text + padding lengths
+	 * @return The padded string
+	 * 
+	 * @see #rpad(String, String, int)
+	 */
 	public static String lpad(String text, String padding, int width)
 	{
 		return repeat(padding, (width - text.length()) / padding.length()) + text;
 	}
 	
+	/**
+	 * Right pad the desired <code>text</code> with the <code>padding</code> value to fill the <code>width</code>.
+	 * 
+	 * @param text The text to display
+	 * @param padding The padding vvalue that will get repeated
+	 * @param width The width of the text + padding lengths
+	 * @return The padded string
+	 * 
+	 * @see #lpad(String, String, int)
+	 */
 	public static String rpad(String text, String padding, int width)
 	{
 		return text + repeat(padding, (width - text.length()) / padding.length());

@@ -64,25 +64,22 @@ public class Plugin extends Globals implements IPlugin
 	
 	@Override public Boolean isPluginInstalled() 
 	{
-//		boolean installed = true;
 		File zipFile = new File(getPluginDownloadFile());
 		return zipFile.exists();
+//		boolean installed = true;
+//		File zipFile = new File(getPluginDownloadFile());
 //		if( !zipFile.exists() )
 //			return false;
-		
+//		
 //		try {
 //			if( getPluginBaseDirectory() == null )
 //				return false; 
 //			
 //			List<String> list = ZipUtils.getZipEntries(zipFile);
 //			File destination = new File(getPluginBaseDirectory());
-//			File tmp = null;
 //			
 //			for( int i = 0; i < list.size(); i++ ) 
-//			{
-//				tmp = new File(destination, list.get(i));
-//				installed &= tmp.exists();
-//			}
+//				installed &= new File(destination, list.get(i)).exists();
 //			
 //		} catch (ZipException e) {
 //			TraceUtils.trace(TraceUtils.STDERR, e);
