@@ -28,10 +28,18 @@ import weave.Globals;
 
 public abstract class AsyncTask extends Globals
 {
+	private String description = "";
 	private List<AsyncCallback> callbacks = null;
+	private Thread t = null;
 	
 	public AsyncTask()
 	{
+		description = "";
+		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
+	}
+	public AsyncTask(String desc)
+	{
+		description = desc;
 		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
 	}
 	
@@ -39,7 +47,17 @@ public abstract class AsyncTask extends Globals
 	
 	public void execute()
 	{
-		Thread t = new Thread(new Runnable() {
+		AsyncCallback c = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				AsyncTaskManager.removeTask(AsyncTask.this);
+			}
+		};
+		addCallback(c);
+		
+		AsyncTaskManager.addTask(this);
+		
+		t = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				Object o = doInBackground();
@@ -48,6 +66,17 @@ public abstract class AsyncTask extends Globals
 			}
 		});
 		t.start();
+	}
+	
+	public void cancel()
+	{
+		t.interrupt();
+		t = null;
+	}
+	
+	public String toString()
+	{
+		return getClass().getName() + " {" + description + "}";
 	}
 	
 	

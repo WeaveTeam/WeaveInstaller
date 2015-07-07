@@ -182,12 +182,9 @@ public class Installer extends JFrame
 			
 			installer = new Installer();
 
-		} catch (ClassNotFoundException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InstantiationException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {			trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);			
-		} catch (UnsupportedLookAndFeelException e) {	trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);	
-		} catch (IOException e) {						trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);						
-		} catch (Exception e) {							trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);							
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException | InterruptedException | IOException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
 		}
 
 		installer.addWindowListener(new WindowListener() {
@@ -209,7 +206,7 @@ public class Installer extends JFrame
 		Globals.globalHashMap.put("Installer", installer);
 	}
 	
-	public Installer() throws Exception
+	public Installer() throws IOException
 	{
 		// ======== INITIALIZATION ======== //
 		try {
@@ -301,13 +298,7 @@ public class Installer extends JFrame
 			@Override public void mouseClicked(MouseEvent e) {
 				try {
 					LaunchUtils.browse(Settings.IWEAVE_URL);
-				} catch (IOException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (URISyntaxException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
+				} catch (IOException | URISyntaxException | InterruptedException ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
@@ -354,15 +345,9 @@ public class Installer extends JFrame
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE);
-				} catch (IOException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (InterruptedException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
-				} catch (URISyntaxException ex) {
-					trace(STDERR, ex);
-					BugReportUtils.showBugReportDialog(ex);
+				} catch (IOException | URISyntaxException | InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		});
@@ -426,17 +411,20 @@ public class Installer extends JFrame
 					updateToNewUpdater();
 					Settings.setDirectoryPermissions();
 					put(STDOUT, "DONE");
-				} catch (IOException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-				} catch (InterruptedException e) {
+				} catch (IOException | InterruptedException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				}
 			}
 		}, 3000);
+		
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				
+			}
+		}, 6000);
 		
 		switchToWelcomeSetupPanels(rightPanel);
 	}

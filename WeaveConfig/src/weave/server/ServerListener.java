@@ -225,8 +225,7 @@ public class ServerListener extends Globals
 				
 				if( sigs != null && args != null )
 				{
-					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs, ", ") + " )");
-					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(args, ", ") + " )");
+					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs) + " | " + ObjectUtils.toString(args) + " )");
 					o = ReflectionUtils.reflectMethod(pkg, clzz, call, sigs, args);
 				}
 				else

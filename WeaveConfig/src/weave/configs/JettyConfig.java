@@ -126,7 +126,7 @@ public class JettyConfig extends Config
 	
 	public void startServer()
 	{
-		final AsyncTask startTask = new AsyncTask() {
+		final AsyncTask startTask = new AsyncTask("Jetty Server running on " + getPort()) {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -141,8 +141,8 @@ public class JettyConfig extends Config
 									"jetty.logs=\"" + basePath + "/logs/\" " +
 									"jetty.home=\"" + basePath + "\" " +
 									"jetty.base=\"" + basePath + "\" " +
-									"jetty.port=" + _port + " " +
-									"STOP.PORT=" + (_port+1) + " STOP.KEY=jetty";
+									"jetty.port=" + getPort() + " " +
+									"STOP.PORT=" + (getPort()+1) + " STOP.KEY=jetty";
 					String[] START = SyscallCreatorUtils.generate(cmd);
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
