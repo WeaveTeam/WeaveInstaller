@@ -189,9 +189,9 @@ public class ServerListener extends Globals
 				String pkg = queryObj.getString("package");
 				String clzz = queryObj.getString("class");
 				String call = queryObj.getString("call");
-				if( queryObj.has("sigs") )
+				if( queryObj.has("sigs") && !queryObj.isNull("sigs") )
 					jsonSigs = queryObj.getJSONArray("sigs");
-				if( queryObj.has("args") )
+				if( queryObj.has("args") && !queryObj.isNull("args") )
 					jsonArgs = queryObj.getJSONArray("args");
 
 				Class<?>[] sigs = null;
@@ -222,8 +222,8 @@ public class ServerListener extends Globals
 //				System.out.println("args: " + Arrays.toString(args));
 				
 				Object o = null;
-				trace(STDOUT, "->\tsigs: " + ObjectUtils.toString(sigs));
-				trace(STDOUT, "->\targs: " + ObjectUtils.toString(args));
+//				trace(STDOUT, "->\tsigs: " + ObjectUtils.toString(sigs));
+//				trace(STDOUT, "->\targs: " + ObjectUtils.toString(args));
 				if( sigs != null && args != null )
 				{
 					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs) + " | " + ObjectUtils.toString(args) + " )");
