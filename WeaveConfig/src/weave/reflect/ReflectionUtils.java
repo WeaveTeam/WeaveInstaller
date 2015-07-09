@@ -220,15 +220,9 @@ public class ReflectionUtils extends Globals
 	 * @param clazz The class name
 	 * @param function The function you want to call on the class
 	 * @return The result of calling the function
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
-	 * @throws ClassNotFoundException
+	 * @throws Exception 
 	 */
-	public static Object reflectMethod(String pkg, String clazz, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
+	public static Object reflectMethod(String pkg, String clazz, String function) throws Exception
 	{
 		return reflectMethod(pkg, clazz, function, new Class<?>[] {}, new Object[] {});
 	}
@@ -246,15 +240,9 @@ public class ReflectionUtils extends Globals
 	 * @param argClassList The function signature
 	 * @param args The arguments to supply to the function
 	 * @return The result of calling the function
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
-	 * @throws ClassNotFoundException
+	 * @throws Exception 
 	 */
-	public static Object reflectMethod(String pkg, String clazz, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException
+	public static Object reflectMethod(String pkg, String clazz, String function, Class<?>[] argClassList, Object[] args) throws Exception
 	{
 		Method m = null;
 		Class<?> c = Class.forName(pkg + "." + clazz);
@@ -268,6 +256,10 @@ public class ReflectionUtils extends Globals
 					throw new IllegalAccessException(clazz + "." + function + "()");
 				
 				return m.invoke(null, args);
+				
+			} catch (InvocationTargetException e) {
+				if( e.getCause() instanceof Exception )
+					throw (Exception) e.getCause();
 			} catch (NoSuchMethodException e) {
 				c = c.getSuperclass();
 			}
@@ -285,14 +277,9 @@ public class ReflectionUtils extends Globals
 	 * @param instance The instance of the class
 	 * @param function The function you want to call on the class
 	 * @return The result of calling the function
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
+	 * @throws Exception 
 	 */
-	public static Object reflectMethod(Object instance, String function) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static Object reflectMethod(Object instance, String function) throws Exception
 	{
 		return reflectMethod(instance, function, new Class<?>[] {}, new Object[] {});
 	}
@@ -308,14 +295,9 @@ public class ReflectionUtils extends Globals
 	 * @param argClassList The function signature
 	 * @param args The arguments to supply to the function
 	 * @return The result of calling the function
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
+	 * @throws Exception 
 	 */
-	public static Object reflectMethod(Object instance, String function, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static Object reflectMethod(Object instance, String function, Class<?>[] argClassList, Object[] args) throws Exception
 	{
 		Method m = null;
 		Class<?> c = instance.getClass();
@@ -330,6 +312,10 @@ public class ReflectionUtils extends Globals
 					throw new IllegalAccessException(instance.getClass().getName() + "." + function + "()");
 				
 				return m.invoke(instance, args);
+				
+			} catch (InvocationTargetException e) {
+				if( e.getCause() instanceof Exception )
+					throw (Exception) e.getCause();
 			} catch (NoSuchMethodException e) {
 				c = c.getSuperclass();
 			}

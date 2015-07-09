@@ -215,7 +215,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					try {
 						refreshRevisionTable();
-					} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					} catch (Exception e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
@@ -230,7 +230,7 @@ public class HomeSetupPanel extends SetupPanel
 					} catch (IllegalArgumentException e) {
 						// We will get here if we try to set the table index
 						// but there is no items in the table
-					} catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException e) {
+					} catch (Exception e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}
@@ -331,47 +331,7 @@ public class HomeSetupPanel extends SetupPanel
 	{
 		JPanel panel = createTab(parent);
 
-		refreshButton = new DropDownButton("Refresh");
-		refreshButton.setBounds(330, 50, 100, 30);
-		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
-		refreshButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent a) 
-			{
-				new Timer().schedule(new TimerTask() {
-					@Override
-					public void run() {
-						refreshInterface();
-					}
-				}, 400);
-			}
-		});
-		refreshButton.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent a) {
-				trace(STDOUT, StringUtils.rpad("-> Switching to Milestone", ".", Settings.LOG_PADDING_LENGTH));
-				Settings.INSTALL_MODE = INSTALL_ENUM.MILESTONE;
-				Settings.save();
-				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
-				refreshProgramatically = true;
-				refreshInterface();
-			}
-		});
-		refreshButton.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent a) {
-				trace(STDOUT, StringUtils.rpad("-> Switching to Nightly", ".", Settings.LOG_PADDING_LENGTH));
-				Settings.INSTALL_MODE = INSTALL_ENUM.NIGHTLY;
-				Settings.save();
-				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
-				refreshProgramatically = true;
-				refreshInterface();
-			}
-		});
-		refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
-		panel.add(refreshButton);
-		
-		installButton = new DropDownButton("Install");
+		installButton = new JButton("Install");
 		installButton.setBounds(330, 10, 100, 30);
 		installButton.setToolTipText("Download the latest version of " + Settings.PROJECT_NAME + " and install it.");
 		installButton.setEnabled(false);
@@ -452,6 +412,48 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		panel.add(installButton);
 		
+		
+		refreshButton = new DropDownButton("Refresh");
+		refreshButton.setBounds(330, 50, 100, 30);
+		refreshButton.setToolTipText("Check for a new version of " + Settings.PROJECT_NAME);
+		refreshButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) 
+			{
+				new Timer().schedule(new TimerTask() {
+					@Override
+					public void run() {
+						refreshInterface();
+					}
+				}, 400);
+			}
+		});
+		refreshButton.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) {
+				trace(STDOUT, StringUtils.rpad("-> Switching to Milestone", ".", Settings.LOG_PADDING_LENGTH));
+				Settings.INSTALL_MODE = INSTALL_ENUM.MILESTONE;
+				Settings.save();
+				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshProgramatically = true;
+				refreshInterface();
+			}
+		});
+		refreshButton.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent a) {
+				trace(STDOUT, StringUtils.rpad("-> Switching to Nightly", ".", Settings.LOG_PADDING_LENGTH));
+				Settings.INSTALL_MODE = INSTALL_ENUM.NIGHTLY;
+				Settings.save();
+				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+				refreshProgramatically = true;
+				refreshInterface();
+			}
+		});
+		refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
+		panel.add(refreshButton);
+		
+		
 		deployButton = new JButton("Deploy");
 		deployButton.setBounds(330, 150, 100, 30);
 		deployButton.setToolTipText("Install Weave from a backup revision, selected on the left in the table.");
@@ -505,6 +507,7 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		panel.add(deployButton);
 		
+		
 		deleteButton = new JButton("Delete");
 		deleteButton.setBounds(330, 190, 100, 30);
 		deleteButton.setToolTipText("Delete an individual revision, selected on the left in the table.");
@@ -541,6 +544,7 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		panel.add(deleteButton);
 		
+		
 		cleanButton = new JButton("Clean");
 		cleanButton.setBounds(330, 230, 100, 30);
 		cleanButton.setToolTipText("Auto-delete older revisions to free up space on your hard drive.");
@@ -572,6 +576,7 @@ public class HomeSetupPanel extends SetupPanel
 		});
 		panel.add(cleanButton);
 
+		
 		weaveStats = new WeaveStats();
 		weaveStats.setBounds(10, 10, 300, 75);
 		weaveStats.setVisible(true);
@@ -700,8 +705,7 @@ public class HomeSetupPanel extends SetupPanel
 				
 				} catch (ZipException ex) {
 					sessionLabel.setIcon(null);
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | 
-						 InvocationTargetException | IOException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				} finally {
@@ -759,7 +763,7 @@ public class HomeSetupPanel extends SetupPanel
 									continue;
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 							}
-						} catch (UnsupportedFlavorException | IOException | InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						} catch (Exception e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -820,7 +824,7 @@ public class HomeSetupPanel extends SetupPanel
 							"/weave.html?file=" + 
 							URLRequestUtils.encode(sessionState.getName(), StandardCharsets.UTF_8));
 					
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | IOException | URISyntaxException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -850,7 +854,7 @@ public class HomeSetupPanel extends SetupPanel
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
-				} catch (IOException | URISyntaxException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 			}
@@ -1018,7 +1022,7 @@ public class HomeSetupPanel extends SetupPanel
 					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
 												new Class<?>[] { Integer.class },
 												new Object[] { 7 });
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -1034,7 +1038,7 @@ public class HomeSetupPanel extends SetupPanel
 		}
 	};
 	
-	private void refreshRevisionTable() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	private void refreshRevisionTable() throws Exception
 	{
 		ArrayList<File> revisionList = Revisions.getRevisionsList();
 		Object[][] revisionData = new Object[revisionList.size()][2];
@@ -1049,15 +1053,14 @@ public class HomeSetupPanel extends SetupPanel
 			revisionName = Revisions.getRevisionVersion(file.getName());
 			date.setTime(file.lastModified());
 
-			String configVer = (String)ObjectUtils.ternary(
-								ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
+			String configVer = (String)ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getInstallVersion", "");
 			revisionData[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
 			revisionData[i][1] = date; //new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 		}
 
 		revisionTable.setData(revisionData).refreshTable();
 	}
-	private void refreshSessionTable() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	private void refreshSessionTable() throws Exception
 	{
 		File WEBAPPS, ROOT;
 	
@@ -1128,7 +1131,7 @@ public class HomeSetupPanel extends SetupPanel
 		
 		try {
 			refreshRevisionTable();
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

@@ -922,6 +922,7 @@ public class Settings extends Globals
 	 * Stops the WeaveInstaller tool
 	 * @throws InterruptedException 
 	 */
+	@Reflectable
 	public static void shutdown()
 	{
 		shutdown(JFrame.NORMAL);

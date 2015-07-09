@@ -189,8 +189,8 @@ public class ServerListener extends Globals
 				String pkg = queryObj.getString("package");
 				String clzz = queryObj.getString("class");
 				String call = queryObj.getString("call");
-				if( queryObj.has("signature") )
-					jsonSigs = queryObj.getJSONArray("signature");
+				if( queryObj.has("sigs") )
+					jsonSigs = queryObj.getJSONArray("sigs");
 				if( queryObj.has("args") )
 					jsonArgs = queryObj.getJSONArray("args");
 
@@ -222,7 +222,8 @@ public class ServerListener extends Globals
 //				System.out.println("args: " + Arrays.toString(args));
 				
 				Object o = null;
-				
+				trace(STDOUT, "->\tsigs: " + ObjectUtils.toString(sigs));
+				trace(STDOUT, "->\targs: " + ObjectUtils.toString(args));
 				if( sigs != null && args != null )
 				{
 					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs) + " | " + ObjectUtils.toString(args) + " )");
@@ -242,7 +243,7 @@ public class ServerListener extends Globals
 				else if( o instanceof Boolean )		out.write( "" + ObjectUtils.ternary(o, "FALSE") );
 				else if( o instanceof Map<?, ?> )	out.write( ObjectUtils.toString(o) );
 				else								out.write( "No case for type: " + o.getClass().getSimpleName() );
-				out.newLine();
+//				out.newLine();
 				out.flush();
 
 			} catch (Exception e) {

@@ -26,7 +26,6 @@ import static weave.utils.TraceUtils.trace;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -146,8 +145,7 @@ public class JettyConfig extends Config
 					String[] START = SyscallCreatorUtils.generate(cmd);
 					
 					o = ProcessUtils.run(START, logStdout, logStderr);
-				} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException |
-						 IllegalArgumentException | InvocationTargetException | IOException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -200,8 +198,7 @@ public class JettyConfig extends Config
 			String[] STOP = SyscallCreatorUtils.generate(cmd);
 			
 			return ProcessUtils.run(STOP);
-		} catch (InterruptedException | NoSuchMethodException | SecurityException | IllegalAccessException | 
-				 IllegalArgumentException | InvocationTargetException | IOException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

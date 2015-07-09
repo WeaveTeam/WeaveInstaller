@@ -19,12 +19,12 @@
 
 package weave.utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import weave.Globals;
+import weave.reflect.Reflectable;
 import weave.reflect.ReflectionUtils;
 
 public class ObjectUtils extends Globals
@@ -72,14 +72,9 @@ public class ObjectUtils extends Globals
 	 * @param functionName The name of the function to apply to the non-null test case
 	 * @param failDefault The fail-safe default value
 	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
+	 * @throws Exception 
 	 */
-	public static Object ternary(Object testNotNull, String functionName, Object failDefault) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static Object ternary(Object testNotNull, String functionName, Object failDefault) throws Exception
 	{
 		return ternary(testNotNull, functionName, failDefault, new Class<?>[]{}, new Object[]{});
 	}
@@ -122,14 +117,9 @@ public class ObjectUtils extends Globals
 	 * @param argClassList The function argument signature
 	 * @param args The function arguments
 	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
+	 * @throws Exception 
 	 */
-	public static Object ternary(Object testNotNull, String functionName, Object failDefault, Class<?>[] argClassList, Object[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static Object ternary(Object testNotNull, String functionName, Object failDefault, Class<?>[] argClassList, Object[] args) throws Exception
 	{
 		if( testNotNull == null )
 			return failDefault;
@@ -153,17 +143,23 @@ public class ObjectUtils extends Globals
 		return null;
 	}
 	
+	@Reflectable
 	public static String toString(Object o)
 	{
 		return toString(o, ", ");
 	}
 	
+	@Reflectable
 	public static String toString(Object o, String delim)
 	{
 		int i = 0;
 		StringBuilder sb = new StringBuilder();
 		
-		if( o instanceof Map<?,?> )
+		if( o == null )
+		{
+			sb.append("NULL");
+		}
+		else if( o instanceof Map<?,?> )
 		{
 			Map<?,?> m = (Map<?, ?>)o;
 			sb.append("{\n");

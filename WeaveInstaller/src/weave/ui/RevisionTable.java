@@ -25,7 +25,6 @@ import static weave.utils.TraceUtils.trace;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -91,15 +90,7 @@ public class RevisionTable extends JPanel
 				data[i][0] = revisionName + ((revisionName.equals(configVer)) ? "  (current)" : "" );
 				data[i][1] = new SimpleDateFormat("MM/dd/yyyy h:mm a").format(date);
 			}
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 		}
 

@@ -24,7 +24,6 @@ import static weave.utils.TraceUtils.trace;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import javax.swing.JOptionPane;
@@ -130,8 +129,7 @@ public class Config extends Globals implements IConfig
 			if( (b == null) ? d : b )
 				loadConfig();
 				
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException |
-				 InvocationTargetException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -212,8 +210,7 @@ public class Config extends Globals implements IConfig
 			ret += ("\tHost: " + getHost() + "\n");
 			ret += ("\tPort: " + getPort() + "\n");
 			ret += ("\tLoaded: " + ( isConfigLoaded() ? "TRUE" : "FALSE") + "\n");
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | 
-				 IllegalArgumentException | InvocationTargetException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 		}
 		return ret;

@@ -1,6 +1,5 @@
 package weave;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,15 +26,7 @@ public class Globals
 	{
 		try {
 			ReflectionUtils.reflectMethod(get("Installer"), "setProgress", new Class<?>[] {Integer.class}, new Object[] { bit });
-		} catch (NoSuchMethodException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (SecurityException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IllegalAccessException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (IllegalArgumentException e) {
-			TraceUtils.trace(TraceUtils.STDERR, e);
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}
 	}

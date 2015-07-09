@@ -31,7 +31,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -264,8 +263,7 @@ public class ConfigManager extends Globals
 			ObjectOutputStream outstream = new ObjectOutputStream(new FileOutputStream(Settings.CONFIG_FILE));
 			outstream.writeObject(CONFIGS_MAP);
 			outstream.close();
-		} catch (IOException | NoSuchMethodException | SecurityException | IllegalAccessException |
-				 IllegalArgumentException | InvocationTargetException e) {
+		} catch (Exception e) {
 			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

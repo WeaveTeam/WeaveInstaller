@@ -23,7 +23,6 @@ import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -99,19 +98,7 @@ public class StatsUtils extends Globals
 			};
 			task.execute();
 			
-		} catch (NoSuchMethodException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (SecurityException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalAccessException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (IllegalArgumentException e) {
-			trace(STDERR, e);
-			BugReportUtils.showBugReportDialog(e);
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

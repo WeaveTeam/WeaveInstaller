@@ -39,7 +39,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -328,8 +327,7 @@ public class TrayManager extends Globals
 				try {
 					ReflectionUtils.reflectMethod(globalHashMap.get("Installer"), "switchToHomeSetupPanel");
 					ReflectionUtils.reflectMethod(globalHashMap.get("HomeSetupPanel"), "switchToTab", new Class<?>[] { String.class }, new String[] { "About" });
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException |
-						 IllegalArgumentException | InvocationTargetException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 			}
