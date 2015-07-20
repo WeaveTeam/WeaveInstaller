@@ -134,7 +134,7 @@ public class UpdateUtils extends Globals
 		if( fileName == null )
 			return UPDATE_ERROR;
 		
-		return ( new File(Settings.REVISIONS_DIRECTORY, fileName).exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
+		return ( new File(Settings.WEAVE_BINARIES_DIRECTORY, fileName).exists() ? NO_UPDATE_AVAILABLE : UPDATE_AVAILABLE );
 	}
 
 	public static int checkForWeaveUpdate(boolean save) throws InterruptedException, IOException

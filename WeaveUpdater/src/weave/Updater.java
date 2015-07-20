@@ -60,6 +60,7 @@ import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
 import weave.utils.IdentityUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.LegacyUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
 import weave.utils.StringUtils;
@@ -456,8 +457,8 @@ public class Updater extends JFrame
 			Thread.sleep(2000);
 			
 			StatsUtils.noop();
-			upgradeOldStuff();
 			Settings.setDirectoryPermissions();
+			LegacyUtils.moveV1toV2();
 			
 			String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
 			if( ver != null )
@@ -508,18 +509,6 @@ public class Updater extends JFrame
 //					BugReportUtils.showBugReportDialog(e);
 				}
 			}
-		}
-	}
-	
-	private void upgradeOldStuff() throws IOException, InterruptedException
-	{
-		File oldDir = new File(Settings.APPDATA_DIRECTORY, Settings.F_S + "WeaveUpdater" + Settings.F_S);
-		
-		if( oldDir.exists() ) {
-			File oldRevs = new File(oldDir, Settings.F_S + "revisions" + Settings.F_S);
-			if( oldRevs.exists() )
-				FileUtils.copy(oldRevs, Settings.REVISIONS_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
-			FileUtils.recursiveDelete(oldDir);
 		}
 	}
 }

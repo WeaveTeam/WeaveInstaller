@@ -256,19 +256,21 @@ public class HomeSetupPanel extends SetupPanel
 						RemoteUtils.isConnectedToInternet(
 							new Function() {
 								@Override
-								public void run() {
+								public Object run() {
 									try {
 										troubleshootHTML.setPage(Settings.API_FAQ + "?" + System.currentTimeMillis());
 									} catch (IOException e) {
 										trace(STDERR, e);
 										troubleshootHTML.setText("<br><center>There was an error trying to load the FAQ</center>");
 									}
+									return null;
 								}
 							}, 
 							new Function() {
 								@Override
-								public void run() {
+								public Object run() {
 									troubleshootHTML.setText("<br><center>No internet connection found</center>");
+									return null;
 								}
 							}
 						);
@@ -393,7 +395,7 @@ public class HomeSetupPanel extends SetupPanel
 						return;
 					}
 					
-					File zip = new File(Settings.REVISIONS_DIRECTORY, fileName);
+					File zip = new File(Settings.WEAVE_BINARIES_DIRECTORY, fileName);
 					
 					DownloadManager.init("update")
 						.setLabel(downloadLabel)
@@ -617,7 +619,7 @@ public class HomeSetupPanel extends SetupPanel
 					{
 						try {
 							List<File> files = (List<File>) transferable.getTransferData(flavor);
-							REV = Settings.REVISIONS_DIRECTORY;
+							REV = Settings.WEAVE_BINARIES_DIRECTORY;
 							if( REV == null || !REV.exists() )
 								return;
 							
@@ -879,7 +881,7 @@ public class HomeSetupPanel extends SetupPanel
 										new Boolean[] { false },
 										new Object[0][1],
 										0, SortOrder.ASCENDING);
-		pluginsTable.setBounds(0, 0, panel.getWidth() / 3, panel.getHeight() - 30);
+		pluginsTable.setBounds(0, 0, panel.getWidth() / 3, panel.getHeight() - 25);
 		pluginsTable.addTableSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
@@ -1004,7 +1006,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
-		public void run() {
+		public Object run() {
 			System.gc();
 			
 			Integer returnCode = (Integer) arguments[0];
@@ -1035,6 +1037,7 @@ public class HomeSetupPanel extends SetupPanel
 			} catch (InterruptedException e) {
 				trace(STDERR, e);
 			}
+			return null;
 		}
 	};
 	

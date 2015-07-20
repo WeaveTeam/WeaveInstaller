@@ -95,7 +95,7 @@ public class DownloadManager
 		else if( dlFileStr != null )
 			extract();
 		else
-			throw new InvalidParameterException();
+			throw new InvalidParameterException("Nothing to download nor extract");
 	}
 	
 	private void download() throws MalformedURLException, InterruptedException
@@ -116,32 +116,40 @@ public class DownloadManager
 					{
 						case TransferUtils.COMPLETE:
 							put(STDOUT, "DONE");
-							label.setText("Download Complete....");
-							label.setForeground(Color.BLACK);
-		
+							if( label != null )
+							{
+								label.setText("Download Complete....");
+								label.setForeground(Color.BLACK);
+							}
 							extract();
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
-							label.setText("Cancelling Download....");
-							label.setForeground(Color.BLACK);
-							
+							if( label != null )
+							{
+								label.setText("Cancelling Download....");
+								label.setForeground(Color.BLACK);
+							}							
 							Thread.sleep(1000);
 							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
-							label.setText("Download Failed....");
-							label.setForeground(Color.RED);
-							
+							if( label != null )
+							{
+								label.setText("Download Failed....");
+								label.setForeground(Color.RED);
+							}
 							Thread.sleep(1000);
 							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
-							label.setText("Offline");
-							label.setForeground(Color.BLACK);
-							
+							if( label != null )
+							{
+								label.setText("Offline");
+								label.setForeground(Color.BLACK);
+							}
 							Thread.sleep(1000);
 							callbackFunction.call(new Object[] { returnCode, dlFileStr });
 							break;
@@ -158,21 +166,23 @@ public class DownloadManager
 				if( info.max == -1 ) {
 					// Unknown max size - progress unavailable
 					progressbar.setIndeterminate(true);
-					label.setText( 
-						String.format("Downloading " + type + ".... %s @ %s",
-							FileUtils.sizeify(info.cur), 
-							DownloadUtils.speedify(info.speed)) );
+					if( label != null )
+						label.setText( 
+							String.format("Downloading " + type + ".... %s @ %s",
+								FileUtils.sizeify(info.cur), 
+								DownloadUtils.speedify(info.speed)) );
 				} else {
 					// Known max size
 					progressbar.setIndeterminate(false);
 					progressbar.setValue( info.percent );
 					if( info.time > 3600 )
-						label.setText(
-							String.format("Downloading - %d%% - %s - %s (%s)", 
-								info.percent, 
-								"Calculating ETA...",
-								FileUtils.sizeify(info.cur),
-								DownloadUtils.speedify(info.speed)) );
+						if( label != null )
+							label.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									"Calculating ETA...",
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
 					else if( info.time < 60 )
 						label.setText(
 							String.format("Downloading - %d%% - %s - %s (%s)", 

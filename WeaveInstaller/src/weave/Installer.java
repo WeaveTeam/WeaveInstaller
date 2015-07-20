@@ -411,20 +411,13 @@ public class Installer extends JFrame
 					updateToNewUpdater();
 					Settings.setDirectoryPermissions();
 					put(STDOUT, "DONE");
-				} catch (IOException | InterruptedException e) {
+				} catch (IOException | InterruptedException e) { 
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 				}
 			}
-		}, 3000);
-		
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				
-			}
-		}, 6000);
+		}, 5000);
 		
 		switchToWelcomeSetupPanels(rightPanel);
 	}
@@ -496,7 +489,7 @@ public class Installer extends JFrame
 			
 			if( Settings.SETUP_COMPLETE )
 				setProgress(15);
-			else if( FileUtils.getNumberOfFilesInDirectory(Settings.REVISIONS_DIRECTORY, false) > 0 )
+			else if( FileUtils.getNumberOfFilesInDirectory(Settings.WEAVE_BINARIES_DIRECTORY, false) > 0 )
 				setProgress(7);
 			else if( servlet != null && database != null )
 				setProgress(3);

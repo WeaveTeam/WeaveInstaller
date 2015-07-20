@@ -203,12 +203,8 @@ public class CustomTable extends JPanel
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy h:mm a");
 		
 		@Override
-		public Component getTableCellRendererComponent( JTable table, Object value, 
-														boolean isSelected, boolean hasFocus,
-														int row, int column) {
-//			System.out.println("\nCell type: " + value.getClass());
-//			System.out.println("Cell value before: " + value);
-			
+		public Component getTableCellRendererComponent( JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		{
 			if( value instanceof Date )
 			{
 				value = dateFormat.format(value);
@@ -217,10 +213,7 @@ public class CustomTable extends JPanel
 			{
 				value = FileUtils.sizeify(((FileSize)value).getSize());
 			}
-//			System.out.println("Cell value after: " + value);
-
-			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			return cell;
+			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		}
 	}
 }

@@ -109,7 +109,7 @@ public class Settings extends Globals
 	 * Weave Launcher
 	 */
 	@Reflectable public static final String LAUNCHER_NAME		= PROJECT_NAME + " Launcher";
-	@Reflectable public static final String LAUNCHER_VER		= "1.0";
+	@Reflectable public static final String LAUNCHER_VER		= "1.0.0";
 	@Reflectable public static final String LAUNCHER_TITLE		= LAUNCHER_NAME + " v" + LAUNCHER_VER;
 	@Reflectable public static final String LAUNCHER_JAR		= "Launcher.jar";
 	
@@ -132,7 +132,8 @@ public class Settings extends Globals
 	public static File BIN_DIRECTORY					= null;
 	public static File LIBS_DIRECTORY					= null;
 	public static File LOGS_DIRECTORY					= null;
-	public static File REVISIONS_DIRECTORY 				= null;
+	public static File WEAVE_BINARIES_DIRECTORY 		= null;
+	public static File ANALYST_BINARIES_DIRECTORY		= null;
 	public static File UNZIP_DIRECTORY 					= null;
 	public static File DEPLOYED_PLUGINS_DIRECTORY		= null;
 	public static File SETTINGS_FILE 					= null;
@@ -228,13 +229,15 @@ public class Settings extends Globals
 		RemoteUtils.isConnectedToInternet(
 			new Function() {
 				@Override
-				public void run() {
+				public Object run() {
 					getNetworkInfo( isOfflineMode() );
+					return null;
 				}
 			}, new Function() {
 				@Override
-				public void run() {
+				public Object run() {
 					getNetworkInfo(true);
+					return null;
 				}
 			}
 		);
@@ -435,6 +438,14 @@ public class Settings extends Globals
 	{
 		APPDATA_DIRECTORY			= new File(directory);
 		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + ".weave"		 		+ F_S);
+		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
+
+		traceln(STDOUT, "");
+		traceln(STDOUT, "######################################");
+		traceln(STDOUT, "=== Running " + CURRENT_PROGRAM_NAME + " Preconfiguration ===");
+		traceln(STDOUT, StringUtils.rpad("-> Creating File Structure", ".", LOG_PADDING_LENGTH));
+
+		
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
 		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "settings.save"			 );
 		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
@@ -442,11 +453,11 @@ public class Settings extends Globals
 		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + ".ulock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
 		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "libs"				+ F_S);
-		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
 		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
 		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + "tmp" 				+ F_S);
+		WEAVE_BINARIES_DIRECTORY 	= new File(DOWNLOADS_DIRECTORY, 	F_S + "weave-binaries" 		+ F_S);
+		ANALYST_BINARIES_DIRECTORY	= new File(DOWNLOADS_DIRECTORY,		F_S + "analyst-binaries"	+ F_S);
 		DEPLOYED_PLUGINS_DIRECTORY	= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "plugins" 			+ F_S);
-		REVISIONS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "revisions" 			+ F_S);
 		UNZIP_DIRECTORY 			= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "unzip" 				+ F_S);
 		DESKTOP_DIRECTORY 			= new File(USER_HOME, 				F_S + "Desktop" 			+ F_S);
 		
@@ -457,12 +468,9 @@ public class Settings extends Globals
 		if( !LOGS_DIRECTORY.exists() )				LOGS_DIRECTORY.mkdirs();
 		if( !DOWNLOADS_DIRECTORY.exists() )			DOWNLOADS_DIRECTORY.mkdirs();
 		if( !DEPLOYED_PLUGINS_DIRECTORY.exists() )	DEPLOYED_PLUGINS_DIRECTORY.mkdirs();
-		if( !REVISIONS_DIRECTORY.exists() )			REVISIONS_DIRECTORY.mkdirs();
+		if( !WEAVE_BINARIES_DIRECTORY.exists() )	WEAVE_BINARIES_DIRECTORY.mkdirs();
+		if( !ANALYST_BINARIES_DIRECTORY.exists() )	ANALYST_BINARIES_DIRECTORY.mkdirs();
 
-		traceln(STDOUT, "");
-		traceln(STDOUT, "######################################");
-		traceln(STDOUT, "=== Running " + CURRENT_PROGRAM_NAME + " Preconfiguration ===");
-		traceln(STDOUT, StringUtils.rpad("-> Creating File Structure", ".", LOG_PADDING_LENGTH));
 		put(STDOUT, "DONE");
 	}
 	
@@ -678,8 +686,8 @@ public class Settings extends Globals
 	
 	public static void stopListenerServer()
 	{
-		if( rpcServer == null ) return;
-		rpcServer.stop();
+		if( rpcServer != null )
+			rpcServer.stop();
 	}
 	
 	@Reflectable 

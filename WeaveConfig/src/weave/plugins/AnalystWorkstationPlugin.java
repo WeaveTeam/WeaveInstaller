@@ -16,12 +16,14 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.SortOrder;
 
 import weave.Settings;
 import weave.configs.IConfig;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
 import weave.misc.Function;
+import weave.ui.CustomTable;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.LaunchUtils;
@@ -64,6 +66,7 @@ public class AnalystWorkstationPlugin extends Plugin
 	private JLabel iconLabel = null;
 	private JLabel nameLabel = null;
 	private JEditorPane description = null;
+	private CustomTable revisionTable = null;
 	private JButton openButton = null;
 	private JButton installButton = null;
 	private JButton removeButton = null;
@@ -72,7 +75,7 @@ public class AnalystWorkstationPlugin extends Plugin
 
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
-		public void run() {
+		public Object run() {
 			setAllButtonsEnabled(true);
 			progressbar.setValue(0);
 			progressbar.setIndeterminate(true);
@@ -87,6 +90,7 @@ public class AnalystWorkstationPlugin extends Plugin
 				BugReportUtils.showBugReportDialog(e);
 			}
 			pluginPanelRefresh();
+			return null;
 		}
 	};
 	
@@ -118,8 +122,17 @@ public class AnalystWorkstationPlugin extends Plugin
 		description.setEditable(false);
 		panel.add(description);
 		
+		revisionTable = new CustomTable(new String[] {"Revision"},
+										new Class<?>[] { String.class }, 
+										new Boolean[] { false },
+										new Object[0][1],
+										0, SortOrder.ASCENDING);
+		revisionTable.setBounds(10, 230, 170, 95);
+		revisionTable.setVisible(true);
+		panel.add(revisionTable);
+		
 		installButton = new JButton("Install");
-		installButton.setBounds(190, 200, 90, 25);
+		installButton.setBounds(190, 230, 90, 25);
 		installButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -144,7 +157,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(installButton);
 		
 		removeButton = new JButton("Remove");
-		removeButton.setBounds(190, 235, 90, 25);
+		removeButton.setBounds(190, 265, 90, 25);
 		removeButton.setVisible(false);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
@@ -155,7 +168,7 @@ public class AnalystWorkstationPlugin extends Plugin
 		panel.add(removeButton);
 
 		openButton = new JButton("Open");
-		openButton.setBounds(190, 270, 90, 25);
+		openButton.setBounds(190, 300, 90, 25);
 		openButton.setVisible(false);
 		openButton.addActionListener(new ActionListener() {
 			@Override

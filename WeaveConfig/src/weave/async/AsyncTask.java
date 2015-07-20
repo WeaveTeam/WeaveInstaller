@@ -25,8 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import weave.Globals;
+import weave.misc.Function;
 
-public abstract class AsyncTask extends Globals
+public class AsyncTask extends Globals
 {
 	private String description = "";
 	private List<AsyncCallback> callbacks = null;
@@ -43,7 +44,33 @@ public abstract class AsyncTask extends Globals
 		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
 	}
 	
-	public abstract Object doInBackground();
+	protected Object doInBackground() 
+	{
+		throw new UnsupportedOperationException("Method Not Implemented Yet");
+	}
+	
+	public void execute(final Function task)
+	{
+		AsyncCallback c = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				AsyncTaskManager.removeTask(AsyncTask.this);
+			}
+		};
+		addCallback(c);
+		
+		AsyncTaskManager.addTask(this);
+		
+		t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				Object o = task.call();
+				
+				runCallbacks(o);
+			}
+		});
+		t.start();
+	}
 	
 	public void execute()
 	{

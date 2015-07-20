@@ -9,16 +9,16 @@ public abstract class Function
 		
 	}
 	
-	public void call()
+	public Object call()
 	{
 		arguments = new Object[0];
-		run();
+		return run();
 	}
-	public void call(Object[] args)
+	public Object call(Object[] args)
 	{
 		arguments = args;
-		run();
+		return run();
 	}
 	
-	public abstract void run();
+	public abstract Object run();
 }

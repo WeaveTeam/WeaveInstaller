@@ -33,19 +33,19 @@ public class Revisions extends Globals
 {
 	public static int getNumberOfRevisions()
 	{
-		if( !Settings.REVISIONS_DIRECTORY.exists() )
+		if( !Settings.WEAVE_BINARIES_DIRECTORY.exists() )
 			return 0;
 
-		return Settings.REVISIONS_DIRECTORY.list().length;
+		return Settings.WEAVE_BINARIES_DIRECTORY.list().length;
 	}
 	
 	public static long getSizeOfRevisions()
 	{
-		if( !Settings.REVISIONS_DIRECTORY.exists() )
+		if( !Settings.WEAVE_BINARIES_DIRECTORY.exists() )
 			return 0;
 		
 		long size = 0;
-		File[] files = Settings.REVISIONS_DIRECTORY.listFiles();
+		File[] files = Settings.WEAVE_BINARIES_DIRECTORY.listFiles();
 		
 		for( int i = 0; i < files.length; i++ )
 			size += files[i].length();
@@ -55,7 +55,7 @@ public class Revisions extends Globals
 
 	public static ArrayList<File> getRevisionsList()
 	{
-		File[] files = Settings.REVISIONS_DIRECTORY.listFiles();
+		File[] files = Settings.WEAVE_BINARIES_DIRECTORY.listFiles();
 		ArrayList<File> sortedFiles = new ArrayList<File>();
 		
 		for( int i = 0; i < files.length; i++ )

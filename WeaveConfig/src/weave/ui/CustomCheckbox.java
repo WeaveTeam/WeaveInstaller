@@ -15,11 +15,11 @@ public class CustomCheckbox extends JCheckBox
 	
 	@Override
 	protected void processKeyEvent(KeyEvent e) {
-
+		// Override to disable functionality
 	}
 	
 	@Override
 	protected void processMouseEvent(MouseEvent e) {
-
+		// Override to disable functionality
 	}
 }

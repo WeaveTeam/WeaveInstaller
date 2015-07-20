@@ -65,7 +65,7 @@ public class JettyPlugin extends Plugin
 	
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
-		public void run() {
+		public Object run() {
 			setAllButtonsEnabled(true);
 			progressbar.setValue(0);
 			progressbar.setIndeterminate(true);
@@ -80,6 +80,7 @@ public class JettyPlugin extends Plugin
 				trace(STDERR, e);
 			}
 			pluginPanelRefresh();
+			return null;
 		}
 	};
 	
