@@ -131,7 +131,7 @@ public class DownloadManager
 								label.setForeground(Color.BLACK);
 							}							
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -141,7 +141,7 @@ public class DownloadManager
 								label.setForeground(Color.RED);
 							}
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -151,7 +151,7 @@ public class DownloadManager
 								label.setForeground(Color.BLACK);
 							}
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -175,7 +175,7 @@ public class DownloadManager
 					// Known max size
 					progressbar.setIndeterminate(false);
 					progressbar.setValue( info.percent );
-					if( info.time > 3600 )
+					if( info.time > 3600 ) {
 						if( label != null )
 							label.setText(
 								String.format("Downloading - %d%% - %s - %s (%s)", 
@@ -183,20 +183,23 @@ public class DownloadManager
 									"Calculating ETA...",
 									FileUtils.sizeify(info.cur),
 									DownloadUtils.speedify(info.speed)) );
-					else if( info.time < 60 )
-						label.setText(
-							String.format("Downloading - %d%% - %s - %s (%s)", 
-								info.percent, 
-								TimerUtils.format("%s s remaining", info.time),
-								FileUtils.sizeify(info.cur),
-								DownloadUtils.speedify(info.speed)) );
-					else
-						label.setText(
-							String.format("Downloading - %d%% - %s - %s (%s)",
-								info.percent, 
-								TimerUtils.format("%m:%ss remaining", info.time),
-								FileUtils.sizeify(info.cur),
-								DownloadUtils.speedify(info.speed)) );
+					} else if( info.time < 60 ) {
+						if( label != null )
+							label.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)", 
+									info.percent, 
+									TimerUtils.format("%s s remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					} else {
+						if( label != null )
+							label.setText(
+								String.format("Downloading - %d%% - %s - %s (%s)",
+									info.percent, 
+									TimerUtils.format("%m:%ss remaining", info.time),
+									FileUtils.sizeify(info.cur),
+									DownloadUtils.speedify(info.speed)) );
+					}
 				}
 			}
 		};
@@ -257,7 +260,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -265,7 +268,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -273,7 +276,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 					}
 				} catch (InterruptedException e) {
@@ -285,11 +288,14 @@ public class DownloadManager
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
-				progressbar.setValue( info.percent / 2 );
-				label.setText( 
-					String.format(
-						"Extracting " + type + ".... %d%%", 
-						info.percent / 2 ) );
+				if( progressbar != null )
+					progressbar.setValue( info.percent / 2 );
+				
+				if( label != null )
+					label.setText( 
+						String.format(
+							"Extracting " + type + ".... %d%%", 
+							info.percent / 2 ) );
 			}
 		};
 		AsyncTask task = new AsyncTask() {
@@ -339,8 +345,11 @@ public class DownloadManager
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
-				progressbar.setValue( 50 + info.percent / 2 );
-				label.setText( 
+				if( progressbar != null )
+					progressbar.setValue( 50 + info.percent / 2 );
+				
+				if( label != null )
+					label.setText( 
 						String.format(
 								"Installing " + type + ".... %d%%", 
 								50 + info.percent / 2 ) );
@@ -358,7 +367,7 @@ public class DownloadManager
 							put(STDOUT, "DONE");
 							label.setText("Install complete....");
 
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.FAILED:
 							put(STDOUT, "FAILED");
@@ -366,7 +375,7 @@ public class DownloadManager
 							label.setForeground(Color.RED);
 							
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.CANCELLED:
 							put(STDOUT, "CANCELLED");
@@ -374,7 +383,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 							
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 						case TransferUtils.OFFLINE:
 							put(STDOUT, "OFFLINE");
@@ -382,7 +391,7 @@ public class DownloadManager
 							label.setForeground(Color.BLACK);
 	
 							Thread.sleep(1000);
-							callbackFunction.call(new Object[] { returnCode, dlFileStr });
+							callbackFunction.call(returnCode, dlFileStr);
 							break;
 					}
 				} catch (InterruptedException e) {

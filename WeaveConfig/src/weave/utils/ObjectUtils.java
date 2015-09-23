@@ -72,6 +72,7 @@ public class ObjectUtils extends Globals
 	 * @param functionName The name of the function to apply to the non-null test case
 	 * @param failDefault The fail-safe default value
 	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
+	 * 
 	 * @throws Exception 
 	 */
 	public static Object ternary(Object testNotNull, String functionName, Object failDefault) throws Exception
@@ -117,6 +118,7 @@ public class ObjectUtils extends Globals
 	 * @param argClassList The function argument signature
 	 * @param args The function arguments
 	 * @return The test value and applied function if it is non-null, otherwise it will return the fail-safe value
+	 * 
 	 * @throws Exception 
 	 */
 	public static Object ternary(Object testNotNull, String functionName, Object failDefault, Class<?>[] argClassList, Object[] args) throws Exception

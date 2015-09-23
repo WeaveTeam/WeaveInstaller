@@ -58,7 +58,7 @@ public class MySQLConfig extends Config
 		
 		try {
 			
-			setDescription(getConfigName() + " is an open-source relational database management system (RDBMS).");
+			setDescription(getConfigName() + " is an open-source relational database management system (RDBMS). With its proven performance, reliability and ease-of-use, " + getConfigName() + " has become a great choice for web-based applications.");
 			setWarning("<center><b>" + getConfigName() + " requires the use of its external application found " + 
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(ResourceManager.IMAGE_MYSQL));

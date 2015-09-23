@@ -1,4 +1,4 @@
-package weave.misc;
+package weave.comparables;
 
 public class FileSize implements Comparable<FileSize>
 {

@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -148,7 +148,7 @@ public class RemoteUtils extends Globals
 		
 		URLRequestParams params = new URLRequestParams();
 		params.add("ip", host);
-		params.add("port", "" + port);
+		params.add("port", port);
 		
 		try {
 			return URLRequestUtils

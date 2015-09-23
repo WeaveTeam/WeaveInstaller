@@ -44,7 +44,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import weave.Settings;
-import weave.misc.FileSize;
+import weave.comparables.FileSize;
 import weave.utils.FileUtils;
 
 @SuppressWarnings("serial")

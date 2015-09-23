@@ -98,7 +98,7 @@ public class BugReportUtils extends Globals
 			params.add("instll_ver", Settings.SERVER_VER);
 			params.add("comment", comment);
 			params.add("stack", stack);
-			params.add("epoch", ""+(System.currentTimeMillis()/1000));
+			params.add("epoch", (System.currentTimeMillis()/1000));
 			
 			URLRequestResult result = URLRequestUtils.request(URLRequestUtils.POST, Settings.API_BUG_REPORT, params);
 			

@@ -89,12 +89,12 @@ import javax.swing.text.html.HTMLDocument;
 import weave.Globals;
 import weave.Settings;
 import weave.Settings.INSTALL_ENUM;
+import weave.comparables.FileSize;
 import weave.configs.IConfig;
 import weave.inc.SetupPanel;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
 import weave.managers.PluginManager;
-import weave.misc.FileSize;
 import weave.misc.Function;
 import weave.plugins.IPlugin;
 import weave.reflect.Reflectable;
@@ -256,7 +256,7 @@ public class HomeSetupPanel extends SetupPanel
 						RemoteUtils.isConnectedToInternet(
 							new Function() {
 								@Override
-								public Object run() {
+								public Object call(Object... args) {
 									try {
 										troubleshootHTML.setPage(Settings.API_FAQ + "?" + System.currentTimeMillis());
 									} catch (IOException e) {
@@ -268,7 +268,7 @@ public class HomeSetupPanel extends SetupPanel
 							}, 
 							new Function() {
 								@Override
-								public Object run() {
+								public Object call(Object... args) {
 									troubleshootHTML.setText("<br><center>No internet connection found</center>");
 									return null;
 								}
@@ -1005,12 +1005,13 @@ public class HomeSetupPanel extends SetupPanel
 	}
 	
 	private Function onDownloadCompleteCallback = new Function() {
+		
 		@Override
-		public Object run() {
+		public Object call(Object... args) {
 			System.gc();
 			
-			Integer returnCode = (Integer) arguments[0];
-			String filename = (String) arguments[1];
+			Integer returnCode = (Integer) args[0];
+			String filename = (String) args[1];
 			
 			if( returnCode == TransferUtils.COMPLETE )
 			{

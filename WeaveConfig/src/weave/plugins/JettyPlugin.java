@@ -65,7 +65,7 @@ public class JettyPlugin extends Plugin
 	
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
-		public Object run() {
+		public Object call(Object... args) {
 			setAllButtonsEnabled(true);
 			progressbar.setValue(0);
 			progressbar.setIndeterminate(true);
@@ -119,7 +119,7 @@ public class JettyPlugin extends Plugin
 		panel.add(description);
 		
 		installButton = new JButton("Install");
-		installButton.setBounds(190, 200, 90, 25);
+		installButton.setBounds(190, 230, 90, 25);
 		installButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -144,7 +144,8 @@ public class JettyPlugin extends Plugin
 		panel.add(installButton);
 		
 		removeButton = new JButton("Remove");
-		removeButton.setBounds(190, 235, 90, 25);
+		removeButton.setBounds(190, 265, 90, 25);
+		removeButton.setVisible(false);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -174,8 +175,9 @@ public class JettyPlugin extends Plugin
 	@Override public void pluginPanelRefresh()
 	{
 		super.pluginPanelRefresh();
+		boolean isInstalled = isPluginInstalled();
 
-		if( isPluginInstalled() )
+		if( isInstalled )
 		{
 			installButton.setText("Reinstall");
 			installButton.setEnabled(!Settings.isOfflineMode());

@@ -23,9 +23,6 @@ import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
 import java.io.IOException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 import weave.Globals;
 import weave.Settings;
@@ -81,15 +78,11 @@ public class StatsUtils extends Globals
 				public Object doInBackground() {
 					try {
 						return URLRequestUtils.request(URLRequestUtils.POST, Settings.API_STATS_LIVE, params);
-					} catch (UnknownHostException e ) {
-						// Do nothing here, not a bug
-						// Fires when Java cannot find the URL in DNS
-					} catch (SocketException e) {
-						// Do nothing here, not a bug
-						// Fires when Java tries to connect to the HttpURLConnection 
-					} catch (SocketTimeoutException e) {
-						// Do nothing here, not a bug
 					} catch (IOException e) {
+						// Do nothing here, might be a bug
+						// In the purpose of this function, I would rather ignore
+						// bugs than to alert the user every time it hits one.
+					} catch (Exception e) {
 						trace(STDERR, e);
 						BugReportUtils.showBugReportDialog(e);
 					}

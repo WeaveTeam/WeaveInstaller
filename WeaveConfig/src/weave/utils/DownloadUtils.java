@@ -263,6 +263,9 @@ public class DownloadUtils extends TransferUtils
 		InputStream in = null;
 		OutputStream out = null;
 		
+		if( Settings.isOfflineMode() )
+			return OFFLINE;
+
 		// Check to see if required arguments are non-null
 		if( url == null || destination == null )
 			throw new NullPointerException("URL or Destination File cannot be null");
@@ -270,9 +273,6 @@ public class DownloadUtils extends TransferUtils
 		// If no exception was thrown, assert that URL and destination are non-null
 		assert url != null;
 		assert destination != null;
-		
-		if( Settings.isOfflineMode() )
-			return OFFLINE;
 		
 		conn = (HttpURLConnection)url.openConnection();
 		in = conn.getInputStream();

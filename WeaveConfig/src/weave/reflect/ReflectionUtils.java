@@ -42,10 +42,6 @@ public class ReflectionUtils extends Globals
 		{
 			annotations = c.getAnnotations();
 			sb.append(ObjectUtils.toString(annotations, ", ") + " ");
-//			sb.append("[ ");
-//			for( int i = 0; i < annotations.length; i++ )
-//				sb.append(annotations[i] + " ");
-//			sb.append("] ");
 			
 			sb.append(c.getName() + "\n[\n");
 			Method[] methods = c.getDeclaredMethods();
@@ -53,10 +49,6 @@ public class ReflectionUtils extends Globals
 			{
 				annotations = methods[i].getAnnotations();
 				sb.append("\t" + ObjectUtils.toString(annotations, " ") + " ");
-//				sb.append("\t[ ");
-//				for( int j = 0; j < annotations.length; j++ ) 
-//					sb.append(annotations[j] + " ");
-//				sb.append("] ");
 				sb.append(methods[i].toString() + "\n");
 			}
 			sb.append("]\n\n");

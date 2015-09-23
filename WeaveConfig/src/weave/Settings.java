@@ -22,18 +22,16 @@ package weave;
 import static weave.utils.ObjectUtils.ternary;
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 import static weave.utils.TraceUtils.put;
 import static weave.utils.TraceUtils.trace;
 import static weave.utils.TraceUtils.traceln;
-import static weave.utils.TraceUtils.getSimpleClassAndMsg;
 
 import java.awt.Font;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,6 +40,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +91,7 @@ public class Settings extends Globals
 	 * Weave Installer
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0.5 Beta";
+	@Reflectable public static final String SERVER_VER			= "2.0.6 Beta";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
@@ -229,13 +228,13 @@ public class Settings extends Globals
 		RemoteUtils.isConnectedToInternet(
 			new Function() {
 				@Override
-				public Object run() {
+				public Object call(Object... args) {
 					getNetworkInfo( isOfflineMode() );
 					return null;
 				}
 			}, new Function() {
 				@Override
-				public Object run() {
+				public Object call(Object... args) {
 					getNetworkInfo(true);
 					return null;
 				}
@@ -449,8 +448,8 @@ public class Settings extends Globals
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
 		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "settings.save"			 );
 		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
-		SLOCK_FILE					= new File(BIN_DIRECTORY,			F_S + ".slock"					 );
-		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + ".ulock"					 );
+		SLOCK_FILE					= new File(BIN_DIRECTORY,			F_S + "s.lock"					 );
+		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + "u.lock"					 );
 		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
 		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "libs"				+ F_S);
 		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
@@ -498,7 +497,8 @@ public class Settings extends Globals
 	/**
 	 * Create a shortcut on the user's desktop to the updater
 	 * 
-	 * @param overwrite Mark as true to overwrite the old shortcut, FALSE otherwise
+	 * @param overwrite Mark as <code>true</code> to overwrite the old shortcut, <code>false</code> otherwise
+	 * 
 	 * @throws IOException
 	 */
 	public static void createShortcut( boolean overwrite ) throws IOException
@@ -531,6 +531,7 @@ public class Settings extends Globals
 	 * Obtain a file lock to allow only 1 instance to be open.
 	 * 
 	 * @return <code>true</code> if lock is obtained successfully, <code>false</code> otherwise
+	 * 
 	 * @throws InterruptedException 
 	 * @see releaseLock()
 	 */
@@ -574,10 +575,11 @@ public class Settings extends Globals
 			{
 				// This will get the lock
 				try {
-					BufferedWriter bw = new BufferedWriter(new FileWriter(ULOCK_FILE));
-					bw.write("" + myPID + "");
-					bw.flush();
-					bw.close();
+					ULOCK_FILE.createNewFile();
+					FileOutputStream out = new FileOutputStream(ULOCK_FILE);
+					out.write(("" + myPID).getBytes(Charset.forName("UTF-8")));
+					out.flush();
+					out.close();
 				} catch (IOException e) {
 					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 					trace(STDERR, e);
@@ -624,10 +626,11 @@ public class Settings extends Globals
 			{
 				// This will get the lock
 				try {
-					BufferedWriter bw = new BufferedWriter(new FileWriter(SLOCK_FILE));
-					bw.write("" + myPID + "");
-					bw.flush();
-					bw.close();
+					SLOCK_FILE.createNewFile();
+					FileOutputStream out = new FileOutputStream(SLOCK_FILE);
+					out.write(("" + myPID).getBytes(Charset.forName("UTF-8")));
+					out.flush();
+					out.close();
 				} catch (IOException e) {
 					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 					trace(STDERR, e);
@@ -657,9 +660,11 @@ public class Settings extends Globals
 	}
 
 	/**
-	 * Check if a service is running on the specified port
-	 * @param host the host to query
-	 * @param port	the port to check
+	 * Check to see if a service is running on the host at the specified port
+	 * 
+	 * @param host The host address to query
+	 * @param port The port to check
+	 * @return <code>true</code> if the service is up, <code>false</code> otherwise
 	 */
 	@Reflectable 
 	public static Boolean isServiceUp(String host, Integer port)
@@ -809,6 +814,7 @@ public class Settings extends Globals
 	 * Get the string representation of the base Operating System
 	 * 
 	 * @return OS as a string
+	 * 
 	 * @see {@link Settings#findOS()}
 	 */
 	@Reflectable 
@@ -829,6 +835,7 @@ public class Settings extends Globals
 	 * Get the exact string representation of the base Operating System
 	 * 
 	 * @return Exact OS as a String
+	 * 
 	 * @see {@link Settings#findOS()}
 	 * @see {@link Settings#getOS()}
 	 */
@@ -843,6 +850,8 @@ public class Settings extends Globals
 	 * Get the currently running process's PID.
 	 * 
 	 * @return the process pid
+	 * 
+	 * @see {@link Settings#isActivePID(int)}
 	 */
 	public static int getPID()
 	{
@@ -856,6 +865,7 @@ public class Settings extends Globals
 	 * 
 	 * @param pid The PID you want to check
 	 * @return <code>true</code> if the PID is running, <code>false</code> otherwise
+	 * 
 	 * @see {@link Settings#getPID()}
 	 */
 	public static boolean isActivePID(int pid)

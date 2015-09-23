@@ -177,8 +177,7 @@ public class FileUtils extends TransferUtils
 	 * 			return FileUtils.copy(a, b, {@link FileUtils#OVERWRITE} | {@link FileUtils#SINGLE_FILE}, observer, 2 * {@link FileUtils#MB});
 	 * 		}
 	 * 	};
-	 * 	task.addCallback( callback );
-	 * 	task.execute();
+	 * 	task.addCallback( callback ).execute();
 	 * </pre>
 	 * </code>
 	 * 
@@ -458,6 +457,7 @@ public class FileUtils extends TransferUtils
 
 	
 	/**
+	 * Move or rename the source file to the destination file.
 	 * 
 	 * @param source The source file
 	 * @param destination The destination file
@@ -473,7 +473,8 @@ public class FileUtils extends TransferUtils
 	public static int move( File source, File destination, int flags, AsyncObserver observer, int throttle ) throws FileNotFoundException, IOException, InterruptedException
 	{
 		int cp = copy(source, destination, flags, observer, throttle);
-		recursiveDelete(source);
+		if( cp == COMPLETE )
+			recursiveDelete(source);
 		
 		return cp;
 	}
@@ -671,55 +672,44 @@ public class FileUtils extends TransferUtils
 	{
 		return setPermissions(new File(path), permissions);
 	}
-	@Reflectable
+	
+	/**
+	 * Set the read, write, execute bits of a file using the POSIX notation.
+	 * <br><br>
+	 * <code>
+	 * <pre>
+	 * Example:
+	 * 	FileUtils.setPermissions(file, 0x777)	Full control
+	 * 	FileUtils.setPermissions(file, 0x444)	Read Only
+	 * 	FileUtils.setPermissions(file, 0x700)	Full control owner only
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param file The file to change permissions on
+	 * @param permissions The permissions using POSIX format
+	 * @return <code>true</code> if successful, <code>false</code> otherwise
+	 * 
+	 * @throws SecurityException
+	 */
 	public static boolean setPermissions(File file, Integer permissions) throws SecurityException
 	{
 		boolean perm = true;
 		int u = permissions & 0xF00;
 		int o = permissions & 0x00F;
+		
 		// Other
-		if( o == 0x007 ) {
-			perm &= file.setReadable(true, false);
-			perm &= file.setWritable(true, false);
-			perm &= file.setExecutable(true, false);
-		} else if( o == 0x006 ) {
-			perm &= file.setReadable(true, false);
-			perm &= file.setWritable(true, false);
-			perm &= file.setExecutable(false, false);
-		} else if( o == 0x005 ) {
-			perm &= file.setReadable(true, false);
-			perm &= file.setWritable(false, false);
-			perm &= file.setExecutable(true, false); 
-		} else if( o == 0x004 ) {
-			perm &= file.setReadable(true, false);
-			perm &= file.setWritable(false, false);
-			perm &= file.setExecutable(false, false); 
-		} else if( o == 0x000 ) {
-			perm &= file.setReadable(false, false);
-			perm &= file.setWritable(false, false);
-			perm &= file.setExecutable(false, false);
-		}
+		perm &= file.setReadable((o & 0x004) > 0, false);
+		perm &= file.setWritable((o & 0x002) > 0, false);
+		perm &= file.setExecutable((o & 0x001) > 0, false);
+		
 		// User
-		if( u == 0x700 ) {
-			perm &= file.setReadable(true);
-			perm &= file.setWritable(true);
-			perm &= file.setExecutable(true);
-		} else if( u == 0x600 ) {
-			perm &= file.setReadable(true);
-			perm &= file.setWritable(true);
-			perm &= file.setExecutable(false);
-		} else if( u == 0x500 ) {
-			perm &= file.setReadable(true);
-			perm &= file.setWritable(false);
-			perm &= file.setExecutable(true);
-		} else if( u == 0x400 ) {
-			perm &= file.setReadable(true);
-			perm &= file.setWritable(false);
-			perm &= file.setExecutable(false);
-		}
+		perm &= file.setReadable((u & 0x400) > 0);
+		perm &= file.setWritable((u & 0x200) > 0);
+		perm &= file.setExecutable((u & 0x100) > 0);
 		
 		return perm;
 	}
+	
 	/*
 	 * FileUtils.getClassPath( class )
 	 * 

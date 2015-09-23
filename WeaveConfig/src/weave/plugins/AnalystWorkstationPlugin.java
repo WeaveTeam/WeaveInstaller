@@ -16,14 +16,12 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.SortOrder;
 
 import weave.Settings;
 import weave.configs.IConfig;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
 import weave.misc.Function;
-import weave.ui.CustomTable;
 import weave.utils.BugReportUtils;
 import weave.utils.EnvironmentUtils;
 import weave.utils.LaunchUtils;
@@ -66,7 +64,7 @@ public class AnalystWorkstationPlugin extends Plugin
 	private JLabel iconLabel = null;
 	private JLabel nameLabel = null;
 	private JEditorPane description = null;
-	private CustomTable revisionTable = null;
+//	private CustomTable revisionTable = null;
 	private JButton openButton = null;
 	private JButton installButton = null;
 	private JButton removeButton = null;
@@ -75,7 +73,7 @@ public class AnalystWorkstationPlugin extends Plugin
 
 	private Function onDownloadCompleteCallback = new Function() {
 		@Override
-		public Object run() {
+		public Object call(Object... args) {
 			setAllButtonsEnabled(true);
 			progressbar.setValue(0);
 			progressbar.setIndeterminate(true);
@@ -122,14 +120,14 @@ public class AnalystWorkstationPlugin extends Plugin
 		description.setEditable(false);
 		panel.add(description);
 		
-		revisionTable = new CustomTable(new String[] {"Revision"},
-										new Class<?>[] { String.class }, 
-										new Boolean[] { false },
-										new Object[0][1],
-										0, SortOrder.ASCENDING);
-		revisionTable.setBounds(10, 230, 170, 95);
-		revisionTable.setVisible(true);
-		panel.add(revisionTable);
+//		revisionTable = new CustomTable(new String[] {"Revision"},
+//										new Class<?>[] { String.class }, 
+//										new Boolean[] { false },
+//										new Object[0][1],
+//										0, SortOrder.ASCENDING);
+//		revisionTable.setBounds(10, 230, 170, 95);
+//		revisionTable.setVisible(true);
+//		panel.add(revisionTable);
 		
 		installButton = new JButton("Install");
 		installButton.setBounds(190, 230, 90, 25);

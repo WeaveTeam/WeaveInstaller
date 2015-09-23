@@ -1,6 +1,6 @@
 /*
     Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2014 University of Massachusetts Lowell
+    Copyright (C) 2008-2015 University of Massachusetts Lowell
 
     This file is a part of Weave.
 
@@ -97,13 +97,15 @@ public class AsyncTask extends Globals
 	
 	public void cancel()
 	{
+		AsyncTaskManager.removeTask(this);
+		removeAllCallbacks();
 		t.interrupt();
 		t = null;
 	}
 	
 	public String toString()
 	{
-		return getClass().getName() + " {" + description + "}";
+		return getClass().getName() + (description.length() > 0 ? " {" + description + "}" : "");
 	}
 	
 	

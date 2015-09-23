@@ -19,6 +19,16 @@ public class URLRequestParams extends Globals
 		
 	}
 	
+	public String add(String key, Integer val)
+	{
+		return add(key, val.toString());
+	}
+	
+	public String add(String key, Long val)
+	{
+		return add(key, val.toString());
+	}
+	
 	public String add(String key, String val)
 	{
 		return params.put(key, val);
