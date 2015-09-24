@@ -101,58 +101,70 @@ public class Updater extends JFrame
 		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
-		
+	
 		try {
 			Thread.sleep(1000);
-			
-			Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
-			Settings.init();
-			
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		}
+		
+		Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
+		Settings.init();
+		
+		try {
 			if( !Settings.getLock() )
 			{
-				int ownerID = Integer.parseInt(FileUtils.getFileContents(Settings.SLOCK_FILE));
 				JOptionPane.showMessageDialog(null, 
-						Settings.CURRENT_PROGRAM_NAME + " is already running with pid: " + ownerID + ".\n\n" +
+						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
 						"Please stop that one before starting another.", 
 						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
-			
-			traceln(STDOUT, "");
-			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
-
-			if( !Desktop.isDesktopSupported() )
-			{
-				traceln(STDOUT, "");
-				traceln(STDOUT, "!! Fault detected !!");
-				traceln(STDOUT, "!! System does not support Java Desktop Features" );
-				traceln(STDOUT, "");
-				Settings.shutdown(ABORT);
-				return;
-			}
-			
-			if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
-			{
-				if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
-						"It appears you have no connection to the internet.\n" +
-						"Would you like to launch in offline mode?", 
-						"No Internet Access", 
-						JOptionPane.YES_NO_OPTION, 
-						JOptionPane.WARNING_MESSAGE ))
-				{
-					Settings.LAUNCH_MODE = LAUNCH_ENUM.OFFLINE_MODE;
-					Settings.save();
-					LaunchUtils.launchWeaveUpdater(1000);
-					Settings.shutdown();
-				}
-				else
-					Settings.shutdown(ABORT);
-			}
-			updater = new Updater();
-			
-		} catch (IOException e) {						trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
-		} catch (InterruptedException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
 		}
+		
+		traceln(STDOUT, "");
+		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+
+		if( !Desktop.isDesktopSupported() )
+		{
+			traceln(STDOUT, "");
+			traceln(STDOUT, "!! Fault detected !!");
+			traceln(STDOUT, "!! System does not support Java Desktop Features" );
+			traceln(STDOUT, "");
+			Settings.shutdown(ABORT);
+			return;
+		}
+		
+		if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
+		{
+			if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
+					"It appears you have no connection to the internet.\n" +
+					"Would you like to launch in offline mode?", 
+					"No Internet Access", 
+					JOptionPane.YES_NO_OPTION, 
+					JOptionPane.WARNING_MESSAGE ))
+			{
+				Settings.LAUNCH_MODE = LAUNCH_ENUM.OFFLINE_MODE;
+				Settings.save();
+				try {
+					LaunchUtils.launchWeaveUpdater(1000);
+				} catch (IOException | InterruptedException e) {
+					trace(STDERR, e);
+				}
+				Settings.shutdown();
+			}
+			else
+				Settings.shutdown(ABORT);
+		}
+		try {
+			updater = new Updater();
+		} catch (IOException | InterruptedException e) {
+			trace(STDERR, e);
+			BugReportUtils.showBugReportDialog(e);
+		}
+		
 	}
 	
 	public Updater() throws IOException, InterruptedException

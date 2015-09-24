@@ -91,7 +91,7 @@ public class Settings extends Globals
 	 * Weave Installer
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0.6 Beta";
+	@Reflectable public static final String SERVER_VER			= "2.0.7 Beta";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
@@ -99,7 +99,7 @@ public class Settings extends Globals
 	 * Weave Updater
 	 */
 	@Reflectable public static final String UPDATER_NAME		= PROJECT_NAME + " Updater";
-	@Reflectable public static final String UPDATER_VER			= "1.1.0 Beta";
+	@Reflectable public static final String UPDATER_VER			= "1.1.2 Beta";
 	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
 	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
 	@Reflectable public static final String UPDATER_NEW_JAR		= "Updater_new.jar";
@@ -240,19 +240,6 @@ public class Settings extends Globals
 				}
 			}
 		);
-//		getNetworkInfo(( isOfflineMode() || !RemoteUtils.isConnectedToInternet() ));
-		
-//		trace(STDOUT, "\tOS: " + OS);
-//		trace(STDOUT, "\tExact OS: " + EXACT_OS);
-//		trace(STDOUT, "\tCONFIGURED: " + CONFIGURED);
-//		trace(STDOUT, "\tSETUP_COMPLETE: " + SETUP_COMPLETE);
-//		trace(STDOUT, "\tUNIQUE_ID: " + UNIQUE_ID);
-//		trace(STDOUT, "\tLAST_UPDATE_CHECK: " + LAST_UPDATE_CHECK);
-//		trace(STDOUT, "\tSHORTCUT_VER: " + SHORTCUT_VER);
-//		trace(STDOUT, "\tUPDATE_OVERRIDE: " + UPDATE_OVERRIDE);
-//		trace(STDOUT, "\tLAUNCH_MODE: " + LAUNCH_MODE);
-//		trace(STDOUT, "\tINSTALL_MODE: " + INSTALL_MODE);
-//		trace(STDOUT, "\tRPC_PORT: " + RPC_PORT);
 	}
 	
 

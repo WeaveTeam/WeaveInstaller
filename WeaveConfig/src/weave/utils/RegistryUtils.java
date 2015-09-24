@@ -28,9 +28,9 @@ public class RegistryUtils extends Globals
 		try {
 			sb.append("REG " + action + " " + root + path + " ");
 	
-			if( key == null ) 				{ }
-			else if( key.length() == 0 )	sb.append("/ve ");
-			else							sb.append("/v " + key + " ");
+			if( key == null ) 					{ }
+			else if( key.trim().length() == 0 )	sb.append("/ve ");
+			else								sb.append("/v " + key + " ");
 			
 			if( action.equals("ADD") )
 			{

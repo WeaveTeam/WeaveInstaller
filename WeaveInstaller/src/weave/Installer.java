@@ -116,17 +116,41 @@ public class Installer extends JFrame
 	
 	public static void main( String[] args )
 	{
+		Properties props = new Properties();
+		props.put("logoString", "");
+		FastLookAndFeel.setCurrentTheme(props);
+
 		try {
-			Properties props = new Properties();
-			props.put("logoString", "");
-			FastLookAndFeel.setCurrentTheme(props);
 			UIManager.setLookAndFeel(FastLookAndFeel.class.getCanonicalName());
+		} catch (ClassNotFoundException e) {
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (ClassNotFoundException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (InstantiationException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (IllegalAccessException e1) {			trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			} catch (UnsupportedLookAndFeelException e1) {	trace(STDERR, e1);	BugReportUtils.showBugReportDialog(e);
+			}
+		} catch (InstantiationException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
+		}
+		
+		try {
 			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		}
 
-			Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
-			Settings.init();
+		Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
+		Settings.init();
 
+		try {
 			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		}
+		
+		try {
 			if( !Settings.getLock() )
 			{
 				JOptionPane.showMessageDialog(null, 
@@ -135,54 +159,61 @@ public class Installer extends JFrame
 						"Error", JOptionPane.ERROR_MESSAGE);
 				Settings.shutdown(JFrame.ERROR);
 			}
-			
-			
+		} catch (InterruptedException e) {
+			trace(STDERR, e);
+		}
+		
+		
+		traceln(STDOUT, "");
+		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+
+		if( !Desktop.isDesktopSupported() )
+		{
 			traceln(STDOUT, "");
-			traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
-
-			if( !Desktop.isDesktopSupported() )
+			traceln(STDOUT, "!! Fault detected !!");
+			traceln(STDOUT, "!! System does not support Java Desktop Features" );
+			traceln(STDOUT, "");
+			Settings.shutdown(ABORT);
+			return;
+		}
+		
+		while( true ) 
+		{
+			if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 			{
-				traceln(STDOUT, "");
-				traceln(STDOUT, "!! Fault detected !!");
-				traceln(STDOUT, "!! System does not support Java Desktop Features" );
-				traceln(STDOUT, "");
-				Settings.shutdown(ABORT);
-				return;
-			}
-			
-			while( true ) 
-			{
-				if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
+				int ops = JOptionPane.showOptionDialog(null, 
+						"No internet connection could be established at this time.\n" + 
+						"Would you like to launch in offline mode?", "No Internet", 
+						JOptionPane.YES_NO_CANCEL_OPTION, 
+						JOptionPane.WARNING_MESSAGE, 
+						null, new String[] { "Retry", "Yes", "Cancel" },
+						null);
+				
+				if( ops == JOptionPane.YES_OPTION ) 
 				{
-					int ops = JOptionPane.showOptionDialog(null, 
-							"No internet connection could be established at this time.\n" + 
-							"Would you like to launch in offline mode?", "No Internet", 
-							JOptionPane.YES_NO_CANCEL_OPTION, 
-							JOptionPane.WARNING_MESSAGE, 
-							null, new String[] { "Retry", "Yes", "Cancel" },
-							null);
-					
-					if( ops == JOptionPane.YES_OPTION ) 
-					{
-						continue;
-					} 
-					else if( ops == JOptionPane.CANCEL_OPTION || ops == JOptionPane.CLOSED_OPTION )
-					{
-						Settings.shutdown(ABORT);
-					}
-					else
-					{
-						Settings.LAUNCH_MODE = Settings.LAUNCH_ENUM.OFFLINE_MODE;
-						Settings.save();
+					continue;
+				} 
+				else if( ops == JOptionPane.CANCEL_OPTION || ops == JOptionPane.CLOSED_OPTION )
+				{
+					Settings.shutdown(ABORT);
+				}
+				else
+				{
+					Settings.LAUNCH_MODE = Settings.LAUNCH_ENUM.OFFLINE_MODE;
+					Settings.save();
+					try {
 						LaunchUtils.launchWeaveUpdater();
+					} catch (IOException | InterruptedException e) {
+						trace(STDERR, e);
 					}
-				} else
-					break;
-			}
-			
+				}
+			} else
+				break;
+		}
+		
+		try {
 			installer = new Installer();
-
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException | InterruptedException | IOException e) {
+		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
