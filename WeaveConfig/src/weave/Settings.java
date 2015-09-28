@@ -88,7 +88,7 @@ public class Settings extends Globals
 
 	
 	/*
-	 * Weave Installer
+	 * Weave Server
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
 	@Reflectable public static final String SERVER_VER			= "2.0.7 Beta";
@@ -950,7 +950,7 @@ public class Settings extends Globals
 	
 	
 	/**
-	 * Stops the WeaveInstaller tool
+	 * Stops the WeaveServer tool
 	 * @throws InterruptedException 
 	 */
 	@Reflectable
@@ -960,7 +960,7 @@ public class Settings extends Globals
 	}
 	
 	/**
-	 * Stops the Weave Installer Tool
+	 * Stops the Weave Server Tool
 	 * @param errno An error code
 	 * @throws InterruptedException 
 	 */

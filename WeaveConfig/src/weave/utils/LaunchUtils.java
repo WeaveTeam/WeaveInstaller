@@ -205,11 +205,11 @@ public class LaunchUtils extends Globals
 		return launch(updater, delay);
 	}
 	
-	public static Boolean launchWeaveInstaller() throws IOException, InterruptedException
+	public static Boolean launchWeaveServer() throws IOException, InterruptedException
 	{
-		return launchWeaveInstaller(700);
+		return launchWeaveServer(700);
 	}
-	public static Boolean launchWeaveInstaller(int delay) throws IOException, InterruptedException
+	public static Boolean launchWeaveServer(int delay) throws IOException, InterruptedException
 	{
 		File installer = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
 

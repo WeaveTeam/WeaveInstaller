@@ -242,7 +242,7 @@ public class Updater extends JFrame
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 
 			Settings.setDirectoryPermissions();
-			LaunchUtils.launchWeaveInstaller(1000);
+			LaunchUtils.launchWeaveServer(1000);
 			
 			Settings.shutdown();
 		}
@@ -356,7 +356,7 @@ public class Updater extends JFrame
 									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE))
 							{
 								Settings.setDirectoryPermissions();
-								LaunchUtils.launchWeaveInstaller();
+								LaunchUtils.launchWeaveServer();
 							}
 							Settings.shutdown();
 							break;
@@ -478,7 +478,7 @@ public class Updater extends JFrame
 	
 			while( !Settings.canQuit ) Thread.sleep(1000);
 	
-			LaunchUtils.launchWeaveInstaller(1000);
+			LaunchUtils.launchWeaveServer(1000);
 		} catch (InterruptedException | IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

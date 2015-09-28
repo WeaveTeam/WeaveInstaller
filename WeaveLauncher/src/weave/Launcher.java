@@ -111,7 +111,7 @@ public class Launcher extends JFrame
 				{
 					String cmd = params[1];
 					if( cmd.equals("start") )
-						LaunchUtils.launchWeaveInstaller(delay);
+						LaunchUtils.launchWeaveServer(delay);
 					else if( cmd.equals("stop") )
 						Settings.shutdown();
 				} 
