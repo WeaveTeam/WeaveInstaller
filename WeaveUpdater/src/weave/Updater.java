@@ -111,17 +111,13 @@ public class Updater extends JFrame
 		Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
 		Settings.init();
 		
-		try {
-			if( !Settings.getLock() )
-			{
-				JOptionPane.showMessageDialog(null, 
-						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
-						"Please stop that one before starting another.", 
-						"Error", JOptionPane.ERROR_MESSAGE);
-				Settings.shutdown(JFrame.ERROR);
-			}
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
+		if( !Settings.getLock() )
+		{
+			JOptionPane.showMessageDialog(null, 
+					Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+					"Please stop that one before starting another.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			Settings.shutdown(JFrame.ERROR);
 		}
 		
 		traceln(STDOUT, "");

@@ -522,110 +522,136 @@ public class Settings extends Globals
 	 * @throws InterruptedException 
 	 * @see releaseLock()
 	 */
-	public static boolean getLock() throws InterruptedException
+	public static boolean getLock()
 	{
 		int myPID = getPID();
 		
-		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) )
-		{
-			traceln(STDOUT, StringUtils.rpad("-> Getting ulock file", ".", LOG_PADDING_LENGTH));
-
-			if( ULOCK_FILE.exists() )
-			{
-				try {
-					int lockPID = Integer.parseInt(FileUtils.getFileContents(ULOCK_FILE));
-					
-					if( isActivePID(lockPID) ) {
-						put(STDOUT, "FAILED (ALREADY OPEN)");
+		Function getSLock = new Function() {
+			@Override
+			public Object call(Object... args) {
+				Integer pid = (Integer) args[0];
+				
+				traceln(STDOUT, StringUtils.rpad("-> Getting slock file", ".", LOG_PADDING_LENGTH));
+				if( SLOCK_FILE.exists() )
+				{
+					try {
+						int lockPID = Integer.parseInt(FileUtils.getFileContents(SLOCK_FILE));
+						
+						if( isActivePID(lockPID) ) {
+							put(STDOUT, "FAILED (ALREADY OPEN)");
+							return false;
+						}
+						
+						releaseLock();
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+						}
+						put(STDOUT, "CLEANING");
+						
+						return getLock();
+						
+					} catch (NumberFormatException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e); 
+						BugReportUtils.showBugReportDialog(e);
+						return false;
+					} catch (IOException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
 						return false;
 					}
-					
-					releaseLock();
-					Thread.sleep(500);
-					put(STDOUT, "CLEANING");
-					
-					return getLock();
-					
-				} catch (NumberFormatException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e); 
-					BugReportUtils.showBugReportDialog(e);
-					return false;
-				} catch (IOException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-					return false;
 				}
-			}
-			else
-			{
-				// This will get the lock
-				try {
-					ULOCK_FILE.createNewFile();
-					FileOutputStream out = new FileOutputStream(ULOCK_FILE);
-					out.write(("" + myPID).getBytes(Charset.forName("UTF-8")));
-					out.flush();
-					out.close();
-				} catch (IOException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e);
-					return false;
+				else
+				{
+					// This will get the lock
+					try {
+						SLOCK_FILE.createNewFile();
+						FileOutputStream out = new FileOutputStream(SLOCK_FILE);
+						out.write(("" + pid).getBytes(Charset.forName("UTF-8")));
+						out.flush();
+						out.close();
+					} catch (IOException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e);
+						return false;
+					}
 				}
+				put(STDOUT, "DONE");
+				return true;
 			}
-			put(STDOUT, "DONE");
-			return true;
-
+		};
+		Function getULock = new Function() {
+			@Override
+			public Object call(Object... args) {
+				Integer pid = (Integer) args[0];
+				
+				traceln(STDOUT, StringUtils.rpad("-> Getting ulock file", ".", LOG_PADDING_LENGTH));
+				if( ULOCK_FILE.exists() )
+				{
+					try {
+						int lockPID = Integer.parseInt(FileUtils.getFileContents(ULOCK_FILE));
+						
+						if( isActivePID(lockPID) ) {
+							put(STDOUT, "FAILED (ALREADY OPEN)");
+							return false;
+						}
+						
+						releaseLock();
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							trace(STDERR, e);
+						}
+						put(STDOUT, "CLEANING");
+						
+						return getLock();
+						
+					} catch (NumberFormatException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e); 
+						BugReportUtils.showBugReportDialog(e);
+						return false;
+					} catch (IOException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e);
+						BugReportUtils.showBugReportDialog(e);
+						return false;
+					}
+				}
+				else
+				{
+					// This will get the lock
+					try {
+						ULOCK_FILE.createNewFile();
+						FileOutputStream out = new FileOutputStream(ULOCK_FILE);
+						out.write(("" + pid).getBytes(Charset.forName("UTF-8")));
+						out.flush();
+						out.close();
+					} catch (IOException e) {
+						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
+						trace(STDERR, e);
+						return false;
+					}
+				}
+				put(STDOUT, "DONE");
+				return true;
+			}
+		};
+		
+		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) )
+		{
+			Boolean result = ((Boolean)getSLock.call(myPID) && (Boolean)getULock.call(myPID));
+			if( result && SLOCK_FILE.exists() )
+				FileUtils.recursiveDelete(SLOCK_FILE);
+				
+			return result;
 		}
 		else if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) )
 		{
-			traceln(STDOUT, StringUtils.rpad("-> Getting slock file", ".", LOG_PADDING_LENGTH));
-			
-			if( SLOCK_FILE.exists() )
-			{
-				try {
-					int lockPID = Integer.parseInt(FileUtils.getFileContents(SLOCK_FILE));
-					
-					if( isActivePID(lockPID) ) {
-						put(STDOUT, "FAILED (ALREADY OPEN)");
-						return false;
-					}
-					
-					releaseLock();
-					Thread.sleep(500);
-					put(STDOUT, "CLEANING");
-					
-					return getLock();
-					
-				} catch (NumberFormatException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e); 
-					BugReportUtils.showBugReportDialog(e);
-					return false;
-				} catch (IOException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-					return false;
-				}
-			}
-			else
-			{
-				// This will get the lock
-				try {
-					SLOCK_FILE.createNewFile();
-					FileOutputStream out = new FileOutputStream(SLOCK_FILE);
-					out.write(("" + myPID).getBytes(Charset.forName("UTF-8")));
-					out.flush();
-					out.close();
-				} catch (IOException e) {
-					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
-					trace(STDERR, e);
-					return false;
-				}
-			}
-			put(STDOUT, "DONE");
-			return true;
+			return (Boolean)getSLock.call(myPID);
 		}
 		return false;
 	}

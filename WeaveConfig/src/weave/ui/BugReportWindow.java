@@ -79,7 +79,7 @@ public class BugReportWindow extends JFrame
 	{
 		_instance = this;
 
-		_instance.setSize(450, 350); 	// 394 x 297 (inner)
+		_instance.setSize(450, 360); 	// 394 x 297 (inner)
 		_instance.setResizable(false);
 		_instance.setLayout(null);
 		_instance.setBackground(new Color(0xF0F0F0));
@@ -97,8 +97,10 @@ public class BugReportWindow extends JFrame
 		JButton close					= new JButton("Close");
 		Font titleFont 					= new Font(Settings.FONT, Font.BOLD, 11);
 		Font textFont					= new Font(Settings.FONT, Font.PLAIN, 10);
+		Font exceptionFont				= new Font(Settings.FONT, Font.PLAIN, 9);
 		String titleCSSRule				= "body { font-family: " + titleFont.getFamily() + "; font-size: " + titleFont.getSize() + "px; }";
 		String textCSSRule				= "body { font-family: " + textFont.getFamily() + ";  font-size: " + textFont.getSize() + "px; }";
+		String exceptionCSSRule			= "body { font-family: " + exceptionFont.getFamily() + ";  font-size: " + exceptionFont.getSize() + "px; }";
 		
 		String title = "<b>" + Settings.CURRENT_PROGRAM_NAME + " has encountered a bug</b>";
 		titleContainer.setBounds(MARGIN, 10, getWidth() - 2 * MARGIN, 35);
@@ -121,15 +123,14 @@ public class BugReportWindow extends JFrame
 		});
 
 		String exception = "<center><i>" + getSimpleClassAndMsg(e) + "</i></center>";
-		exceptionContainer.setBounds(MARGIN, 45, getWidth() - 2 * MARGIN, 50);
+		exceptionContainer.setBounds(MARGIN, 45, getWidth() - 2 * MARGIN, 75);
 		exceptionContainer.setContentType("text/html");
 		exceptionContainer.setText(exception);
-		exceptionContainer.setFont(new Font(Settings.FONT, Font.PLAIN, 12));
 		exceptionContainer.setOpaque(true);
 		exceptionContainer.setBackground(new Color(240,240,240,0));
 		exceptionContainer.setEditable(false);
 		exceptionContainer.setVisible(true);
-		((HTMLDocument)exceptionContainer.getDocument()).getStyleSheet().addRule(textCSSRule);
+		((HTMLDocument)exceptionContainer.getDocument()).getStyleSheet().addRule(exceptionCSSRule);
 		exceptionContainer.addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent e) {
 				_instance.invalidate();
@@ -143,7 +144,7 @@ public class BugReportWindow extends JFrame
 		
 		String  message  = "Continued use of the tool may cause stability issues.<br />";
 				message += "It is recommended that you close the tool and try again.";
-		messageContainer.setBounds(MARGIN, 95, getWidth() - 2 * MARGIN, 55);
+		messageContainer.setBounds(MARGIN, 120, getWidth() - 2 * MARGIN, 55);
 		messageContainer.setContentType("text/html");
 		messageContainer.setText(message);
 		messageContainer.setOpaque(true);
@@ -162,7 +163,7 @@ public class BugReportWindow extends JFrame
 			@Override public void mouseClicked(MouseEvent e) { }
 		});
 
-		checkbox.setBounds(MARGIN, 150, getWidth() - 2 * MARGIN - 100, 25);
+		checkbox.setBounds(MARGIN, 175, getWidth() - 2 * MARGIN - 100, 25);
 		checkbox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
@@ -182,7 +183,7 @@ public class BugReportWindow extends JFrame
 		checkbox.setVisible(true);
 		checkbox.setSelected(true);
 		
-		detailsButton.setBounds(getWidth() - 100 - MARGIN, 150, 100, 25);
+		detailsButton.setBounds(getWidth() - 100 - MARGIN, 175, 100, 25);
 		detailsButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -210,10 +211,10 @@ public class BugReportWindow extends JFrame
 			}
 		});
 		
-		commentScroller.setBounds(MARGIN, 180, getWidth() - 2 * MARGIN, 75);
+		commentScroller.setBounds(MARGIN, 205, getWidth() - 2 * MARGIN, 75);
 		commentScroller.setVisible(true);
 		
-		close.setBounds(getWidth() / 2 - 50, 260, 100, 25);
+		close.setBounds(getWidth() / 2 - 50, 290, 100, 25);
 		close.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {

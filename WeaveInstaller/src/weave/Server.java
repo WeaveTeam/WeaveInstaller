@@ -84,9 +84,9 @@ import weave.utils.UpdateUtils;
 import com.jtattoo.plaf.fast.FastLookAndFeel;
 
 @SuppressWarnings("serial")
-public class Installer extends JFrame
+public class Server extends JFrame
 {
-	public static Installer 			installer 		= null;
+	public static Server 				server 			= null;
 	public static final String 			PRE_SETUP		= "PRE_SETUP";
 	public static final String			CFG_SETUP		= "CFG_SETUP";
 	public static final String			HOME_SETUP		= "HOME_SETUP";
@@ -150,17 +150,13 @@ public class Installer extends JFrame
 			trace(STDERR, e);
 		}
 		
-		try {
-			if( !Settings.getLock() )
-			{
-				JOptionPane.showMessageDialog(null, 
-						Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
-						"Please stop that one before starting another.", 
-						"Error", JOptionPane.ERROR_MESSAGE);
-				Settings.shutdown(JFrame.ERROR);
-			}
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
+		if( !Settings.getLock() )
+		{
+			JOptionPane.showMessageDialog(null, 
+					Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+					"Please stop that one before starting another.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			Settings.shutdown(JFrame.ERROR);
 		}
 		
 		
@@ -212,16 +208,16 @@ public class Installer extends JFrame
 		}
 		
 		try {
-			installer = new Installer();
+			server = new Server();
 		} catch (IOException e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
 
-		installer.addWindowListener(new WindowListener() {
+		server.addWindowListener(new WindowListener() {
 			@Override public void windowClosing(WindowEvent e) {
 //				System.out.println("Closing...");
-				installer.setExtendedState(JFrame.ICONIFIED);
+				server.setExtendedState(JFrame.ICONIFIED);
 			}
 			@Override public void windowDeactivated(WindowEvent e) {
 				/* System.out.println("Deactivated..."); */
@@ -234,10 +230,10 @@ public class Installer extends JFrame
 			@Override public void windowOpened(WindowEvent e) 		{/*	System.out.println("Opened...");		*/}
 		});
 		
-		Globals.globalHashMap.put("Installer", installer);
+		Globals.globalHashMap.put("Server", server);
 	}
 	
-	public Installer() throws IOException
+	public Server() throws IOException
 	{
 		// ======== INITIALIZATION ======== //
 		try {
