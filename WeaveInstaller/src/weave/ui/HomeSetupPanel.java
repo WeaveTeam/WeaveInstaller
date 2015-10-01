@@ -45,7 +45,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -98,7 +97,6 @@ import weave.managers.PluginManager;
 import weave.misc.Function;
 import weave.plugins.IPlugin;
 import weave.reflect.Reflectable;
-import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.FileUtils;
 import weave.utils.ImageUtils;
@@ -845,15 +843,12 @@ public class HomeSetupPanel extends SetupPanel
 				try {
 					if( !Settings.SETUP_COMPLETE )
 					{
-						ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress",
-								new Class<?>[] { Integer.class },
-								new Object[] { 15 });
+						Globals.setInstallerProgress(15);
 						Settings.SETUP_COMPLETE = true;
 						Settings.save();
 					}
-					
 					LaunchUtils.openAdminConsole();
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
+				} catch (SecurityException | IllegalArgumentException e ) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				} catch (Exception e) {
@@ -1022,9 +1017,7 @@ public class HomeSetupPanel extends SetupPanel
 				ConfigManager.getConfigManager().save();
 				
 				try {
-					ReflectionUtils.reflectMethod(Globals.get("Installer"), "setProgress", 
-												new Class<?>[] { Integer.class },
-												new Object[] { 7 });
+					Globals.setInstallerProgress(7);
 				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);

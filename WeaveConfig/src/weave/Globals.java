@@ -25,7 +25,7 @@ public class Globals
 	public static void setInstallerProgress(Integer bit)
 	{
 		try {
-			ReflectionUtils.reflectMethod(get("Installer"), "setProgress", new Class<?>[] {Integer.class}, new Object[] { bit });
+			ReflectionUtils.reflectMethod(get("Server"), "setProgress", new Class<?>[] {Integer.class}, new Object[] { bit });
 		} catch (Exception e) {
 			TraceUtils.trace(TraceUtils.STDERR, e);
 		}

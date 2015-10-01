@@ -134,34 +134,6 @@ public class Server extends JFrame
 		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-		}
-
-		Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
-		Settings.init();
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
-		}
-		
-		if( !Settings.getLock() )
-		{
-			JOptionPane.showMessageDialog(null, 
-					Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
-					"Please stop that one before starting another.", 
-					"Error", JOptionPane.ERROR_MESSAGE);
-			Settings.shutdown(JFrame.ERROR);
-		}
-		
-		
-		traceln(STDOUT, "");
-		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
 		if( !Desktop.isDesktopSupported() )
 		{
@@ -173,6 +145,21 @@ public class Server extends JFrame
 			return;
 		}
 		
+		Settings.CURRENT_PROGRAM_NAME = Settings.SERVER_NAME;
+		Settings.init();
+
+		if( !Settings.getLock() )
+		{
+			JOptionPane.showMessageDialog(null, 
+					Settings.CURRENT_PROGRAM_NAME + " is already running.\n\n" +
+					"Please stop that one before starting another.", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			Settings.shutdown(JFrame.ERROR);
+		}
+		
+		traceln(STDOUT, "");
+		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+
 		while( true ) 
 		{
 			if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )

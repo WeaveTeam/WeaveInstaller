@@ -536,13 +536,13 @@ public class Settings extends Globals
 				{
 					try {
 						int lockPID = Integer.parseInt(FileUtils.getFileContents(SLOCK_FILE));
-						
+
 						if( isActivePID(lockPID) ) {
 							put(STDOUT, "FAILED (ALREADY OPEN)");
 							return false;
 						}
 						
-						releaseLock();
+						releaseLock(SLOCK_FILE);
 						try {
 							Thread.sleep(500);
 						} catch (InterruptedException e) {
@@ -550,7 +550,7 @@ public class Settings extends Globals
 						}
 						put(STDOUT, "CLEANING");
 						
-						return getLock();
+						return null;
 						
 					} catch (NumberFormatException e) {
 						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
@@ -599,7 +599,7 @@ public class Settings extends Globals
 							return false;
 						}
 						
-						releaseLock();
+						releaseLock(ULOCK_FILE);
 						try {
 							Thread.sleep(500);
 						} catch (InterruptedException e) {
@@ -607,7 +607,7 @@ public class Settings extends Globals
 						}
 						put(STDOUT, "CLEANING");
 						
-						return getLock();
+						return null;
 						
 					} catch (NumberFormatException e) {
 						put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
@@ -643,7 +643,18 @@ public class Settings extends Globals
 		
 		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) )
 		{
-			Boolean result = ((Boolean)getSLock.call(myPID) && (Boolean)getULock.call(myPID));
+			Boolean b = null,
+					result = true;
+			
+			do {
+				b = (Boolean)getSLock.call(myPID); 
+			} while( b == null );
+			result &= b;
+			do {
+				b = (Boolean)getULock.call(myPID);
+			} while( b == null );
+			result &= b;
+
 			if( result && SLOCK_FILE.exists() )
 				FileUtils.recursiveDelete(SLOCK_FILE);
 				
@@ -651,7 +662,11 @@ public class Settings extends Globals
 		}
 		else if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) )
 		{
-			return (Boolean)getSLock.call(myPID);
+			Boolean b = null;
+			do {
+				b = (Boolean)getSLock.call(myPID);
+			} while( b == null );
+			return b;
 		}
 		return false;
 	}
@@ -664,11 +679,27 @@ public class Settings extends Globals
 	 */
 	public static boolean releaseLock()
 	{
-		if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) && SLOCK_FILE.exists() )
-			return FileUtils.recursiveDelete(SLOCK_FILE);
+		if( CURRENT_PROGRAM_NAME.equals(SERVER_NAME) )
+			return releaseLock(SLOCK_FILE);
 		
-		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) && ULOCK_FILE.exists() )
-			return FileUtils.recursiveDelete(ULOCK_FILE);
+		if( CURRENT_PROGRAM_NAME.equals(UPDATER_NAME) )
+			return releaseLock(ULOCK_FILE);
+		
+		return false;
+	}
+	
+	/**
+	 * Override current program lock and release a specific file lock 
+	 * so it may be used by another process.
+	 * 
+	 * @param file The file lock to release
+	 * @return <code>true</code> if the file was deleted, <code>false</code> otherwise
+	 */
+	public static boolean releaseLock(File file)
+	{
+		if( file.exists() )
+			return FileUtils.recursiveDelete(file);
+		
 		return false;
 	}
 
@@ -881,11 +912,11 @@ public class Settings extends Globals
 	 * 
 	 * @see {@link Settings#getPID()}
 	 */
-	public static boolean isActivePID(int pid)
+	@Reflectable
+	public static Boolean isActivePID(Integer pid)
 	{
-		
 		Map<String, List<String>> result = null;
-		String windows_cmds[] = SyscallCreatorUtils.generate("tasklist /FI \"IMAGENAME eq javaw.exe\" /FO CSV /V /NH");
+		String windows_cmds[] = SyscallCreatorUtils.generate("tasklist /FO CSV | findstr \"java\"");
 		String unix_cmds[] = SyscallCreatorUtils.generate("ps -A -o pid,command | grep -i \"java\"" );
 		
 		try {

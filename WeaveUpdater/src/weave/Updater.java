@@ -101,11 +101,15 @@ public class Updater extends JFrame
 		} catch (IllegalAccessException e) {				trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		} catch (UnsupportedLookAndFeelException e) {		trace(STDERR, e);	BugReportUtils.showBugReportDialog(e);
 		}
-	
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			trace(STDERR, e);
+
+		if( !Desktop.isDesktopSupported() )
+		{
+			traceln(STDOUT, "");
+			traceln(STDOUT, "!! Fault detected !!");
+			traceln(STDOUT, "!! System does not support Java Desktop Features" );
+			traceln(STDOUT, "");
+			Settings.shutdown(ABORT);
+			return;
 		}
 		
 		Settings.CURRENT_PROGRAM_NAME = Settings.UPDATER_NAME;
@@ -123,16 +127,6 @@ public class Updater extends JFrame
 		traceln(STDOUT, "");
 		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
-		if( !Desktop.isDesktopSupported() )
-		{
-			traceln(STDOUT, "");
-			traceln(STDOUT, "!! Fault detected !!");
-			traceln(STDOUT, "!! System does not support Java Desktop Features" );
-			traceln(STDOUT, "");
-			Settings.shutdown(ABORT);
-			return;
-		}
-		
 		if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 		{
 			if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
@@ -160,7 +154,6 @@ public class Updater extends JFrame
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		
 	}
 	
 	public Updater() throws IOException, InterruptedException

@@ -325,7 +325,7 @@ public class TrayManager extends Globals
 				_parent.setVisible(true);
 				_parent.setExtendedState(JFrame.NORMAL);
 				try {
-					ReflectionUtils.reflectMethod(globalHashMap.get("Installer"), "switchToHomeSetupPanel");
+					ReflectionUtils.reflectMethod(globalHashMap.get("Server"), "switchToHomeSetupPanel");
 					ReflectionUtils.reflectMethod(globalHashMap.get("HomeSetupPanel"), "switchToTab", new Class<?>[] { String.class }, new String[] { "About" });
 				} catch (Exception e) {
 					trace(STDERR, e);

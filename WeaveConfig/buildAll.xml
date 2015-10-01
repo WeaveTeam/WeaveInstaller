@@ -29,11 +29,11 @@
 		<delete dir="WeaveConfig/bin/" failonerror="false" />
 		<delete dir="WeaveLauncher/bin/" failonerror="false" />
 		<delete dir="WeaveUpdater/bin/" failonerror="false" />
-		<delete dir="WeaveServer/bin/" failonerror="false" />
+		<delete dir="WeaveInstaller/bin/" failonerror="false" />
 
 		<delete dir="WeaveLauncher/build/" failonerror="false" />
 		<delete dir="WeaveUpdater/build/" failonerror="false" />
-		<delete dir="WeaveServer/build/" failonerror="false" />
+		<delete dir="WeaveInstaller/build/" failonerror="false" />
 
 		<mkdir dir="WeaveConfig/bin/" />
 		<mkdir dir="WeaveConfig/bin/resources/" />
@@ -46,9 +46,9 @@
 		<mkdir dir="WeaveUpdater/bin/resources/" />
 		<mkdir dir="WeaveUpdater/build/" />
 
-		<mkdir dir="WeaveServer/bin/" />
-		<mkdir dir="WeaveServer/bin/resources/" />
-		<mkdir dir="WeaveServer/build/" />
+		<mkdir dir="WeaveInstaller/bin/" />
+		<mkdir dir="WeaveInstaller/bin/resources/" />
+		<mkdir dir="WeaveInstaller/build/" />
 	</target>
 	
 	
@@ -144,8 +144,8 @@
 	<target name="Server">
 		<echo message="Building Server..." />
 
-		<javac 	srcdir="WeaveServer/src/" 
-				destdir="WeaveServer/bin/" 
+		<javac 	srcdir="WeaveInstaller/src/" 
+				destdir="WeaveInstaller/bin/" 
 				includeantruntime="false"
 				failonerror="false"
 				debug="true">
@@ -153,11 +153,11 @@
 			<classpath refid="WeaveConfigIncludes" />
 		</javac>
 		
-		<copy todir="WeaveServer/bin/resources/" failonerror="false">
-			<fileset dir="WeaveServer/src/resources/" />
+		<copy todir="WeaveInstaller/bin/resources/" failonerror="false">
+			<fileset dir="WeaveInstaller/src/resources/" />
 		</copy>
 
-		<jar destfile="WeaveServer/build/Server.jar" filesetmanifest="mergewithoutmain">
+		<jar destfile="WeaveInstaller/build/Server.jar" filesetmanifest="mergewithoutmain">
             <manifest>
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
@@ -165,11 +165,11 @@
                 <attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar ../libs/jshortcut-0.4-oberzalek.jar"/>
             </manifest>
             <fileset dir="WeaveConfig/bin/" />
-			<fileset dir="WeaveServer/bin/" />
+			<fileset dir="WeaveInstaller/bin/" />
         </jar>
 
-		<waitfor><available file="WeaveServer/build/Server.jar" /></waitfor>
-        <copy file="WeaveServer/build/Server.jar" todir="${env.APPDATA}/.weave/bin/" />
+		<waitfor><available file="WeaveInstaller/build/Server.jar" /></waitfor>
+        <copy file="WeaveInstaller/build/Server.jar" todir="${env.APPDATA}/.weave/bin/" />
 		<waitfor><available file="${env.APPDATA}/.weave/bin/Server.jar" /></waitfor>
 	</target>
 	
