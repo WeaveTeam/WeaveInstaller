@@ -91,7 +91,7 @@ public class Settings extends Globals
 	 * Weave Server
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0.7 Beta";
+	@Reflectable public static final String SERVER_VER			= "2.0.8 Beta";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
