@@ -64,7 +64,11 @@ public class Plugin extends Globals implements IPlugin
 	
 	@Override public Boolean isPluginInstalled() 
 	{
-		File zipFile = new File(getPluginDownloadFile());
+		String downloadPath = getPluginDownloadFile();
+		if( downloadPath == null || downloadPath.length() == 0 )
+			return false;
+		
+		File zipFile = new File(downloadPath);
 		return zipFile.exists();
 //		boolean installed = true;
 //		File zipFile = new File(getPluginDownloadFile());

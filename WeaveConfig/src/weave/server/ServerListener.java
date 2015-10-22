@@ -19,11 +19,8 @@
 
 package weave.server;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getSimpleClassAndMsg;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -67,7 +64,7 @@ public class ServerListener extends Globals
 	
 	public void start()
 	{
-		trace(STDOUT, StringUtils.rpad("-> Starting RPC Server", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, WARN, StringUtils.rpad("Starting RPC Server", ".", Settings.LOG_PADDING_LENGTH));
 		
 		try {
 			
@@ -114,7 +111,7 @@ public class ServerListener extends Globals
 	public void stop()
 	{
 		int i = 0;
-		trace(STDOUT, StringUtils.rpad("-> Stopping RPC Server", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, WARN, StringUtils.rpad("Stopping RPC Server", ".", Settings.LOG_PADDING_LENGTH));
 		
 		try {
 			while( !connections.isEmpty() )
@@ -152,7 +149,7 @@ public class ServerListener extends Globals
 		{
 			clientSock = s;
 
-			trace(STDOUT, "-> Incomming socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
+			trace(STDOUT, INFO, "Incomming socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
 			
 			try {
 				in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
@@ -165,7 +162,7 @@ public class ServerListener extends Globals
 		
 		public void close()
 		{
-			trace(STDOUT, "-> Closing socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
+			trace(STDOUT, INFO, "Closing socket connection from " + clientSock.getRemoteSocketAddress().toString().substring(1));
 
 			try {
 				if( in != null ) in.close();
@@ -226,12 +223,12 @@ public class ServerListener extends Globals
 //				trace(STDOUT, "->\targs: " + ObjectUtils.toString(args));
 				if( sigs != null && args != null )
 				{
-					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs) + " | " + ObjectUtils.toString(args) + " )");
+					trace(STDOUT, INFO, "\t" + pkg + "." + clzz + "." + call + "( " + ObjectUtils.toString(sigs) + " | " + ObjectUtils.toString(args) + " )");
 					o = ReflectionUtils.reflectMethod(pkg, clzz, call, sigs, args);
 				}
 				else
 				{
-					trace(STDOUT, "->\t" + pkg + "." + clzz + "." + call);
+					trace(STDOUT, INFO, "\t" + pkg + "." + clzz + "." + call);
 					o = ReflectionUtils.reflectField(pkg, clzz, call);
 				}
 
@@ -241,7 +238,8 @@ public class ServerListener extends Globals
 						 o instanceof Double || 
 						 o instanceof Float )		out.write( "" + ObjectUtils.ternary(o, 0) );
 				else if( o instanceof Boolean )		out.write( "" + ObjectUtils.ternary(o, "FALSE") );
-				else if( o instanceof Map<?, ?> )	out.write( ObjectUtils.toString(o) );
+				else if( o instanceof Map<?, ?> ||
+						 o instanceof Object[] )	out.write( ObjectUtils.toString(o) );
 				else								out.write( "No case for type: " + o.getClass().getSimpleName() );
 //				out.newLine();
 				out.flush();

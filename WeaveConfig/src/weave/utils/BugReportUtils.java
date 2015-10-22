@@ -19,14 +19,8 @@
 
 package weave.utils;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getLogFile;
-import static weave.utils.TraceUtils.getSimpleClassAndMsg;
-import static weave.utils.TraceUtils.getStackTrace;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.HeadlessException;
 import java.awt.event.WindowEvent;
@@ -41,10 +35,8 @@ public class BugReportUtils extends Globals
 {
 	public static void autoSubmitBugReport( final Throwable e )
 	{
-		traceln(STDOUT, "");
-		traceln(STDOUT, "!! Bug detected !!");
-		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
-		traceln(STDOUT, "");
+		traceln(STDOUT, ERROR, "Bug detected");
+		traceln(STDOUT, ERROR, "Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
 
 		submitReport(e, "");
 	}
@@ -54,10 +46,8 @@ public class BugReportUtils extends Globals
 		Settings.canQuit = false;
 		
 		final BugReportWindow brw = BugReportWindow.instance(e);
-		traceln(STDOUT, "");
-		traceln(STDOUT, "!! Bug detected !!");
-		traceln(STDOUT, "!! Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
-		traceln(STDOUT, "");
+		traceln(STDOUT, ERROR, "Bug detected");
+		traceln(STDOUT, ERROR, "Stack Trace in " + getLogFile(STDERR).getAbsolutePath() );
 		
 		for( WindowListener l : brw.getWindowListeners() )
 			brw.removeWindowListener(l);
@@ -68,7 +58,7 @@ public class BugReportUtils extends Globals
 			@Override public void windowDeiconified(WindowEvent arg0) { }
 			@Override public void windowDeactivated(WindowEvent arg0) {	}
 			@Override public void windowClosing(WindowEvent arg0) {
-				trace(STDOUT, StringUtils.rpad("-> Should send bug report?", ".", Settings.LOG_PADDING_LENGTH));
+				trace(STDOUT, INFO, StringUtils.rpad("Should send bug report?", ".", Settings.LOG_PADDING_LENGTH));
 				if( brw.CLOSE_OPTION == BugReportWindow.YES_OPTION ) {
 					put(STDOUT, "YES");
 					
@@ -87,7 +77,7 @@ public class BugReportUtils extends Globals
 	
 	private static void submitReport(Throwable e, String comment)
 	{
-		trace(STDOUT, StringUtils.rpad("-> Sending Bug report", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Sending Bug report", ".", Settings.LOG_PADDING_LENGTH));
 
 		try {
 			String stack = getStackTrace(e);

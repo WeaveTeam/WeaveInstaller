@@ -19,10 +19,8 @@
 
 package weave.utils;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getLogFile;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -111,7 +109,7 @@ public class LaunchUtils extends Globals
 			return false;
 		
 		if( !file.exists() ) {
-			traceln(STDOUT, "!! Program not found: \"" + file.getAbsolutePath() + "\"");
+			traceln(STDOUT, ERROR, "Program not found: \"" + file.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null, 
 					"Attempt to open file: \"" + file.getAbsolutePath() + "\" failed.", 
 					"File Not Found", 
@@ -122,7 +120,7 @@ public class LaunchUtils extends Globals
 		File elevate = new File(Settings.LIBS_DIRECTORY, Settings.ELEVATE_UTIL);
 
 		if( !elevate.exists() ) {
-			traceln(STDOUT, "!! Elevate utility not found: \"" + elevate.getAbsolutePath() + "\"");
+			traceln(STDOUT, ERROR, "Elevate utility not found: \"" + elevate.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null,
 					"A required file is missing to support this action.\n" +
 					"If this problem persists, please make sure you\n" +
@@ -132,14 +130,16 @@ public class LaunchUtils extends Globals
 			return false;
 		}
 		
-		command += "\"" + elevate.getAbsolutePath().replace("\\", "/") + "\" -c ";
+		command += elevate.getAbsolutePath().replace("\\", "/") + " -c ";
 		command += "java -jar ";
-		command += "\"" + file.getAbsolutePath().replace("\\", "/") + "\" ";
+		command += file.getAbsolutePath().replace("\\", "/");
 
 		Thread.sleep(delay);
 		String[] generatedCommands = SyscallCreatorUtils.generate(command);
-		traceln(STDOUT, "-> Elevated command: " + ObjectUtils.toString(generatedCommands));
+		traceln(STDOUT, INFO, "Elevated command: " + ObjectUtils.toString(generatedCommands));
+		
 		ProcessUtils.run(generatedCommands, getLogFile(STDOUT), getLogFile(STDERR));
+		
 		return true;
 	}
 	
@@ -149,7 +149,7 @@ public class LaunchUtils extends Globals
 		File launcher = new File(Settings.BIN_DIRECTORY, Settings.LAUNCHER_JAR);
 		
 		if( !launcher.exists() ) {
-			traceln(STDOUT, "!! Program not found: \"" + launcher.getAbsolutePath() + "\"");
+			traceln(STDOUT, ERROR, "Program not found: \"" + launcher.getAbsolutePath() + "\"");
 			JOptionPane.showMessageDialog(null, "Launch Utilities could not be found.\n\n" + 
 												"If this problem persists, please make sure\n" + 
 												"you are running the latest version of the tool.",
@@ -175,7 +175,7 @@ public class LaunchUtils extends Globals
 		command += "\"" + delay + "\"";
 		
 		String[] generatedCommand = SyscallCreatorUtils.generate(command);
-		traceln(STDOUT, "-> Generated command: " + ObjectUtils.toString(generatedCommand));
+		traceln(STDOUT, INFO, "Generated command: " + ObjectUtils.toString(generatedCommand));
 		
 		ProcessUtils.run(generatedCommand, getLogFile(STDOUT), getLogFile(STDERR));
 		

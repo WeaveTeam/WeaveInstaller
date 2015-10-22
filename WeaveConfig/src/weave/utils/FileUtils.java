@@ -667,6 +667,24 @@ public class FileUtils extends TransferUtils
 		return new File(path).setExecutable(p, a);
 	}
 	
+	/**
+	 * Set the read, write, and execute bits of a file using the POSIX notation.
+	 * <br><br>
+	 * <code>
+	 * <pre>
+	 * Example:
+	 * 	FileUtils.setPermissions(file, 0x777)	Full control
+	 * 	FileUtils.setPermissions(file, 0x444)	Read Only
+	 * 	FileUtils.setPermissions(file, 0x700)	Full control owner only
+	 * </pre>
+	 * </code>
+	 * 
+	 * @param path The file to change permissions on
+	 * @param permissions The permissions useing POSIX format
+	 * @return <code>true</code if successful, <code>false</code> otherwise
+	 * 
+	 * @throws SecurityException
+	 */
 	@Reflectable
 	public static boolean setPermissions(String path, Integer permissions) throws SecurityException
 	{

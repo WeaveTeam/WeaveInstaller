@@ -49,7 +49,7 @@ public class AsyncTask extends Globals
 		throw new UnsupportedOperationException("Method Not Implemented Yet");
 	}
 	
-	public void execute(final Function task)
+	public void execute(final Function<Object, Object> task)
 	{
 		AsyncCallback c = new AsyncCallback() {
 			@Override

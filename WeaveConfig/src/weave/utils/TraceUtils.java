@@ -35,14 +35,46 @@ import weave.Settings;
 
 public class TraceUtils extends Globals
 {
-	public static int STDOUT = 0;
-	public static int STDERR = 1;
+	/**
+	 * Standard output is the stream where a program writes its output data.<br>
+	 * In the case of this program, it will write the data to {@link System#out} as well as <br>
+	 * the log file defined by {@link #getLogFile(STDOUT)}.
+	 */
+	public static int STDOUT = 1;
 	
+	/**
+	 * Standard error is the stream typically used to output error messages or diagnostics.<br>
+	 * It is independent of standard output and can be redirected separately.<br>
+	 * In the case of this program, it will write the data to {@link System#err} as well as the log file <br>
+	 * defined by {@link #getLogFile(STDERR)}.
+	 */
+	public static int STDERR = 2;
+	
+	/**
+	 * Severity level of the log trace to indicate what kind of trace it is.<br>
+	 * Possibilities:<br> 
+	 * FATAL, ERROR, WARN, INFO, DEBUG
+	 */
+	public static enum LEVEL {
+		FATAL("!!!"), ERROR(" !!"), WARN("/!\\"), INFO("-->"), DEBUG("/?\\");
+		
+		private final String value;
+		private LEVEL(String s)
+		{
+			value = s;
+		}
+		@Override
+		public String toString() {
+			return value;
+		}
+	};
+	
+	private static String s = null;
 	private static Date d = new Date();
 	private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 	private static DateFormat tf = new SimpleDateFormat("[hh:mm:ss.SSS a]");
 	
-	private static ArrayList<String> pipes = new ArrayList<String>( Arrays.asList("stdout", "stderr") );
+	private static ArrayList<String> pipes = new ArrayList<String>( Arrays.asList("stdin", "stdout", "stderr") );
 	
 	public static String getSimpleClassAndMsg( Throwable e )
 	{
@@ -63,36 +95,38 @@ public class TraceUtils extends Globals
 	}
 
 	/**
-	 * Prints out the {@link Throwable} to the log file specified by <code>pipe</code>
+	 * Prints out the {@link Throwable} to the log file specified by {@code pipe}
 	 * and also prints it out to the screen. 
 	 * 
-	 * @param pipe The log file pipe to print to. {@link TraceUtils#STDOUT} or {@link TraceUtils#STDERR}
+	 * @param pipe The log file pipe to print to. {@link #STDOUT} or {@link #STDERR}
 	 * @param e The throwable exception
 	 * @return <code>true</code> if the stack trace was written successfully, <code>false</code> otherwise
 	 */
 	synchronized public static boolean trace( int pipe, Throwable e )
 	{
 		String dump = getStackTrace(e);
-		return traceln(pipe, dump);
+		return traceln(pipe, LEVEL.ERROR, dump);
 	}
 
-	synchronized public static boolean trace( int pipe, String dump )
+	synchronized public static boolean trace( int pipe, LEVEL lvl, String dump )
 	{
 		try {
 			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
-		
-			System.out.printf("\n" + dump);
 			
 			if( !logFile.getParentFile().exists() )		logFile.getParentFile().mkdirs();
 			if( !logFile.exists() )						logFile.createNewFile();
 			
-			bw.write(Settings.N_L);
-			bw.write(tf.format(d) + " " + dump);
+			s = Settings.N_L + tf.format(d) + " " + lvl + " " + dump;
+			
+			bw.write(s);
 			bw.flush();
 			bw.close();
+			
+			if( pipe == STDOUT )		System.out.printf(s);
+			else if(pipe == STDERR )	System.err.printf(s);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -101,7 +135,7 @@ public class TraceUtils extends Globals
 		return true;
 	}
 	
-	synchronized public static boolean traceln( int pipe, List<String> dump)
+	synchronized public static boolean traceln( int pipe, LEVEL lvl, List<String> dump)
 	{
 		try {
 			d = new Date();
@@ -114,8 +148,11 @@ public class TraceUtils extends Globals
 			
 			for( String line : dump )
 			{
-				bw.write(Settings.N_L);
-				bw.write(tf.format(d) + " " + line);
+				s = Settings.N_L + tf.format(d) + " " + lvl + " " + line;
+				bw.write(s);
+				
+				if( pipe == STDOUT )		System.out.println(s);
+				else if( pipe == STDERR )	System.err.println(s);
 			}
 			bw.flush();
 			bw.close();
@@ -127,23 +164,34 @@ public class TraceUtils extends Globals
 		return true;
 	}
 
-	synchronized public static boolean traceln( int pipe, String dump )
+	/**
+	 * Append a string dump to the end of the log file specified by {@code pipe}.<br>
+	 * This will prepend a date and timestamp before your string dump.
+	 * 
+	 * @param pipe The {@link #STDOUT} or {@link #STDERR} pipe
+	 * @param lvl The severity level of dump defined by {@link #LEVEL}
+	 * @param dump The string to append to the file
+	 * @return {@code true} if succeeded, {@code false} otherwise
+	 */
+	synchronized public static boolean traceln( int pipe, LEVEL lvl, String dump )
 	{
 		try {
 			d = new Date();
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
-		
-			System.out.printf("\n" + dump);
 
 			if( !logFile.getParentFile().exists() )		logFile.getParentFile().mkdirs();
 			if( !logFile.exists() )						logFile.createNewFile();
 			
-			bw.write(Settings.N_L);
-			bw.write(tf.format(d) + " " + dump);
+			s = Settings.N_L + tf.format(d) + " " + lvl + " " + dump; 
+			
+			bw.write(s);
 			bw.flush();
 			bw.close();
+			
+			if( pipe == STDOUT )		System.out.printf(s);
+			else if( pipe == STDERR )	System.err.printf(s);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -152,6 +200,13 @@ public class TraceUtils extends Globals
 		return true;
 	}
 	
+	/**
+	 * Append a string to the end of the log file without any newlines.
+	 * 
+	 * @param pipe The {@link #STDOUT} or {@link #STDERR} pipe
+	 * @param dump The string to append to the file
+	 * @return {@code true} if succeeded, {@code false} otherwise
+	 */
 	synchronized public static boolean put( int pipe, String dump )
 	{
 		try {
@@ -159,8 +214,6 @@ public class TraceUtils extends Globals
 			File logFile = getLogFile(pipe);
 			FileWriter fw = new FileWriter(logFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
-		
-			System.out.printf(dump);
 
 			if( !logFile.getParentFile().exists() )		logFile.getParentFile().mkdirs();
 			if( !logFile.exists() )						logFile.createNewFile();
@@ -168,6 +221,9 @@ public class TraceUtils extends Globals
 			bw.write(dump);
 			bw.flush();
 			bw.close();
+		
+			if( pipe == STDOUT )		System.out.printf(dump);
+			else if( pipe == STDERR )	System.err.printf(dump);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -176,6 +232,12 @@ public class TraceUtils extends Globals
 		return true;
 	}
 	
+	/**
+	 * Get the log file as a file that will be used for writing log information to.
+	 * 
+	 * @param pipe The {@link #STDOUT} or {@link #STDERR} pipe
+	 * @return The log file associated with the {@code pipe}
+	 */
 	public static File getLogFile( int pipe )
 	{
 		return new File(Settings.LOGS_DIRECTORY, pipes.get(pipe) + "." + df.format(d) + ".log" );

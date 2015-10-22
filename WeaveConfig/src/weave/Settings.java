@@ -20,12 +20,8 @@
 package weave;
 
 import static weave.utils.ObjectUtils.ternary;
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getSimpleClassAndMsg;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Font;
 import java.io.File;
@@ -226,13 +222,13 @@ public class Settings extends Globals
 		save();		 
 
 		RemoteUtils.isConnectedToInternet(
-			new Function() {
+			new Function<Object, Object>() {
 				@Override
 				public Object call(Object... args) {
 					getNetworkInfo( isOfflineMode() );
 					return null;
 				}
-			}, new Function() {
+			}, new Function<Object, Object>() {
 				@Override
 				public Object call(Object... args) {
 					getNetworkInfo(true);
@@ -298,7 +294,7 @@ public class Settings extends Globals
 	public static boolean save()
 	{
 		try {
-			trace(STDOUT, StringUtils.rpad("-> Saving settings file", ".", LOG_PADDING_LENGTH));
+			trace(STDOUT, WARN, StringUtils.rpad("Saving settings file", ".", LOG_PADDING_LENGTH));
 			
 			if( !WEAVE_ROOT_DIRECTORY.exists() )
 				WEAVE_ROOT_DIRECTORY.mkdirs();
@@ -349,7 +345,7 @@ public class Settings extends Globals
 		}
 		
 		try {
-			trace(STDOUT, StringUtils.rpad("-> Loading settings file", ".", LOG_PADDING_LENGTH));
+			trace(STDOUT, WARN, StringUtils.rpad("Loading settings file", ".", LOG_PADDING_LENGTH));
 			
 			ObjectInputStream instream = new ObjectInputStream(new FileInputStream(SETTINGS_FILE));
 			SETTINGS_MAP = (Map<String, Object>) instream.readObject();
@@ -426,10 +422,10 @@ public class Settings extends Globals
 		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + ".weave"		 		+ F_S);
 		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
 
-		traceln(STDOUT, "");
-		traceln(STDOUT, "######################################");
-		traceln(STDOUT, "=== Running " + CURRENT_PROGRAM_NAME + " Preconfiguration ===");
-		traceln(STDOUT, StringUtils.rpad("-> Creating File Structure", ".", LOG_PADDING_LENGTH));
+		traceln(STDOUT, INFO, "");
+		traceln(STDOUT, INFO, "######################################");
+		traceln(STDOUT, INFO, "=== Running " + CURRENT_PROGRAM_NAME + " Preconfiguration ===");
+		traceln(STDOUT, INFO, StringUtils.rpad("Creating File Structure", ".", LOG_PADDING_LENGTH));
 
 		
 		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
@@ -466,7 +462,7 @@ public class Settings extends Globals
 	 */
 	public static void getNetworkInfo(Boolean offline)
 	{
-		trace(STDOUT, StringUtils.rpad("-> Getting network info", ".", LOG_PADDING_LENGTH));
+		trace(STDOUT, WARN, StringUtils.rpad("Getting network info", ".", LOG_PADDING_LENGTH));
 		try {
 			LOCAL_IP = InetAddress.getLocalHost().getHostAddress();
 			LOCALHOST = "127.0.0.1";
@@ -526,12 +522,12 @@ public class Settings extends Globals
 	{
 		int myPID = getPID();
 		
-		Function getSLock = new Function() {
+		Function<Object, Object> getSLock = new Function<Object, Object>() {
 			@Override
 			public Object call(Object... args) {
 				Integer pid = (Integer) args[0];
 				
-				traceln(STDOUT, StringUtils.rpad("-> Getting slock file", ".", LOG_PADDING_LENGTH));
+				traceln(STDOUT, WARN, StringUtils.rpad("Getting slock file", ".", LOG_PADDING_LENGTH));
 				if( SLOCK_FILE.exists() )
 				{
 					try {
@@ -583,12 +579,12 @@ public class Settings extends Globals
 				return true;
 			}
 		};
-		Function getULock = new Function() {
+		Function<Object, Object> getULock = new Function<Object, Object>() {
 			@Override
 			public Object call(Object... args) {
 				Integer pid = (Integer) args[0];
 				
-				traceln(STDOUT, StringUtils.rpad("-> Getting ulock file", ".", LOG_PADDING_LENGTH));
+				traceln(STDOUT, WARN, StringUtils.rpad("Getting ulock file", ".", LOG_PADDING_LENGTH));
 				if( ULOCK_FILE.exists() )
 				{
 					try {
@@ -955,7 +951,7 @@ public class Settings extends Globals
 		boolean success = false;
 		int loop = 0;
 		
-		traceln(STDOUT, "-> Cleaning...");
+		traceln(STDOUT, DEBUG, "Cleaning...");
 		
 		if( DOWNLOADS_TMP_DIRECTORY.exists() )
 		{
@@ -1019,7 +1015,7 @@ public class Settings extends Globals
 		if( errno != JFrame.ERROR && errno != JFrame.ABORT )
 			releaseLock();
 		
-		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Shutting Down ===");
+		traceln(STDOUT, INFO, "=== " + Settings.CURRENT_PROGRAM_NAME + " Shutting Down ===");
 		System.exit(errno);
 	}
 }

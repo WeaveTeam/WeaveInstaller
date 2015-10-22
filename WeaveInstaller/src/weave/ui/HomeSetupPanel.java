@@ -19,10 +19,8 @@
 
 package weave.ui;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.trace;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -252,7 +250,7 @@ public class HomeSetupPanel extends SetupPanel
 					else
 					{
 						RemoteUtils.isConnectedToInternet(
-							new Function() {
+							new Function<Object, Object>() {
 								@Override
 								public Object call(Object... args) {
 									try {
@@ -264,7 +262,7 @@ public class HomeSetupPanel extends SetupPanel
 									return null;
 								}
 							}, 
-							new Function() {
+							new Function<Object, Object>() {
 								@Override
 								public Object call(Object... args) {
 									troubleshootHTML.setText("<br><center>No internet connection found</center>");
@@ -431,7 +429,7 @@ public class HomeSetupPanel extends SetupPanel
 		refreshButton.addDropDownItem(new JMenuItem("Milestone"), new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) {
-				trace(STDOUT, StringUtils.rpad("-> Switching to Milestone", ".", Settings.LOG_PADDING_LENGTH));
+				trace(STDOUT, INFO, StringUtils.rpad("Switching to Milestone", ".", Settings.LOG_PADDING_LENGTH));
 				Settings.INSTALL_MODE = INSTALL_ENUM.MILESTONE;
 				Settings.save();
 				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
@@ -442,7 +440,7 @@ public class HomeSetupPanel extends SetupPanel
 		refreshButton.addDropDownItem(new JMenuItem("Nightly"), new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent a) {
-				trace(STDOUT, StringUtils.rpad("-> Switching to Nightly", ".", Settings.LOG_PADDING_LENGTH));
+				trace(STDOUT, INFO, StringUtils.rpad("Switching to Nightly", ".", Settings.LOG_PADDING_LENGTH));
 				Settings.INSTALL_MODE = INSTALL_ENUM.NIGHTLY;
 				Settings.save();
 				refreshButton.updateSelectedItem(Settings.INSTALL_MODE);
@@ -999,7 +997,7 @@ public class HomeSetupPanel extends SetupPanel
 		return panel;
 	}
 	
-	private Function onDownloadCompleteCallback = new Function() {
+	private Function<Object, Object> onDownloadCompleteCallback = new Function<Object, Object>() {
 		
 		@Override
 		public Object call(Object... args) {
@@ -1099,7 +1097,7 @@ public class HomeSetupPanel extends SetupPanel
 	}
 	private void refreshInterface()
 	{
-		traceln(STDOUT, StringUtils.rpad("-> Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
+		traceln(STDOUT, INFO, StringUtils.rpad("Refreshing User Interface", ".", Settings.LOG_PADDING_LENGTH));
 
 		Settings.canQuit = false;
 		

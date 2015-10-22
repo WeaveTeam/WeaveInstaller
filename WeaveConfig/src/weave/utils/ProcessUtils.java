@@ -158,15 +158,14 @@ class ProcessStream extends Thread
 			reader = new BufferedReader(new InputStreamReader(is));
 			if( output != null ) {
 				writer = new BufferedWriter(new FileWriter(output, true));
-				writer.newLine();
 			}
 		
 			while( (line = reader.readLine()) != null ) {
 //				System.out.println(line);
 				list.add(line);
 				if( writer != null ) {
-					writer.write(line);
 					writer.newLine();
+					writer.write(line);
 					writer.flush();
 				}
 			}

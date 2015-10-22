@@ -1,6 +1,7 @@
 package weave.misc;
 
-public abstract class Function
+public abstract class Function<ReturnType, ArgType>
 {
-	public abstract Object call(Object ...args);
+	@SuppressWarnings("unchecked")
+	public abstract ReturnType call(ArgType ...arguments);
 }

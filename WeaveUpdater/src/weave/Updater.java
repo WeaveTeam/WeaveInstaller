@@ -19,11 +19,8 @@
 
 package weave;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -104,10 +101,8 @@ public class Updater extends JFrame
 
 		if( !Desktop.isDesktopSupported() )
 		{
-			traceln(STDOUT, "");
-			traceln(STDOUT, "!! Fault detected !!");
-			traceln(STDOUT, "!! System does not support Java Desktop Features" );
-			traceln(STDOUT, "");
+			traceln(STDOUT, LEVEL.ERROR, "!! Fault detected !!");
+			traceln(STDOUT, LEVEL.ERROR, "!! System does not support Java Desktop Features" );
 			Settings.shutdown(ABORT);
 			return;
 		}
@@ -124,8 +119,8 @@ public class Updater extends JFrame
 			Settings.shutdown(JFrame.ERROR);
 		}
 		
-		traceln(STDOUT, "");
-		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+		traceln(STDOUT, INFO, "");
+		traceln(STDOUT, INFO, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
 		if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 		{
@@ -228,8 +223,8 @@ public class Updater extends JFrame
 		if( Settings.isOfflineMode() )
 		{
 			setTitle(getTitle() + " [OFFLINE MODE]");
-			traceln(STDOUT, "-> Offline Mode Enabled...");
-			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME + "...");
+			traceln(STDOUT, INFO, "Offline Mode Enabled...");
+			traceln(STDOUT, INFO, "Launching " + Settings.SERVER_NAME + "...");
 
 			staticLabel.setText(Settings.UPDATER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
@@ -244,7 +239,7 @@ public class Updater extends JFrame
 		//=================================================
 		// Everything below this is for online launching
 		//=================================================
-		traceln(STDOUT, StringUtils.rpad("-> Online Mode Enabled", ".", Settings.LOG_PADDING_LENGTH));
+		traceln(STDOUT, INFO, StringUtils.rpad("Online Mode Enabled", ".", Settings.LOG_PADDING_LENGTH));
 		
 		
 		// Need to check if this tool 
@@ -253,14 +248,14 @@ public class Updater extends JFrame
 		if( !Settings.hasUniqueID() ) {
 			Settings.UNIQUE_ID = IdentityUtils.createID();
 			Settings.save();
-			traceln(STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
+			traceln(STDOUT, INFO, "Generated new UniqueID: " + Settings.UNIQUE_ID);
 		}
 		Settings.canQuit = true;
 
 		
 		// Check to see if there is an update available and if 
 		// we should update at this time
-		traceln(STDOUT, StringUtils.rpad("-> Checking for updates", ".", Settings.LOG_PADDING_LENGTH));
+		traceln(STDOUT, INFO, StringUtils.rpad("Checking for updates", ".", Settings.LOG_PADDING_LENGTH));
 		isUpdate = UpdateUtils.isServerUpdateAvailable();
 		
 		if( isUpdate || Settings.UPDATE_OVERRIDE )
@@ -388,7 +383,7 @@ public class Updater extends JFrame
 			}
 		};
 
-		trace(STDOUT, StringUtils.rpad("-> Downloading update", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Downloading update", ".", Settings.LOG_PADDING_LENGTH));
 		statusLabel.setText("Downloading update....");
 		statusProgress.setIndeterminate(false);
 		statusProgress.setValue(0);
@@ -442,7 +437,7 @@ public class Updater extends JFrame
 			}
 		};
 
-		trace(STDOUT, StringUtils.rpad("-> Installing update", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Installing update", ".", Settings.LOG_PADDING_LENGTH));
 		
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
@@ -466,7 +461,7 @@ public class Updater extends JFrame
 				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
 			Thread.sleep(1000);
 			
-			traceln(STDOUT, "-> Launching " + Settings.SERVER_NAME);
+			traceln(STDOUT, INFO, "Launching " + Settings.SERVER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
 	
 			while( !Settings.canQuit ) Thread.sleep(1000);
@@ -502,7 +497,7 @@ public class Updater extends JFrame
 				Settings.createShortcut( overwrite );
 				Thread.sleep(200);
 				try {
-					traceln(STDOUT, StringUtils.rpad("-> Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
+					traceln(STDOUT, DEBUG, StringUtils.rpad("Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
 					Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
 					DLLInterface.refresh();
 				} catch (UnsatisfiedLinkError e) {

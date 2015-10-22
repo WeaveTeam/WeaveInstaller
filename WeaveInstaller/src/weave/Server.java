@@ -19,12 +19,8 @@
 
 package weave;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getSimpleClassAndMsg;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
-import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -94,7 +90,7 @@ public class Server extends JFrame
 	
 	// === Left Panel === //
 	public SetupPanel					leftPanel		= null;
-	public CustomCheckbox				servletCheckbox = null;
+	public CustomCheckbox				serverCheckbox	= null;
 	public CustomCheckbox				databaseCheckbox = null;
 	public CustomCheckbox				installCheckbox = null;
 	public CustomCheckbox				configCheckbox	= null;
@@ -137,10 +133,8 @@ public class Server extends JFrame
 
 		if( !Desktop.isDesktopSupported() )
 		{
-			traceln(STDOUT, "");
-			traceln(STDOUT, "!! Fault detected !!");
-			traceln(STDOUT, "!! System does not support Java Desktop Features" );
-			traceln(STDOUT, "");
+			traceln(STDOUT, FATAL, "Fault detected");
+			traceln(STDOUT, FATAL, "System does not support Java Desktop Features" );
 			Settings.shutdown(ABORT);
 			return;
 		}
@@ -157,8 +151,8 @@ public class Server extends JFrame
 			Settings.shutdown(JFrame.ERROR);
 		}
 		
-		traceln(STDOUT, "");
-		traceln(STDOUT, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
+		traceln(STDOUT, INFO, "");
+		traceln(STDOUT, INFO, "=== " + Settings.CURRENT_PROGRAM_NAME + " Starting Up ===");
 
 		while( true ) 
 		{
@@ -236,7 +230,7 @@ public class Server extends JFrame
 		Settings.canQuit = false;
 		if( !Settings.hasUniqueID() ) {
 			Settings.UNIQUE_ID = IdentityUtils.createID();
-			traceln(STDOUT, "-> Generated new UniqueID: " + Settings.UNIQUE_ID);
+			traceln(STDOUT, INFO, "Generated new UniqueID: " + Settings.UNIQUE_ID);
 			Settings.save();
 		}
 		Settings.canQuit = true;
@@ -267,13 +261,13 @@ public class Server extends JFrame
 		wvaLabel.setBounds(10, 10, 125, 65);
 		leftPanel.add(wvaLabel);
 		
-		servletCheckbox = new CustomCheckbox("Select Servlet");
-		servletCheckbox.setBounds(10, 120, 125, 25);
-		servletCheckbox.setBackground(leftPanel.getBackground());
-		servletCheckbox.setSelected(false);
-		servletCheckbox.setVisible(!Settings.SETUP_COMPLETE);
-		servletCheckbox.setToolTipText("Select the application server");
-		leftPanel.add(servletCheckbox);
+		serverCheckbox = new CustomCheckbox("Select Server");
+		serverCheckbox.setBounds(10, 120, 125, 25);
+		serverCheckbox.setBackground(leftPanel.getBackground());
+		serverCheckbox.setSelected(false);
+		serverCheckbox.setVisible(!Settings.SETUP_COMPLETE);
+		serverCheckbox.setToolTipText("Select the application server");
+		leftPanel.add(serverCheckbox);
 		
 		databaseCheckbox = new CustomCheckbox("Select Database");
 		databaseCheckbox.setBounds(10, 150, 125, 25);
@@ -370,7 +364,7 @@ public class Server extends JFrame
 		cancelButton = new JButton("Close");
 		cancelButton.setBounds(480, 10, 100, 30);				// 400, 13, 80, 25
 		cancelButton.setBackground(new Color(0x507AAA));
-		cancelButton.setToolTipText("Close the installer");
+		cancelButton.setToolTipText("Close the " + Settings.SERVER_NAME);
 		cancelButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -421,7 +415,7 @@ public class Server extends JFrame
 			@Override
 			public void run() {
 				try {
-					traceln(STDOUT, StringUtils.rpad("-> Updating WeaveUpdater", ".", Settings.LOG_PADDING_LENGTH));
+					traceln(STDOUT, WARN, StringUtils.rpad("Updating " + Settings.UPDATER_NEW_JAR, ".", Settings.LOG_PADDING_LENGTH));
 					updateToNewUpdater();
 					Settings.setDirectoryPermissions();
 					put(STDOUT, "DONE");
@@ -708,7 +702,7 @@ public class Server extends JFrame
 	@Reflectable
 	public void setProgress(Integer bit)
 	{
-		servletCheckbox.setSelected((bit & 1 << 0) > 0);
+		serverCheckbox.setSelected((bit & 1 << 0) > 0);
 		databaseCheckbox.setSelected((bit & 1 << 1) > 0);
 		installCheckbox.setSelected((bit & 1 << 2) > 0);
 		configCheckbox.setSelected((bit & 1 << 3) > 0);
@@ -716,7 +710,7 @@ public class Server extends JFrame
 	@Reflectable
 	public Integer getProgress()
 	{
-		return  ((servletCheckbox.isSelected() ? 1 : 0) << 0) +
+		return  ((serverCheckbox.isSelected() ? 1 : 0) << 0) +
 				((databaseCheckbox.isSelected() ? 1 : 0) << 1) +
 				((installCheckbox.isSelected() ? 1 : 0) << 2) +
 				((configCheckbox.isSelected() ? 1 : 0) << 3);
@@ -729,14 +723,14 @@ public class Server extends JFrame
 			public void run() {
 				UpdateUtils.checkForServerUpdate(UpdateUtils.FROM_EVENT);
 			}
-		}, 60 * 60 * 1000, 60 * 60 * 1000);
+		}, 60 * 60 * 1000, 60 * 60 * 1000); // Every hour
 		
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
 				StatsUtils.noop();
 			}
-		}, 5 * 1000, 60 * 1000);
+		}, 5 * 1000, 60 * 1000); // Every minute
 	}
 	//============================================================================================================
 	private int updateToNewUpdater() throws IOException, InterruptedException

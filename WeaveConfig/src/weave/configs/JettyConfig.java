@@ -19,10 +19,8 @@
 
 package weave.configs;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.getLogFile;
-import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +128,7 @@ public class JettyConfig extends Config
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
 
-				trace(STDOUT, StringUtils.rpad("-> Starting " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
+				trace(STDOUT, INFO, StringUtils.rpad("Starting " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
 
 				try {
 					String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";
@@ -188,7 +186,7 @@ public class JettyConfig extends Config
 	}
 	public Map<String, List<String>> stopServer()
 	{
-		trace(STDOUT, StringUtils.rpad("-> Stopping " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Stopping " + getConfigName() + " server", ".", Settings.LOG_PADDING_LENGTH));
 
 		try {
 			String basePath = (String)ObjectUtils.ternary(getWebappsDirectory(), "getAbsolutePath", "") + "/../";

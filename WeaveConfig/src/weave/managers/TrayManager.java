@@ -19,10 +19,8 @@
 
 package weave.managers;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.AWTException;
 import java.awt.Image;
@@ -55,6 +53,7 @@ import weave.configs.IConfig;
 import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.StringUtils;
 import weave.utils.UpdateUtils;
 
 public class TrayManager extends Globals
@@ -86,7 +85,7 @@ public class TrayManager extends Globals
 	
 	public static void initializeTray( JFrame p ) throws IOException
 	{
-		trace(STDOUT, "-> Initializing System Tray.......");
+		trace(STDOUT, INFO, StringUtils.rpad("Initializing System Tray", ".", Settings.LOG_PADDING_LENGTH));
 		
 //		trayIconOnline = ImageIO.read(IconManager.ICON_TRAY_ONLINE);
 		trayIconOnline = ImageIO.read(ResourceManager.ICON_TRAY_LOGO_LARGE);

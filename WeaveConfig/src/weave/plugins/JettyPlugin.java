@@ -63,7 +63,7 @@ public class JettyPlugin extends Plugin
 	private JProgressBar progressbar = null;
 	private JLabel progressLabel = null;
 	
-	private Function onDownloadCompleteCallback = new Function() {
+	private Function<Object, Object> onDownloadCompleteCallback = new Function<Object, Object>() {
 		@Override
 		public Object call(Object... args) {
 			setAllButtonsEnabled(true);

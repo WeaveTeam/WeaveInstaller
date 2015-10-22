@@ -19,10 +19,8 @@
 
 package weave;
 
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.traceln;
-import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -141,15 +139,15 @@ public class Launcher extends JFrame
 
 				if( cfg == null )
 					System.exit(NORMAL);
-				traceln(STDOUT, "-> cfg: " + cfg.getConfigName());
+				traceln(STDOUT, DEBUG, "cfg: " + cfg.getConfigName());
 				
 				File webapps = cfg.getWebappsDirectory();
 				if( webapps == null )
 					System.exit(NORMAL);
-				traceln(STDOUT, "-> webapps: " + webapps.getAbsolutePath());
+				traceln(STDOUT, DEBUG, "webapps: " + webapps.getAbsolutePath());
 				
 				File ROOT = new File(webapps, "ROOT");
-				traceln(STDOUT, "-> ROOT: " + ROOT.getAbsolutePath());
+				traceln(STDOUT, DEBUG, "ROOT: " + ROOT.getAbsolutePath());
 				if( !ROOT.exists() )
 					System.exit(NORMAL);
 				
@@ -164,7 +162,7 @@ public class Launcher extends JFrame
 			}
 			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_ENUM.WINDOWS ) 
 			{
-				traceln(STDOUT, StringUtils.rpad("-> Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
+				traceln(STDOUT, DEBUG, StringUtils.rpad("Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
 				LaunchUtils.launchElevated(path, delay);
 			}
 			else

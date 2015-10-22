@@ -205,7 +205,7 @@ public class RemoteUtils extends Globals
 	 * @see Function
 	 * @see Settings#IWEAVE_URL
 	 */
-	public static void isConnectedToInternet(final Function ifTrue, final Function ifFalse)
+	public static void isConnectedToInternet(final Function<Object, Object> ifTrue, final Function<Object, Object> ifFalse)
 	{
 		AsyncCallback callback = new AsyncCallback() {
 			@Override

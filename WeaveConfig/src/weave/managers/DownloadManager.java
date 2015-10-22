@@ -1,9 +1,7 @@
 package weave.managers;
 
-import static weave.utils.TraceUtils.STDERR;
-import static weave.utils.TraceUtils.STDOUT;
-import static weave.utils.TraceUtils.put;
-import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.*;
+import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.io.File;
@@ -34,7 +32,7 @@ public class DownloadManager
 	private String dlURLStr = "";
 	private String dlFileStr = "";
 	private String dlDestinationStr = "";
-	private Function callbackFunction = null;
+	private Function<Object, Object> callbackFunction = null;
 	
 	private JLabel label = null;
 	private JProgressBar progressbar = null;
@@ -83,7 +81,7 @@ public class DownloadManager
 		dlDestinationStr = loc;
 		return this;
 	}
-	public DownloadManager callback(Function f)
+	public DownloadManager callback(Function<Object, Object> f)
 	{
 		callbackFunction = f;
 		return this;
@@ -218,7 +216,7 @@ public class DownloadManager
 			}
 		};
 
-		trace(STDOUT, StringUtils.rpad("-> Downloading " + type, ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Downloading " + type, ".", Settings.LOG_PADDING_LENGTH));
 		
 		label.setVisible(true);
 		progressbar.setVisible(true);
@@ -319,7 +317,7 @@ public class DownloadManager
 		if( !Settings.UNZIP_DIRECTORY.exists() )
 			Settings.UNZIP_DIRECTORY.mkdirs();
 		
-		trace(STDOUT, StringUtils.rpad("-> Extracting " + type, ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Extracting " + type, ".", Settings.LOG_PADDING_LENGTH));
 		label.setVisible(true);
 		progressbar.setVisible(true);
 		
@@ -446,7 +444,7 @@ public class DownloadManager
 			}
 		};
 
-		trace(STDOUT, StringUtils.rpad("-> Installing " + type, ".", Settings.LOG_PADDING_LENGTH));
+		trace(STDOUT, INFO, StringUtils.rpad("Installing " + type, ".", Settings.LOG_PADDING_LENGTH));
 
 		label.setVisible(true);
 		progressbar.setVisible(true);

@@ -26,8 +26,10 @@ public class EnvironmentUtils extends Globals
 			customEnv = new HashMap<String, String>();
 		else
 			customEnv.clear();
-				
-		customEnv.put(WEBAPPS, servlet.getWebappsDirectory().getAbsolutePath());
+		
+		if( servlet != null && servlet.getWebappsDirectory() != null )
+			customEnv.put(WEBAPPS, servlet.getWebappsDirectory().getAbsolutePath());
+		
 		customEnv.put(PLUGINS_DIR, Settings.DEPLOYED_PLUGINS_DIRECTORY.getAbsolutePath());
 		customEnv.put(DOWNLOAD_DIR, Settings.DOWNLOADS_DIRECTORY.getAbsolutePath());
 	}

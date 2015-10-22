@@ -125,6 +125,17 @@ public class ReflectionUtils extends Globals
 		
 		return sb.toString();
 	}
+
+	public static Object reflectConstructor(String pkg, String clazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
+	{
+		return reflectConstructor(pkg, clazz, new Class<?>[]{}, new Object[]{});
+	}
+	
+	public static Object reflectConstructor(String pkg, String clazz, Class<?>[] argClassList, Object[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
+	{
+		Class<?> c = Class.forName(pkg + "." + clazz);
+		return c.getConstructor(argClassList).newInstance(args);
+	}
 	
 	
 	/**
