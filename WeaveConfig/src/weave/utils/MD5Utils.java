@@ -29,9 +29,7 @@ public class MD5Utils extends Globals
 		
 		m.update(str.getBytes(), 0, str.length());
 		ret = new BigInteger(1, m.digest()).toString(16);
-		
-		while( ret.length() < 32 )
-			ret = "0" + ret;
+		ret = StringUtils.lpad(ret, "0", 32);
 		return ret;
 	}
 }
