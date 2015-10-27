@@ -37,15 +37,6 @@ public class Compiler
 	public static final String OP_MOD			= "%";
 	public static final String OP_NEW 			= "new";
 	public static final String OP_INSTANCEOF 	= "instanceof";
-	public static final String OP_OPEN_PAREN	= "(";
-	public static final String OP_CLOSE_PAREN	= ")";
-	public static final String OP_OPEN_ARRAY	= "[";
-	public static final String OP_CLOSE_ARRAY	= "]";
-	public static final String OP_OPEN_BRACKET	= "{";
-	public static final String OP_CLOSE_BRACKET	= "}";
-	public static final String OP_QUOTE			= "\"";
-	public static final String OP_COMMA			= ",";
-	public static final String OP_SEMICOLON		= ";";
 	
 	public static final String OP_BITWISE_NOT 		= "~";
 	public static final String OP_BITWISE_AND 		= "&";
@@ -84,6 +75,50 @@ public class Compiler
 	public static final String OP_ASSN_LOG_LSHIFTEQ	= "<<<=";
 	public static final String OP_ASSN_LOG_RSHIFTEQ	= ">>>=";
 
+	public static final String OP_SPACE			= " ";
+	public static final String OP_OPEN_PAREN	= "(";
+	public static final String OP_CLOSE_PAREN	= ")";
+	public static final String OP_OPEN_ARRAY	= "[";
+	public static final String OP_CLOSE_ARRAY	= "]";
+	public static final String OP_OPEN_BRACKET	= "{";
+	public static final String OP_CLOSE_BRACKET	= "}";
+	public static final String OP_QUOTE			= "\"";
+	public static final String OP_COMMA			= ",";
+	public static final String OP_SEMICOLON		= ";";
+	
+	private static final String[] TOKEN_ARRAY = {
+		STMT_IMPORT, STMT_VAR, STMT_IF, STMT_ELSE, STMT_FOR, STMT_FOREACH, STMT_IN, STMT_DO, STMT_WHILE,
+		// Arithmatic
+		OP_ADD, OP_SUB, OP_MULT, OP_DIV, OP_MOD, OP_NEW, OP_INSTANCEOF,
+		// Bitsise
+		OP_BITWISE_NOT, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR, OP_BITWISE_LSHIFT, OP_BITWISE_RSHIFT,
+		// Logical
+		OP_LOGICAL_NOT, OP_LOGICAL_AND, OP_LOGICAL_OR, OP_LOGICAL_LSHIFT, OP_LOGICAL_RSHIFT,
+		// Comparison
+		OP_COMPARE_EQ, OP_COMPARE_EQMC, OP_COMPARE_GT, OP_COMPARE_GTEQ, OP_COMPARE_LT, OP_COMPARE_LTEQ, OP_COMPARE_NEQ, OP_COMPARE_NEQMC,
+		// Assignment
+		OP_ASSN_EQ, OP_ASSN_ADDEQ, OP_ASSN_SUBEQ, OP_ASSN_MULTEQ, OP_ASSN_DIVEQ, OP_ASSN_MODEQ, OP_ASSN_BIT_LSHIFTEQ, OP_ASSN_BIT_RSHIFTEQ,
+		OP_ASSN_BIT_NOTEQ, OP_ASSN_BIT_ANDEQ, OP_ASSN_BIT_OREQ, OP_ASSN_BIT_XOREQ, OP_ASSN_LOG_LSHIFTEQ, OP_ASSN_LOG_RSHIFTEQ,
+		// Symbols
+		OP_SPACE, OP_OPEN_PAREN, OP_CLOSE_PAREN, OP_OPEN_ARRAY, OP_CLOSE_ARRAY, OP_OPEN_BRACKET, OP_CLOSE_BRACKET, OP_QUOTE, OP_COMMA, OP_SEMICOLON
+	};
+	
+	private static final String[] VARS_SEPARATORS = {
+		OP_COMMA
+	};
+	private static final String[] PARAMS_SEPARATORS = {
+		OP_COMMA
+	};
+	private static final String[] STMT_SEPARATORS = {
+		OP_SEMICOLON
+	};
+	private static final String[] EXPR_SEPARATORS = {
+		OP_ASSN_EQ, OP_SEMICOLON
+	};
+	private static final String[] TOKEN_SEPARATORS = {
+		OP_SPACE, OP_OPEN_PAREN, OP_OPEN_ARRAY, OP_OPEN_BRACKET
+	};
+	
 	public static final String[][] STMT_PATTERNS = {
 		{STMT_IMPORT, IN_EXPR},
 		{STMT_VAR, IN_VARS},
@@ -141,13 +176,21 @@ public class Compiler
 		
 		for( int i = 0; i < len; i++ )
 			tokenList.add(parseToken(expr, i));
-			
+		
 		return tokenList;
 	}
 	
 	public Token parseToken(String expr, int index)
 	{
 		return new Token();
+	}
+	
+	private Boolean isToken(String str)
+	{
+		for( int i = 0; i < TOKEN_ARRAY.length; i++ )
+			if( str.equals(TOKEN_ARRAY[i]) )
+				return true;
+		return false;
 	}
 	
 	private Number numVal(Number n)
@@ -279,9 +322,4 @@ public class Compiler
 			}
 		});
 	}
-}
-
-class Token
-{
-	
 }
