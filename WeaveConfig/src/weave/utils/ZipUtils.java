@@ -123,11 +123,12 @@ public class ZipUtils extends TransferUtils
 		ZipFile zip = new ZipFile(zipFile);
 		Enumeration<? extends ZipEntry> enu = zip.entries();
 		ZipEntry zipEntry = null;
+		File outputFile = null;
 		
 		while (enu.hasMoreElements()) 
 		{
 			zipEntry = (ZipEntry) enu.nextElement();
-			File outputFile = new File(destination, zipEntry.getName());
+			outputFile = new File(destination, zipEntry.getName());
 			
 			if( zipEntry.isDirectory() )
 			{

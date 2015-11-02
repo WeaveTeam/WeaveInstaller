@@ -32,7 +32,7 @@ import javax.swing.JOptionPane;
 
 import weave.Settings;
 import weave.async.AsyncCallback;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.managers.ConfigManager;
 import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
@@ -123,7 +123,7 @@ public class JettyConfig extends Config
 	
 	public void startServer()
 	{
-		final AsyncTask startTask = new AsyncTask("Jetty Server running on " + getPort()) {
+		final AsyncFunction startTask = new AsyncFunction("Jetty Server running on " + getPort()) {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -158,10 +158,10 @@ public class JettyConfig extends Config
 				} catch (InterruptedException e) {
 					trace(STDERR, e);
 				}
-				startTask.execute();
+				startTask.call();
 			}
 		};
-		AsyncTask stopTask = new AsyncTask() {
+		AsyncFunction stopTask = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				stopServer();
@@ -173,11 +173,11 @@ public class JettyConfig extends Config
 		// Might have been caused by a previous improper shutdown
 		if( Settings.isServiceUp(getHost(), getPort()) )
 		{
-			stopTask.addCallback(stopCallback).execute();
+			stopTask.addCallback(stopCallback).call();
 		}
 		else
 		{
-			startTask.execute();
+			startTask.call();
 		}
 	}
 	public static String stop()

@@ -24,21 +24,20 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import weave.Globals;
-import weave.misc.Function;
+import weave.compiler.Function;
 
-public class AsyncTask extends Globals
+public class AsyncFunction extends Function<Object, Function<Object, Object>>
 {
 	private String description = "";
 	private List<AsyncCallback> callbacks = null;
 	private Thread t = null;
 	
-	public AsyncTask()
+	public AsyncFunction()
 	{
 		description = "";
 		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
 	}
-	public AsyncTask(String desc)
+	public AsyncFunction(String desc)
 	{
 		description = desc;
 		callbacks = Collections.synchronizedList(new ArrayList<AsyncCallback>());
@@ -49,12 +48,28 @@ public class AsyncTask extends Globals
 		throw new UnsupportedOperationException("Method Not Implemented Yet");
 	}
 	
-	public void execute(final Function<Object, Object> task)
+	@Override
+	@SafeVarargs
+	public final Object call(Function<Object, Object> ...arguments) 
 	{
+		if( arguments.length > 1 )
+			throw new IllegalArgumentException("Wrong number of arguments");
+		
+		final Function<Object, Object> backgroundTask;
+		
+		if( arguments.length == 1 )
+			backgroundTask = arguments[0];
+		else
+			backgroundTask = new Function<Object, Object>() {
+				@Override public Object call(Object... arguments) {
+					return doInBackground();
+				}
+			};
+			
 		AsyncCallback c = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
-				AsyncTaskManager.removeTask(AsyncTask.this);
+				AsyncTaskManager.removeTask(AsyncFunction.this);
 			}
 		};
 		addCallback(c);
@@ -64,35 +79,13 @@ public class AsyncTask extends Globals
 		t = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Object o = task.call();
+				Object o = backgroundTask.call();
 				
 				runCallbacks(o);
 			}
 		});
 		t.start();
-	}
-	
-	public void execute()
-	{
-		AsyncCallback c = new AsyncCallback() {
-			@Override
-			public void run(Object o) {
-				AsyncTaskManager.removeTask(AsyncTask.this);
-			}
-		};
-		addCallback(c);
-		
-		AsyncTaskManager.addTask(this);
-		
-		t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Object o = doInBackground();
-				
-				runCallbacks(o);
-			}
-		});
-		t.start();
+		return this;
 	}
 	
 	public void cancel()
@@ -109,15 +102,15 @@ public class AsyncTask extends Globals
 	}
 	
 	
-	public AsyncTask addCallback(AsyncCallback c) {
+	public AsyncFunction addCallback(AsyncCallback c) {
 		callbacks.add(c);
 		return this;
 	}
-	public AsyncTask removeCallback(AsyncCallback c) {
+	public AsyncFunction removeCallback(AsyncCallback c) {
 		callbacks.remove(c);
 		return this;
 	}
-	public AsyncTask removeAllCallbacks() {
+	public AsyncFunction removeAllCallbacks() {
 		Iterator<AsyncCallback> it = callbacks.iterator();
 		while( it.hasNext() )
 			removeCallback(it.next());

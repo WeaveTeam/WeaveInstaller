@@ -53,7 +53,7 @@ import javax.swing.text.html.HTMLDocument;
 import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.configs.IConfig;
 import weave.configs.JettyConfig;
 import weave.configs.SQLiteConfig;
@@ -756,7 +756,7 @@ public class ConfigSetupPanel extends SetupPanel
 				}
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -784,7 +784,7 @@ public class ConfigSetupPanel extends SetupPanel
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	private void extract(final File source, final IConfig config)
@@ -815,7 +815,7 @@ public class ConfigSetupPanel extends SetupPanel
 				servletProgressBar.setIndeterminate(true);
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -848,7 +848,7 @@ public class ConfigSetupPanel extends SetupPanel
 			BugReportUtils.showBugReportDialog(e);
 		}
 		
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////

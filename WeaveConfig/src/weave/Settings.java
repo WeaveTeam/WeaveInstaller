@@ -46,10 +46,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.jimmc.jshortcut.JShellLink;
+import weave.compiler.Function;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
-import weave.misc.Function;
 import weave.reflect.Reflectable;
 import weave.server.ServerListener;
 import weave.utils.BugReportUtils;

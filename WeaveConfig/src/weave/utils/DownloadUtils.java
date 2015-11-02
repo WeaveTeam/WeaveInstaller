@@ -31,7 +31,7 @@ import java.util.List;
 
 import weave.Settings;
 import weave.async.AsyncObserver;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 
 public class DownloadUtils extends TransferUtils
 {
@@ -122,7 +122,7 @@ public class DownloadUtils extends TransferUtils
 	 * 			progressBar.setValue( info.progress );
 	 * 		}
 	 *	};
-	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *	{@link AsyncFunction} task = new AsyncTask() {
 	 *		public Object doInBackground() {
 	 * 			return DownloadUtils.download( url, dest, observer, 512 * DownloadUtils.KB );
 	 *		}
@@ -161,7 +161,7 @@ public class DownloadUtils extends TransferUtils
 	 * 			progressBar.setValue( info.progress );
 	 * 		}
 	 *	};
-	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *	{@link AsyncFunction} task = new AsyncTask() {
 	 *		public Object doInBackground() {
 	 * 			return DownloadUtils.download( url, dest, observer );
 	 *		}
@@ -200,7 +200,7 @@ public class DownloadUtils extends TransferUtils
 	 * 			progressBar.setValue( info.progress );
 	 * 		}
 	 *	};
-	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *	{@link AsyncFunction} task = new AsyncTask() {
 	 *		public Object doInBackground() {
 	 * 			return DownloadUtils.download( url, dest, observer );
 	 *		}
@@ -239,7 +239,7 @@ public class DownloadUtils extends TransferUtils
 	 * 			progressBar.setValue( info.progress );
 	 * 		}
 	 *	};
-	 *	{@link AsyncTask} task = new AsyncTask() {
+	 *	{@link AsyncFunction} task = new AsyncTask() {
 	 *		public Object doInBackground() {
 	 * 			return DownloadUtils.download( url, dest, observer, 500 * DownloadUtils.KB );
 	 *		}

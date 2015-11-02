@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import weave.Settings;
-import weave.misc.Function;
 import weave.reflect.ReflectionUtils;
 
 public class Compiler
@@ -134,19 +133,19 @@ public class Compiler
 		{}
 	};
 	
-	public static final String[][] OP_PRECEDENCE = {
-		{OP_BITWISE_NOT, OP_LOGICAL_NOT, OP_NEW},
-		{OP_MULT, OP_DIV, OP_MOD},
-		{OP_ADD, OP_SUB},
-		{OP_BITWISE_LSHIFT, OP_BITWISE_RSHIFT, OP_LOGICAL_LSHIFT, OP_LOGICAL_RSHIFT},
-		{OP_COMPARE_LT, OP_COMPARE_LTEQ, OP_COMPARE_GT, OP_COMPARE_GTEQ},
-		{OP_INSTANCEOF},
-		{OP_COMPARE_EQ, OP_COMPARE_EQMC, OP_COMPARE_NEQ, OP_COMPARE_NEQMC},
-		{OP_BITWISE_AND, OP_BITWISE_XOR, OP_BITWISE_OR},
-		{OP_LOGICAL_AND, OP_LOGICAL_OR},
-		{OP_ASSN_EQ, OP_ASSN_MULTEQ, OP_ASSN_DIVEQ, OP_ASSN_ADDEQ, OP_ASSN_SUBEQ, OP_ASSN_MODEQ},
-		{OP_ASSN_BIT_ANDEQ, OP_ASSN_BIT_NOTEQ, OP_ASSN_BIT_XOREQ, OP_ASSN_BIT_OREQ, OP_ASSN_BIT_LSHIFTEQ, OP_ASSN_BIT_RSHIFTEQ},
-		{OP_ASSN_LOG_LSHIFTEQ, OP_ASSN_LOG_RSHIFTEQ}
+	public static final String[] OP_PRECEDENCE = {
+		OP_BITWISE_NOT, OP_LOGICAL_NOT, OP_NEW,
+		OP_MULT, OP_DIV, OP_MOD,
+		OP_ADD, OP_SUB,
+		OP_BITWISE_LSHIFT, OP_BITWISE_RSHIFT, OP_LOGICAL_LSHIFT, OP_LOGICAL_RSHIFT,
+		OP_COMPARE_LT, OP_COMPARE_LTEQ, OP_COMPARE_GT, OP_COMPARE_GTEQ,
+		OP_INSTANCEOF,
+		OP_COMPARE_EQ, OP_COMPARE_EQMC, OP_COMPARE_NEQ, OP_COMPARE_NEQMC,
+		OP_BITWISE_AND, OP_BITWISE_XOR, OP_BITWISE_OR,
+		OP_LOGICAL_AND, OP_LOGICAL_OR,
+		OP_ASSN_EQ, OP_ASSN_MULTEQ, OP_ASSN_DIVEQ, OP_ASSN_ADDEQ, OP_ASSN_SUBEQ, OP_ASSN_MODEQ,
+		OP_ASSN_BIT_ANDEQ, OP_ASSN_BIT_NOTEQ, OP_ASSN_BIT_XOREQ, OP_ASSN_BIT_OREQ, OP_ASSN_BIT_LSHIFTEQ, OP_ASSN_BIT_RSHIFTEQ,
+		OP_ASSN_LOG_LSHIFTEQ, OP_ASSN_LOG_RSHIFTEQ
 	};
 	
 	public Map<String, Function<Object, Object>> OPERATIONS = null;
@@ -185,12 +184,13 @@ public class Compiler
 		return new Token();
 	}
 	
-	private Boolean isToken(String str)
+	public Boolean isToken(String str)
 	{
+		List<String> possibleTokens = new ArrayList<>();
 		for( int i = 0; i < TOKEN_ARRAY.length; i++ )
-			if( str.equals(TOKEN_ARRAY[i]) )
-				return true;
-		return false;
+			if( TOKEN_ARRAY[i].contains(str) )
+				possibleTokens.add(TOKEN_ARRAY[i]);
+		return possibleTokens.size() == 1;
 	}
 	
 	private Number numVal(Number n)

@@ -48,7 +48,7 @@ import javax.swing.JOptionPane;
 import weave.Globals;
 import weave.Settings;
 import weave.Settings.LAUNCH_ENUM;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.configs.IConfig;
 import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
@@ -175,7 +175,7 @@ public class TrayManager extends Globals
 	{
 		if( !SystemTray.isSupported() ) return;
 		
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				try {
@@ -208,7 +208,7 @@ public class TrayManager extends Globals
 				return null;
 			}
 		};
-		task.execute();
+		task.call();
 	}
 	private static void setupActionListeners()
 	{

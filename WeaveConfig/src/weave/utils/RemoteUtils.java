@@ -29,8 +29,8 @@ import javax.swing.JOptionPane;
 import weave.Globals;
 import weave.Settings;
 import weave.async.AsyncCallback;
-import weave.async.AsyncTask;
-import weave.misc.Function;
+import weave.async.AsyncFunction;
+import weave.compiler.Function;
 import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
@@ -216,12 +216,12 @@ public class RemoteUtils extends Globals
 				else			ifFalse.call();
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				return isConnectedToInternet();
 			}
 		};
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 }

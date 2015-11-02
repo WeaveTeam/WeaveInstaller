@@ -34,7 +34,7 @@ import java.util.List;
 
 import weave.Settings;
 import weave.async.AsyncObserver;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.reflect.Reflectable;
 
 public class FileUtils extends TransferUtils
@@ -119,10 +119,10 @@ public class FileUtils extends TransferUtils
 	 * 			// RUN CALLBACK CODE HERE
 	 * 			//
 	 * 			// The result Object o will be the return value
-	 * 			// from the call to {@link AsyncTask#doInBackground()} 
+	 * 			// from the call to {@link AsyncFunction#doInBackground()} 
 	 * 		}
 	 * 	};
-	 * 	{@link AsyncTask} task = new AsyncTask() {
+	 * 	{@link AsyncFunction} task = new AsyncTask() {
 	 * 		public Object doInBackground() {
 	 * 			return FileUtils.copy(a, b, {@link FileUtils#OVERWRITE} | {@link FileUtils#SINGLE_FILE}, observer);
 	 * 		}
@@ -169,7 +169,7 @@ public class FileUtils extends TransferUtils
 	 * 			// RUN CALLBACK CODE HERE
 	 * 			//
 	 * 			// The result Object o will be the return value
-	 * 			// from the call to {@link AsyncTask#doInBackground()} 
+	 * 			// from the call to {@link AsyncFunction#doInBackground()} 
 	 * 		}
 	 * 	};
 	 * 	AsyncTask task = new AsyncTask() {

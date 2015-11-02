@@ -26,7 +26,7 @@ import java.io.IOException;
 
 import weave.Globals;
 import weave.Settings;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.managers.ConfigManager;
 
 public class StatsUtils extends Globals
@@ -46,7 +46,7 @@ public class StatsUtils extends Globals
 		params.add("uniqueID",	Settings.UNIQUE_ID);
 		params.add("forced", 	(forced ? "1" : "0"));
 		
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				try {
@@ -58,7 +58,7 @@ public class StatsUtils extends Globals
 				return null;
 			}
 		};
-		task.execute();
+		task.call();
 	}
 
 	public static void noop()
@@ -73,7 +73,7 @@ public class StatsUtils extends Globals
 			params.add("server", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveContainer(), "getConfigName", "NONE"));
 			params.add("database", 	(String) ObjectUtils.ternary(ConfigManager.getConfigManager().getActiveDatabase(), "getConfigName", "NONE"));
 			
-			AsyncTask task = new AsyncTask() {
+			AsyncFunction task = new AsyncFunction() {
 				@Override
 				public Object doInBackground() {
 					try {
@@ -89,7 +89,7 @@ public class StatsUtils extends Globals
 					return null;
 				}
 			};
-			task.execute();
+			task.call();
 			
 		} catch (Exception e) {
 			trace(STDERR, e);

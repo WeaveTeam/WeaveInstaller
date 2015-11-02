@@ -16,8 +16,8 @@ import javax.swing.JProgressBar;
 import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
-import weave.async.AsyncTask;
-import weave.misc.Function;
+import weave.async.AsyncFunction;
+import weave.compiler.Function;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;
@@ -201,7 +201,7 @@ public class DownloadManager
 				}
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				int ret = TransferUtils.FAILED;
@@ -232,7 +232,7 @@ public class DownloadManager
 		Settings.transferCancelled = false;
 		Settings.transferLocked = true;
 
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	private void extract() throws InterruptedException
@@ -243,6 +243,9 @@ public class DownloadManager
 			@Override
 			public void run(Object o) {
 				int returnCode = (Integer) o;
+
+				Settings.transferCancelled = false;
+				Settings.transferLocked = false;
 
 				try {
 					switch( returnCode )
@@ -296,7 +299,7 @@ public class DownloadManager
 							info.percent / 2 ) );
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -332,7 +335,7 @@ public class DownloadManager
 		Settings.transferCancelled = false;
 		Settings.transferLocked = true;
 		
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	private void move()
@@ -357,7 +360,10 @@ public class DownloadManager
 			@Override
 			public void run(Object o) {
 				int returnCode = (Integer) o;
-				
+
+				Settings.transferCancelled = false;
+				Settings.transferLocked = false;
+
 				try {
 					switch( returnCode ) 
 					{
@@ -398,7 +404,7 @@ public class DownloadManager
 				}
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				int status = TransferUtils.COMPLETE;
@@ -451,7 +457,10 @@ public class DownloadManager
 		
 		label.setText("Installing " + type + "....");
 		progressbar.setIndeterminate(false);
-		
-		task.addCallback(callback).execute();
+
+		Settings.transferCancelled = false;
+		Settings.transferLocked = true;
+
+		task.addCallback(callback).call();
 	}
 }

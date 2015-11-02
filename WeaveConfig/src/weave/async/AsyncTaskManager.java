@@ -10,14 +10,14 @@ import weave.reflect.Reflectable;
 @Reflectable
 public class AsyncTaskManager 
 {
-	private static List<AsyncTask> tasks = new ArrayList<AsyncTask>();
+	private static List<AsyncFunction> tasks = new ArrayList<AsyncFunction>();
 	
-	public static List<AsyncTask> getTaskList()
+	public static List<AsyncFunction> getTaskList()
 	{
 		return tasks;
 	}
 	
-	public static Boolean addTask(AsyncTask t)
+	public static Boolean addTask(AsyncFunction t)
 	{
 		return tasks.add(t);
 	}
@@ -26,12 +26,12 @@ public class AsyncTaskManager
 		tasks.get(i).cancel();
 		return true;
 	}
-	public static Boolean stopTask(AsyncTask t)
+	public static Boolean stopTask(AsyncFunction t)
 	{
-		Iterator<AsyncTask> it = tasks.iterator();
+		Iterator<AsyncFunction> it = tasks.iterator();
 		while( it.hasNext() ) 
 		{
-			AsyncTask itt = it.next();
+			AsyncFunction itt = it.next();
 			if( itt.equals(t) ) {
 				itt.cancel();
 				return true;
@@ -43,7 +43,7 @@ public class AsyncTaskManager
 	{
 		return tasks.remove(i);
 	}
-	public static Boolean removeTask(AsyncTask t)
+	public static Boolean removeTask(AsyncFunction t)
 	{
 		return tasks.remove(t);
 	}
@@ -52,7 +52,7 @@ public class AsyncTaskManager
 	{
 		String ret = "";
 		
-		Iterator<AsyncTask> it = tasks.iterator();
+		Iterator<AsyncFunction> it = tasks.iterator();
 		while( it.hasNext() )
 			ret += it.next().toString() + Settings.N_L;
 		

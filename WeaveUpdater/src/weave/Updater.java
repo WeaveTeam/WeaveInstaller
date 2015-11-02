@@ -49,7 +49,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
-import weave.async.AsyncTask;
+import weave.async.AsyncFunction;
 import weave.dll.DLLInterface;
 import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
@@ -365,7 +365,7 @@ public class Updater extends JFrame
 				}
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -391,7 +391,7 @@ public class Updater extends JFrame
 		Settings.transferLocked = true;
 		Settings.transferCancelled = false;
 		
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	private void installUpdate(final File zipFile)
@@ -416,7 +416,7 @@ public class Updater extends JFrame
 				finish();
 			}
 		};
-		AsyncTask task = new AsyncTask() {
+		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
 				Object o = TransferUtils.FAILED;
@@ -442,7 +442,7 @@ public class Updater extends JFrame
 		Settings.canQuit = false;
 		statusProgress.setIndeterminate(false);
 		
-		task.addCallback(callback).execute();
+		task.addCallback(callback).call();
 	}
 	
 	private void finish()
