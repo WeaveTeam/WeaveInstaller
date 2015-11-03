@@ -19,8 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
 import weave.Settings;
-import weave.compiler.Function;
 import weave.configs.JettyConfig;
+import weave.core.Function;
 import weave.managers.DownloadManager;
 import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;

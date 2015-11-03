@@ -30,7 +30,7 @@ import weave.Globals;
 import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncFunction;
-import weave.compiler.Function;
+import weave.core.Function;
 import weave.reflect.Reflectable;
 
 public class RemoteUtils extends Globals
