@@ -87,9 +87,9 @@ public class Compiler
 	
 	private static final String[] TOKEN_ARRAY = {
 		STMT_IMPORT, STMT_VAR, STMT_IF, STMT_ELSE, STMT_FOR, STMT_FOREACH, STMT_IN, STMT_DO, STMT_WHILE,
-		// Arithmatic
+		// Arithmetic
 		OP_ADD, OP_SUB, OP_MULT, OP_DIV, OP_MOD, OP_NEW, OP_INSTANCEOF,
-		// Bitsise
+		// Bitwise
 		OP_BITWISE_NOT, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR, OP_BITWISE_LSHIFT, OP_BITWISE_RSHIFT,
 		// Logical
 		OP_LOGICAL_NOT, OP_LOGICAL_AND, OP_LOGICAL_OR, OP_LOGICAL_LSHIFT, OP_LOGICAL_RSHIFT,
@@ -102,18 +102,23 @@ public class Compiler
 		OP_SPACE, OP_OPEN_PAREN, OP_CLOSE_PAREN, OP_OPEN_ARRAY, OP_CLOSE_ARRAY, OP_OPEN_BRACKET, OP_CLOSE_BRACKET, OP_QUOTE, OP_COMMA, OP_SEMICOLON
 	};
 	
+	@SuppressWarnings("unused")
 	private static final String[] VARS_SEPARATORS = {
 		OP_COMMA
 	};
+	@SuppressWarnings("unused")
 	private static final String[] PARAMS_SEPARATORS = {
 		OP_COMMA
 	};
+	@SuppressWarnings("unused")
 	private static final String[] STMT_SEPARATORS = {
 		OP_SEMICOLON
 	};
+	@SuppressWarnings("unused")
 	private static final String[] EXPR_SEPARATORS = {
 		OP_ASSN_EQ, OP_SEMICOLON
 	};
+	@SuppressWarnings("unused")
 	private static final String[] TOKEN_SEPARATORS = {
 		OP_SPACE, OP_OPEN_PAREN, OP_OPEN_ARRAY, OP_OPEN_BRACKET
 	};

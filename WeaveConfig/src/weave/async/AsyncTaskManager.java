@@ -48,6 +48,24 @@ public class AsyncTaskManager
 		return tasks.remove(t);
 	}
 	
+	public static void serialize(AsyncFunction ...functions)
+	{
+		_serialize(0, functions);
+	}
+	private static void _serialize(final int i, final AsyncFunction ...functions)
+	{
+		AsyncFunction f = functions[i];
+		
+		AsyncCallback c = new AsyncCallback() {
+			@Override public void run(Object o) {
+				if( i < functions.length - 1 )
+					_serialize(i + 1, functions);
+			}
+		};
+		
+		f.addCallback(c).call();
+	}
+	
 	public static String _toString()
 	{
 		String ret = "";

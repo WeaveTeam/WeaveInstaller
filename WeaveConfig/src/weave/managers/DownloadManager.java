@@ -100,64 +100,7 @@ public class DownloadManager
 	{
 		final URL url = new URL(dlURLStr);
 		final File file = new File(dlFileStr);
-		
-		final AsyncCallback callback = new AsyncCallback() {
-			@Override
-			public void run(Object o) {
-				int returnCode = (Integer) o;
 
-				Settings.transferCancelled = false;
-				Settings.transferLocked = false;
-
-				try {
-					switch( returnCode )
-					{
-						case TransferUtils.COMPLETE:
-							put(STDOUT, "DONE");
-							if( label != null )
-							{
-								label.setText("Download Complete....");
-								label.setForeground(Color.BLACK);
-							}
-							extract();
-							break;
-						case TransferUtils.CANCELLED:
-							put(STDOUT, "CANCELLED");
-							if( label != null )
-							{
-								label.setText("Cancelling Download....");
-								label.setForeground(Color.BLACK);
-							}							
-							Thread.sleep(1000);
-							callbackFunction.call(returnCode, dlFileStr);
-							break;
-						case TransferUtils.FAILED:
-							put(STDOUT, "FAILED");
-							if( label != null )
-							{
-								label.setText("Download Failed....");
-								label.setForeground(Color.RED);
-							}
-							Thread.sleep(1000);
-							callbackFunction.call(returnCode, dlFileStr);
-							break;
-						case TransferUtils.OFFLINE:
-							put(STDOUT, "OFFLINE");
-							if( label != null )
-							{
-								label.setText("Offline");
-								label.setForeground(Color.BLACK);
-							}
-							Thread.sleep(1000);
-							callbackFunction.call(returnCode, dlFileStr);
-							break;
-					}
-				} catch (InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
-				}
-			}
-		};
 		final AsyncObserver observer = new AsyncObserver() {
 			@Override
 			public void onUpdate() {
@@ -201,6 +144,66 @@ public class DownloadManager
 				}
 			}
 		};
+		final AsyncCallback callback = new AsyncCallback() {
+			@Override
+			public void run(Object o) {
+				int returnCode = (Integer) o;
+
+				Settings.transferCancelled = false;
+				Settings.transferLocked = false;
+
+				try {
+					switch( returnCode )
+					{
+						case TransferUtils.COMPLETE:
+							put(STDOUT, "DONE");
+							if( label != null )
+							{
+								label.setText("Download Complete....");
+								label.setForeground(Color.BLACK);
+							}
+							extract();
+							break;
+							
+						case TransferUtils.CANCELLED:
+							put(STDOUT, "CANCELLED");
+							if( label != null )
+							{
+								label.setText("Cancelling Download....");
+								label.setForeground(Color.BLACK);
+							}							
+							Thread.sleep(1000);
+							callbackFunction.call(returnCode, dlFileStr);
+							break;
+							
+						case TransferUtils.FAILED:
+							put(STDOUT, "FAILED");
+							if( label != null )
+							{
+								label.setText("Download Failed....");
+								label.setForeground(Color.RED);
+							}
+							Thread.sleep(1000);
+							callbackFunction.call(returnCode, dlFileStr);
+							break;
+							
+						case TransferUtils.OFFLINE:
+							put(STDOUT, "OFFLINE");
+							if( label != null )
+							{
+								label.setText("Offline");
+								label.setForeground(Color.BLACK);
+							}
+							Thread.sleep(1000);
+							callbackFunction.call(returnCode, dlFileStr);
+							break;
+					}
+				} catch (InterruptedException e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
+				}
+			}
+		};
 		AsyncFunction task = new AsyncFunction() {
 			@Override
 			public Object doInBackground() {
@@ -238,7 +241,20 @@ public class DownloadManager
 	private void extract() throws InterruptedException
 	{
 		final File file = new File(dlFileStr);
-		
+
+		final AsyncObserver observer = new AsyncObserver() {
+			@Override
+			public void onUpdate() {
+				if( progressbar != null )
+					progressbar.setValue( info.percent / 2 );
+				
+				if( label != null )
+					label.setText( 
+						String.format(
+							"Extracting " + type + ".... %d%%", 
+							info.percent / 2 ) );
+			}
+		};
 		AsyncCallback callback = new AsyncCallback() {
 			@Override
 			public void run(Object o) {
@@ -284,19 +300,6 @@ public class DownloadManager
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
-			}
-		};
-		final AsyncObserver observer = new AsyncObserver() {
-			@Override
-			public void onUpdate() {
-				if( progressbar != null )
-					progressbar.setValue( info.percent / 2 );
-				
-				if( label != null )
-					label.setText( 
-						String.format(
-							"Extracting " + type + ".... %d%%", 
-							info.percent / 2 ) );
 			}
 		};
 		AsyncFunction task = new AsyncFunction() {

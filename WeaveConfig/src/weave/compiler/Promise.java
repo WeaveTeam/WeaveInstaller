@@ -6,49 +6,49 @@ public class Promise
 	protected Object error = null;
 	protected Handler handler = null;
 	
-	public static void main(String ...args)
-	{
-		Function<Object, Object> f1 = new Function<Object, Object>() {
-			@Override
-			public Object call(Object... arguments) {
-				return null;
-			}
-		};
-		Function<Object, Object> f2 = new Function<Object, Object>() {
-			@Override
-			public Object call(Object... arguments) {
-				return null;
-			}
-		};
-		Function<Object, Object> f3 = new Function<Object, Object>() {
-			@Override
-			public Object call(Object... arguments) {
-				return null;
-			}
-		};
-		Function<Object, Object> error = new Function<Object, Object>() {
-			@Override
-			public Object call(Object... arguments) {
-				return null;
-			}
-		};
-		Promise promise = new Promise(new Function<Object, Object>() {
-			@Override
-			public Object call(Object... arguments) {
-				return null;
-			}
-		});
-		
-		promise
-			.then(f1, error)
-			.then(f2, error)
-			.then(f3, error);
-	}
+//	public static void main(String ...args)
+//	{
+//		Function<Object, Object> f1 = new Function<Object, Object>() {
+//			@Override
+//			public Object call(Object... arguments) {
+//				return null;
+//			}
+//		};
+//		Function<Object, Object> f2 = new Function<Object, Object>() {
+//			@Override
+//			public Object call(Object... arguments) {
+//				return null;
+//			}
+//		};
+//		Function<Object, Object> f3 = new Function<Object, Object>() {
+//			@Override
+//			public Object call(Object... arguments) {
+//				return null;
+//			}
+//		};
+//		Function<Object, Object> error = new Function<Object, Object>() {
+//			@Override
+//			public Object call(Object... arguments) {
+//				return null;
+//			}
+//		};
+//		Promise promise = new Promise(new Function<Object, Object>() {
+//			@Override
+//			public Object call(Object... arguments) {
+//				return null;
+//			}
+//		});
+//		
+//		promise
+//			.then(f1, error)
+//			.then(f2, error)
+//			.then(f3, error);
+//	}
 	
 	public Promise(Function<Object, Object> resolver)
 	{
 		if( resolver != null )
-			resolver.call(this.setResult, this.setError);
+			resolver.call(this.resolve, this.reject);
 	}
 
 	private static Function<Object, Object> noop = new Function<Object, Object>() {
@@ -58,7 +58,7 @@ public class Promise
 		}
 	};
 	
-	public Function<Object, Object> setResult = new Function<Object, Object>() {
+	public Function<Object, Object> resolve = new Function<Object, Object>() {
 		@Override
 		public Object call(Object... arguments) 
 		{
@@ -70,7 +70,7 @@ public class Promise
 				result = arguments[0];
 			
 			if( result instanceof Promise )
-				((Promise) result).then(Promise.this.setResult, Promise.this.setError);
+				((Promise) result).then(Promise.this.resolve, Promise.this.reject);
 			else {
 				Promise.this.result = result;
 				callHandler.call();
@@ -79,7 +79,7 @@ public class Promise
 		}
 	};
 	
-	public Function<Object, Object> setError = new Function<Object, Object>() {
+	public Function<Object, Object> reject = new Function<Object, Object>() {
 		@Override
 		public Object call(Object... arguments)
 		{
@@ -106,6 +106,11 @@ public class Promise
 			return null;
 		}
 	};
+	
+	public Promise then(Function<Object, Object> onFulfilled)
+	{
+		return then(onFulfilled, null);
+	}
 
 	public Promise then(Function<Object, Object> onFulfilled, Function<Object, Object> onRejected)
 	{
@@ -136,11 +141,11 @@ class Handler
 	
 	public void onResult(Object result)
 	{
-		next.setResult.call(onFulfilled.call(result));
+		next.resolve.call(onFulfilled.call(result));
 	}
 	
 	public void onError(Object error)
 	{
-		next.setError.call(onRejected.call(error));
+		next.reject.call(onRejected.call(error));
 	}
 }
