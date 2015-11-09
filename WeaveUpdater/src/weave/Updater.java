@@ -19,8 +19,12 @@
 
 package weave;
 
-import static weave.utils.TraceUtils.*;
-import static weave.utils.TraceUtils.LEVEL.*;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.LEVEL.INFO;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -48,9 +52,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncCallback;
-import weave.async.AsyncObserver;
 import weave.async.AsyncFunction;
-import weave.dll.DLLInterface;
+import weave.async.AsyncObserver;
 import weave.managers.ResourceManager;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
@@ -61,6 +64,7 @@ import weave.utils.LegacyUtils;
 import weave.utils.RemoteUtils;
 import weave.utils.StatsUtils;
 import weave.utils.StringUtils;
+import weave.utils.TraceUtils.LEVEL;
 import weave.utils.TransferUtils;
 import weave.utils.UpdateUtils;
 import weave.utils.ZipUtils;
@@ -117,6 +121,19 @@ public class Updater extends JFrame
 					"Please stop that one before starting another.", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 			Settings.shutdown(JFrame.ERROR);
+		}
+		
+		// If the new launcher jar file exists in the proper directory
+		// just use this as a shortcut and launch that version instead
+		if( !(new File(".").getAbsolutePath().equals(Settings.BIN_DIRECTORY.getAbsolutePath())) &&
+			 (Settings.binFileExists(Settings.UPDATER_JAR) || Settings.binFileExists(Settings.UPDATER_NEW_JAR)) )
+		{
+			try {
+				LaunchUtils.launchWeaveUpdater();
+			} catch (IOException | InterruptedException e) {
+				trace(STDERR, e);
+			}
+			Settings.shutdown();
 		}
 		
 		traceln(STDOUT, INFO, "");
@@ -455,11 +472,8 @@ public class Updater extends JFrame
 			StatsUtils.noop();
 			Settings.setDirectoryPermissions();
 			LegacyUtils.moveV1toV2();
-			
-			String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
-			if( ver != null )
-				createShortcut( !Settings.SHORTCUT_VER.equals(ver) );
-			Thread.sleep(1000);
+
+			Thread.sleep(500);
 			
 			traceln(STDOUT, INFO, "Launching " + Settings.SERVER_NAME);
 			statusLabel.setText("Launching " + Settings.SERVER_NAME + "...");
@@ -473,38 +487,5 @@ public class Updater extends JFrame
 		}
 
 		Settings.shutdown();
-	}
-	
-	private void createShortcut( boolean overwrite ) throws IOException, InterruptedException
-	{
-		if( Settings.OS == Settings.OS_ENUM.WINDOWS ) 
-		{
-			File shortcut = new File(Settings.DESKTOP_DIRECTORY, Settings.PROJECT_NAME + ".lnk"); 
-			if( !shortcut.exists() || overwrite )
-			{
-				if( !shortcut.exists() )
-				{
-					statusLabel.setText("Creating shortcut...");
-					JOptionPane.showConfirmDialog(null, 
-							"    A shortcut will be added to your desktop.      \n\n" +
-							"    Please use the shortcut for future use.",
-							Settings.UPDATER_NAME,
-							JOptionPane.OK_CANCEL_OPTION,
-							JOptionPane.INFORMATION_MESSAGE);
-				} else if( overwrite )
-					statusLabel.setText("Updating shortcut...");
-
-				Settings.createShortcut( overwrite );
-				Thread.sleep(200);
-				try {
-					traceln(STDOUT, DEBUG, StringUtils.rpad("Refreshing Windows Explorer", ".", Settings.LOG_PADDING_LENGTH));
-					Settings.loadLibrary("DLLInterface" + System.getProperty("sun.arch.data.model") + ".dll");
-					DLLInterface.refresh();
-				} catch (UnsatisfiedLinkError e) {
-					trace(STDERR, e);
-//					BugReportUtils.showBugReportDialog(e);
-				}
-			}
-		}
 	}
 }

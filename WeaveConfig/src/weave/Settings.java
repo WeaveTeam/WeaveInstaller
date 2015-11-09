@@ -20,8 +20,15 @@
 package weave;
 
 import static weave.utils.ObjectUtils.ternary;
-import static weave.utils.TraceUtils.*;
-import static weave.utils.TraceUtils.LEVEL.*;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.getSimpleClassAndMsg;
+import static weave.utils.TraceUtils.put;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.LEVEL.DEBUG;
+import static weave.utils.TraceUtils.LEVEL.INFO;
+import static weave.utils.TraceUtils.LEVEL.WARN;
 
 import java.awt.Font;
 import java.io.File;
@@ -45,7 +52,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import net.jimmc.jshortcut.JShellLink;
 import weave.core.Function;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
@@ -120,6 +126,23 @@ public class Settings extends Globals
 	/*
 	 * File directory structure
 	 */
+	public static final String WEAVE_ROOT_DIRECTORY_NAME		= ".weave";
+	public static final String LOGS_DIRECTORY_NAME				= "logs";
+	public static final String BIN_DIRECTORY_NAME 				= "bin";
+	public static final String SETTINGS_FILE_NAME 				= "settings.save";
+	public static final String CONFIG_FILE_NAME 				= "configs.save";
+	public static final String SLOCK_FILE_NAME					= "s.lock";
+	public static final String ULOCK_FILE_NAME					= "u.lock";
+	public static final String ICON_FILE_NAME					= "icon.ico";
+	public static final String LIBS_DIRECTORY_NAME				= "libs";
+	public static final String DOWNLOADS_DIRECTORY_NAME 		= "downloads";
+	public static final String DOWNLOADS_TMP_DIRECTORY_NAME		= "tmp";
+	public static final String WEAVE_BINARIES_DIRECTORY_NAME 	= "weave-binaries";
+	public static final String ANALYST_BINARIES_DIRECTORY_NAME	= "analyst-binaries";
+	public static final String DEPLOYED_PLUGINS_DIRECTORY_NAME	= "plugins";
+	public static final String UNZIP_DIRECTORY_NAME 			= "unzip";
+	public static final String DESKTOP_DIRECTORY_NAME 			= "Desktop";
+	
 	public static File APPDATA_DIRECTORY				= null;
 	public static File WEAVE_ROOT_DIRECTORY 			= null;
 	public static File DOWNLOADS_DIRECTORY				= null;
@@ -240,13 +263,24 @@ public class Settings extends Globals
 	
 
 	/**
+	 * Check to see if any arbitrary file in the /bin/ directory exists.
+	 * 
+	 * @param name The name of the file
+	 * @return <code>true</code> if the file exists, <code>false</code> otherwise
+	 */
+	public static boolean binFileExists(String name)
+	{
+		return new File(BIN_DIRECTORY, name).exists();
+	}
+	
+	/**
 	 * Check to see if the file that holds all the settings exists in the file structure.
 	 * 
 	 * @return <code>true</code> if settings file exists, <code>false</code> otherwise
 	 */
 	public static boolean settingsFileExists()
 	{
-		return SETTINGS_FILE.exists();
+		return binFileExists(SETTINGS_FILE_NAME);
 	}
 	
 	
@@ -257,9 +291,8 @@ public class Settings extends Globals
 	 */
 	public static boolean configsFileExists()
 	{
-		return CONFIG_FILE.exists();
+		return binFileExists(CONFIG_FILE_NAME);
 	}
-	
 	
 	/**
 	 * Check to see if a unique identifier has been assigned to the tool yet.
@@ -419,8 +452,8 @@ public class Settings extends Globals
 	public static void createFS(String directory)
 	{
 		APPDATA_DIRECTORY			= new File(directory);
-		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + ".weave"		 		+ F_S);
-		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "logs" 				+ F_S);
+		WEAVE_ROOT_DIRECTORY		= new File(APPDATA_DIRECTORY, 		F_S + WEAVE_ROOT_DIRECTORY_NAME + F_S);
+		LOGS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + LOGS_DIRECTORY_NAME + F_S);
 
 		traceln(STDOUT, INFO, "");
 		traceln(STDOUT, INFO, "######################################");
@@ -428,20 +461,20 @@ public class Settings extends Globals
 		traceln(STDOUT, INFO, StringUtils.rpad("Creating File Structure", ".", LOG_PADDING_LENGTH));
 
 		
-		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "bin" 				+ F_S);
-		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + "settings.save"			 );
-		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + "configs.save"			 );
-		SLOCK_FILE					= new File(BIN_DIRECTORY,			F_S + "s.lock"					 );
-		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + "u.lock"					 );
-		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + "icon.ico"				 );
-		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + "libs"				+ F_S);
-		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "downloads" 			+ F_S);
-		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + "tmp" 				+ F_S);
-		WEAVE_BINARIES_DIRECTORY 	= new File(DOWNLOADS_DIRECTORY, 	F_S + "weave-binaries" 		+ F_S);
-		ANALYST_BINARIES_DIRECTORY	= new File(DOWNLOADS_DIRECTORY,		F_S + "analyst-binaries"	+ F_S);
-		DEPLOYED_PLUGINS_DIRECTORY	= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "plugins" 			+ F_S);
-		UNZIP_DIRECTORY 			= new File(WEAVE_ROOT_DIRECTORY, 	F_S + "unzip" 				+ F_S);
-		DESKTOP_DIRECTORY 			= new File(USER_HOME, 				F_S + "Desktop" 			+ F_S);
+		BIN_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY, 	F_S + BIN_DIRECTORY_NAME + F_S);
+		SETTINGS_FILE 				= new File(BIN_DIRECTORY, 			F_S + SETTINGS_FILE_NAME);
+		CONFIG_FILE					= new File(BIN_DIRECTORY, 			F_S + CONFIG_FILE_NAME);
+		SLOCK_FILE					= new File(BIN_DIRECTORY,			F_S + SLOCK_FILE_NAME);
+		ULOCK_FILE					= new File(BIN_DIRECTORY, 			F_S + ULOCK_FILE_NAME);
+		ICON_FILE					= new File(BIN_DIRECTORY,			F_S + ICON_FILE_NAME);
+		LIBS_DIRECTORY				= new File(WEAVE_ROOT_DIRECTORY,	F_S + LIBS_DIRECTORY_NAME + F_S);
+		DOWNLOADS_DIRECTORY 		= new File(WEAVE_ROOT_DIRECTORY, 	F_S + DOWNLOADS_DIRECTORY_NAME + F_S);
+		DOWNLOADS_TMP_DIRECTORY		= new File(DOWNLOADS_DIRECTORY, 	F_S + DOWNLOADS_TMP_DIRECTORY_NAME + F_S);
+		WEAVE_BINARIES_DIRECTORY 	= new File(DOWNLOADS_DIRECTORY, 	F_S + WEAVE_BINARIES_DIRECTORY_NAME + F_S);
+		ANALYST_BINARIES_DIRECTORY	= new File(DOWNLOADS_DIRECTORY,		F_S + ANALYST_BINARIES_DIRECTORY_NAME + F_S);
+		DEPLOYED_PLUGINS_DIRECTORY	= new File(WEAVE_ROOT_DIRECTORY, 	F_S + DEPLOYED_PLUGINS_DIRECTORY_NAME + F_S);
+		UNZIP_DIRECTORY 			= new File(WEAVE_ROOT_DIRECTORY, 	F_S + UNZIP_DIRECTORY_NAME + F_S);
+		DESKTOP_DIRECTORY 			= new File(USER_HOME, 				F_S + DESKTOP_DIRECTORY_NAME + F_S);
 		
 		/* If the folders do not already exist, create them. */
 		if( !WEAVE_ROOT_DIRECTORY.exists() ) 		WEAVE_ROOT_DIRECTORY.mkdirs();
@@ -475,28 +508,6 @@ public class Settings extends Globals
 			trace(STDERR, e);
 		}
 		put(STDOUT, "DONE");
-	}
-	
-	/**
-	 * Create a shortcut on the user's desktop to the updater
-	 * 
-	 * @param overwrite Mark as <code>true</code> to overwrite the old shortcut, <code>false</code> otherwise
-	 * 
-	 * @throws IOException
-	 */
-	public static void createShortcut( boolean overwrite ) throws IOException
-	{
-		JShellLink link = new JShellLink();
-		
-		link.setFolder(DESKTOP_DIRECTORY.getCanonicalPath());
-		link.setName(PROJECT_NAME);
-		link.setPath(new File(BIN_DIRECTORY, UPDATER_JAR).getCanonicalPath());
-		link.setIconLocation(ICON_FILE.getCanonicalPath());
-		link.save();
-		
-		String ver = RemoteUtils.getConfigEntry(RemoteUtils.SHORTCUT_VER);
-		Settings.SHORTCUT_VER = ( ver == null ) ? "0" : ver;
-		Settings.save();
 	}
 	
 	
