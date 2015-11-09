@@ -50,9 +50,9 @@ import weave.Settings;
 import weave.Settings.LAUNCH_ENUM;
 import weave.async.AsyncFunction;
 import weave.configs.IConfig;
-import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.LaunchUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
 import weave.utils.UpdateUtils;
 

@@ -41,9 +41,9 @@ import org.json.JSONObject;
 
 import weave.Globals;
 import weave.Settings;
-import weave.reflect.ReflectionUtils;
 import weave.utils.BugReportUtils;
 import weave.utils.ObjectUtils;
+import weave.utils.ReflectionUtils;
 import weave.utils.StringUtils;
 import weave.utils.TraceUtils;
 

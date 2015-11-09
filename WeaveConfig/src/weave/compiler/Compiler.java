@@ -11,7 +11,7 @@ import java.util.Map;
 
 import weave.Settings;
 import weave.core.Function;
-import weave.reflect.ReflectionUtils;
+import weave.utils.ReflectionUtils;
 
 public class Compiler
 {
