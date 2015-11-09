@@ -17,7 +17,7 @@ import weave.Settings;
 import weave.async.AsyncCallback;
 import weave.async.AsyncObserver;
 import weave.async.AsyncFunction;
-import weave.compiler.Function;
+import weave.core.Function;
 import weave.utils.BugReportUtils;
 import weave.utils.DownloadUtils;
 import weave.utils.FileUtils;

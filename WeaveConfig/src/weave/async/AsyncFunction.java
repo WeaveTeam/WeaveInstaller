@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import weave.compiler.Function;
+import weave.core.Function;
 
 public class AsyncFunction extends Function<Object, Function<Object, Object>>
 {

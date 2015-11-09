@@ -18,8 +18,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
 import weave.Settings;
-import weave.compiler.Function;
 import weave.configs.IConfig;
+import weave.core.Function;
 import weave.managers.ConfigManager;
 import weave.managers.DownloadManager;
 import weave.utils.BugReportUtils;

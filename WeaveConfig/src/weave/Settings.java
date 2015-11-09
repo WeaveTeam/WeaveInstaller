@@ -46,7 +46,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.jimmc.jshortcut.JShellLink;
-import weave.compiler.Function;
+import weave.core.Function;
 import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
