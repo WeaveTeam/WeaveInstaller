@@ -14,5 +14,5 @@ import weave.utils.ReflectionUtils;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 public @interface Reflectable 
 {
-	
+	String value() default "";
 }

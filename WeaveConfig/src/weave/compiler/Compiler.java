@@ -187,7 +187,7 @@ public class Compiler
 	
 	public Token parseToken(String expr, int index)
 	{
-		return new Token();
+		return null;
 	}
 	
 	public Boolean isToken(String str)
