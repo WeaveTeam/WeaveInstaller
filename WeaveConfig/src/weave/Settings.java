@@ -76,7 +76,7 @@ public class Settings extends Globals
 	/*
 	 * Remote API URLs for POST methods
 	 */
-	@Reflectable public static final String IWEAVE_HOST			= "iweave.com";
+	@Reflectable public static final String IWEAVE_HOST			= "install.iweave.com";
 	@Reflectable public static final String IWEAVE_URL			= "http://" + IWEAVE_HOST + "/";
 				 public static final String UPDATE_CONFIG		= IWEAVE_URL + ".weave/config.txt";
 				 public static final String UPDATE_FILES		= IWEAVE_URL + ".weave/files.txt";
