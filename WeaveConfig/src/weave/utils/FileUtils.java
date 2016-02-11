@@ -28,9 +28,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.io.FileExistsException;
 
 import weave.Settings;
 import weave.async.AsyncObserver;
@@ -214,7 +215,7 @@ public class FileUtils extends TransferUtils
 		// to see if the OVERWRITE flag bit was passed.
 		// If it exists, and OVERWRITE bit wasn't passed we need to throw an exception
 		if( destination.exists() && (flags & OVERWRITE) == 0 )
-			throw new FileAlreadyExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
+			throw new FileExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
 		
 		int status = COMPLETE;
 		

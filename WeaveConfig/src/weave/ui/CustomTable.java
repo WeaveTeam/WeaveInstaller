@@ -171,7 +171,7 @@ public class CustomTable extends JPanel
 		// Sort data based on provided sort
 		if( sort && defaultSortColID != -1 )
 		{
-			List<SortKey> list = new ArrayList<>();
+			List<SortKey> list = new ArrayList<SortKey>();
 			list.add(new RowSorter.SortKey(defaultSortColID, defaultSortOrder));
 			sorter.setSortKeys(list);
 			sorter.sort();

@@ -2,7 +2,6 @@ package weave.compiler;
 
 import static weave.utils.TraceUtils.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -192,7 +191,7 @@ public class Compiler
 	
 	public Boolean isToken(String str)
 	{
-		List<String> possibleTokens = new ArrayList<>();
+		List<String> possibleTokens = new ArrayList<String>();
 		for( int i = 0; i < TOKEN_ARRAY.length; i++ )
 			if( TOKEN_ARRAY[i].contains(str) )
 				possibleTokens.add(TOKEN_ARRAY[i]);
@@ -308,7 +307,7 @@ public class Compiler
 				
 				try {
 					return ReflectionUtils.reflectConstructor(p, c, l, a);
-				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 				return null;

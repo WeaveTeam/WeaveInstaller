@@ -37,7 +37,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -171,6 +170,7 @@ public class TrayManager extends Globals
 			trayIcon == null ) return;
 		systemTray.remove(trayIcon);
 	}
+	@SuppressWarnings("unchecked")
 	public static void refreshDefaultTrayToolTip()
 	{
 		if( !SystemTray.isSupported() ) return;
@@ -202,7 +202,7 @@ public class TrayManager extends Globals
 						"Servlet:  " + servletName + " [" + servletStatus + "]\n" + 
 						"Database: " + databaseName + " [" + databaseStatus + "]");
 					
-				} catch (SecurityException | IllegalArgumentException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 				return null;
@@ -233,7 +233,7 @@ public class TrayManager extends Globals
 							LaunchUtils.launchWeaveUpdater(1000);
 							Thread.sleep(50);
 							Settings.shutdown();
-						} catch (IOException | InterruptedException ex) {
+						} catch (Exception ex) {
 							trace(STDERR, ex);
 							BugReportUtils.showBugReportDialog(ex);
 						}
@@ -285,7 +285,7 @@ public class TrayManager extends Globals
 				try {
 					LaunchUtils.launchWeaveUpdater();
 					Settings.shutdown();
-				} catch (IOException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 				}
 			}
@@ -297,7 +297,7 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.openAdminConsole();
-				} catch (IOException | URISyntaxException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 				}
 				
@@ -310,7 +310,7 @@ public class TrayManager extends Globals
 			public void actionPerformed(ActionEvent e) {
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE, 100);
-				} catch (IOException | URISyntaxException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 				}
 

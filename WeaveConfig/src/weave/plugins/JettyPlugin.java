@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -135,7 +134,7 @@ public class JettyPlugin extends Plugin
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (MalformedURLException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}

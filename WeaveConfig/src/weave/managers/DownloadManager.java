@@ -5,7 +5,6 @@ import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -96,6 +95,7 @@ public class DownloadManager
 			throw new InvalidParameterException("Nothing to download nor extract");
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void download() throws MalformedURLException, InterruptedException
 	{
 		final URL url = new URL(dlURLStr);
@@ -211,7 +211,7 @@ public class DownloadManager
 				try {
 					observer.init(url);
 					ret = DownloadUtils.download(url, file, observer, 6 * TransferUtils.MB);
-				} catch (InterruptedException | IOException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -238,6 +238,7 @@ public class DownloadManager
 		task.addCallback(callback).call();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void extract() throws InterruptedException
 	{
 		final File file = new File(dlFileStr);
@@ -309,12 +310,12 @@ public class DownloadManager
 				try {
 					observer.init(file);
 					o = ZipUtils.extract(file, Settings.UNZIP_DIRECTORY, TransferUtils.OVERWRITE | TransferUtils.MULTIPLE_FILES, observer, 10 * TransferUtils.MB);
-				} catch (ArithmeticException | IOException | InterruptedException e) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
 				} catch (NullPointerException e) {
 					trace(STDERR, e);
 					// No bug report
+				} catch (Exception e) {
+					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 				return o;
 			}
@@ -341,6 +342,7 @@ public class DownloadManager
 		task.addCallback(callback).call();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void move()
 	{
 		final File unzip = Settings.UNZIP_DIRECTORY;
@@ -445,7 +447,7 @@ public class DownloadManager
 							status &= FileUtils.copy(s, d, TransferUtils.MULTIPLE_FILES | TransferUtils.OVERWRITE, observer, 10 * TransferUtils.MB);
 						}
 					}
-				} catch (ArithmeticException | IOException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}

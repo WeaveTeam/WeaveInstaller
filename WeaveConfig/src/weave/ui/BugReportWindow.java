@@ -38,7 +38,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -190,7 +189,7 @@ public class BugReportWindow extends JFrame
 				try {
 					if( getLogFile(STDERR).exists() )
 						LaunchUtils.open(getLogFile(STDERR).getAbsolutePath());
-				} catch (IOException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 			}

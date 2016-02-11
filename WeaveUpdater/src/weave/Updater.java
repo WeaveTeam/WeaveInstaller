@@ -130,7 +130,7 @@ public class Updater extends JFrame
 		{
 			try {
 				LaunchUtils.launchWeaveUpdater();
-			} catch (IOException | InterruptedException e) {
+			} catch (Exception e) {
 				trace(STDERR, e);
 			}
 			Settings.shutdown();
@@ -152,7 +152,7 @@ public class Updater extends JFrame
 				Settings.save();
 				try {
 					LaunchUtils.launchWeaveUpdater(1000);
-				} catch (IOException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 				}
 				Settings.shutdown();
@@ -162,7 +162,7 @@ public class Updater extends JFrame
 		}
 		try {
 			updater = new Updater();
-		} catch (IOException | InterruptedException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}
@@ -291,6 +291,7 @@ public class Updater extends JFrame
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void downloadUpdate() throws IOException
 	{
 		// Get update URL
@@ -411,6 +412,7 @@ public class Updater extends JFrame
 		task.addCallback(callback).call();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void installUpdate(final File zipFile)
 	{
 		final AsyncObserver observer = new AsyncObserver() {
@@ -481,7 +483,7 @@ public class Updater extends JFrame
 			while( !Settings.canQuit ) Thread.sleep(1000);
 	
 			LaunchUtils.launchWeaveServer(1000);
-		} catch (InterruptedException | IOException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

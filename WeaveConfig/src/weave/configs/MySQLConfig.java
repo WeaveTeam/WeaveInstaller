@@ -22,8 +22,6 @@ package weave.configs;
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
-import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
@@ -63,7 +61,7 @@ public class MySQLConfig extends Config
 						"<a href='" + getDownloadURL() + "'>here.</a></b></center>");
 			setImage(ImageIO.read(ResourceManager.IMAGE_MYSQL));
 			
-		} catch (NumberFormatException | IOException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 		}

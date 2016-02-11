@@ -70,7 +70,7 @@ import weave.utils.ZipUtils;
 @SuppressWarnings("serial")
 public class ConfigSetupPanel extends SetupPanel
 {
-	public JComboBox<String>	servletCombo,		databaseCombo;
+	public JComboBox			servletCombo,		databaseCombo;
 	public JLabel				servletImage, 		databaseImage;
 	public JLabel				reviewServletImage, reviewDatabaseImage;
 	public JEditorPane			servletDesc, 		databaseDesc,		reviewDesc;
@@ -130,7 +130,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Servlet Combobox
 		List<IConfig> servlets = ConfigManager.getConfigManager().getServletConfigs();
-		servletCombo = new JComboBox<String>();
+		servletCombo = new JComboBox();
 		servletCombo.setBounds(250, 20, 170, 25);
 		servletCombo.setVisible(true);
 		servletCombo.setEnabled(true);
@@ -332,7 +332,7 @@ public class ConfigSetupPanel extends SetupPanel
 		
 		// Database Combobox
 		List<IConfig> databases = ConfigManager.getConfigManager().getDatabaseConfigs();
-		databaseCombo = new JComboBox<String>();
+		databaseCombo = new JComboBox();
 		databaseCombo.setBounds(250, 20, 170, 25);
 		databaseCombo.setVisible(true);
 		databaseCombo.setEnabled(true);
@@ -726,6 +726,7 @@ public class ConfigSetupPanel extends SetupPanel
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	
+	@SuppressWarnings("unchecked")
 	private void download(final IConfig config) throws MalformedURLException
 	{
 		final URL url = new URL(config.getDownloadURL());
@@ -787,6 +788,7 @@ public class ConfigSetupPanel extends SetupPanel
 		task.addCallback(callback).call();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void extract(final File source, final IConfig config)
 	{
 		final File destination = new File(Settings.DEPLOYED_PLUGINS_DIRECTORY, config.getConfigName());

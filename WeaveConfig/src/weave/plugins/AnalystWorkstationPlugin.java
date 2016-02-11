@@ -7,9 +7,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -146,7 +143,7 @@ public class AnalystWorkstationPlugin extends Plugin
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (MalformedURLException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
@@ -180,7 +177,7 @@ public class AnalystWorkstationPlugin extends Plugin
 							Settings.LOCALHOST + ":" + 
 							servlet.getPort() + 
 							"/aws/");
-				} catch (IOException | URISyntaxException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}

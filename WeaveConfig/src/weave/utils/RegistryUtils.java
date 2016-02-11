@@ -3,7 +3,6 @@ package weave.utils;
 import static weave.utils.TraceUtils.STDERR;
 import static weave.utils.TraceUtils.trace;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class RegistryUtils extends Globals
 				if( results.get("output").get(i).toLowerCase().contains("success") )
 					return true;
 			
-		} catch (IOException | InterruptedException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);
 			return false;

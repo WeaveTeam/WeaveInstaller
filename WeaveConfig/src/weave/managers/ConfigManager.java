@@ -24,7 +24,6 @@ import static weave.utils.TraceUtils.LEVEL.*;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -282,7 +281,7 @@ public class ConfigManager extends Globals
 			CONFIGS_MAP = (Map<String, Map<String, Object>>) instream.readObject();
 			instream.close();
 			
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (Exception e) {
 			put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
 			trace(STDERR, e);
 			BugReportUtils.showBugReportDialog(e);

@@ -121,6 +121,7 @@ public class JettyConfig extends Config
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	public void startServer()
 	{
 		final AsyncFunction startTask = new AsyncFunction("Jetty Server running on " + getPort()) {

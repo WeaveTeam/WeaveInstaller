@@ -19,15 +19,17 @@
 
 package weave.ui;
 
-import static weave.utils.TraceUtils.*;
-import static weave.utils.TraceUtils.LEVEL.*;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.LEVEL.INFO;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
@@ -43,8 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -138,7 +139,7 @@ public class HomeSetupPanel extends SetupPanel
 	public JScrollPane settingsScrollPane;
 	public TitledBorder settingsServerUpdatesTitle, settingsWeaveUpdatesTitle, settingsMaintenanceTitle, settingsProtoExtTitle;
 	public JCheckBox settingsUpdatesAutoInstallCheckbox, settingsUpdatesCheckNewCheckbox;
-	public JComboBox<String> settingsUpdatesCheckNewCombobox;
+	public JComboBox settingsUpdatesCheckNewCombobox;
 	public JCheckBox settingsMaintenanceDeleteLogsCheckbox, settingsMaintenanceDebugCheckbox;
 	public JTextField settingsMaintenanceDeleteLogsTextfield;
 	public JCheckBox settingsExtCheckbox, settingsProtocolCheckbox;
@@ -402,7 +403,7 @@ public class HomeSetupPanel extends SetupPanel
 						.callback(onDownloadCompleteCallback)
 						.start();
 					
-				} catch (InterruptedException | IOException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -497,7 +498,7 @@ public class HomeSetupPanel extends SetupPanel
 						.callback(onDownloadCompleteCallback)
 						.start();
 						
-				} catch (InterruptedException | IOException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -626,7 +627,7 @@ public class HomeSetupPanel extends SetupPanel
 									continue;
 								FileUtils.copy(file, destination, TransferUtils.SINGLE_FILE | TransferUtils.OVERWRITE | TransferUtils.PRESERVE);
 							}
-						} catch (InterruptedException | UnsupportedFlavorException | IOException e) {
+						} catch (Exception e) {
 							trace(STDERR, e);
 							BugReportUtils.showBugReportDialog(e);
 						}
@@ -820,7 +821,7 @@ public class HomeSetupPanel extends SetupPanel
 							Settings.LOCALHOST + ":" + 
 							ConfigManager.getConfigManager().getActiveContainer().getPort() +
 							"/weave.html?file=" + 
-							URLRequestUtils.encode(sessionState.getName(), StandardCharsets.UTF_8));
+							URLRequestUtils.encode(sessionState.getName(), Charset.forName("UTF-8")));
 					
 				} catch (Exception e) {
 					trace(STDERR, e);
@@ -846,11 +847,9 @@ public class HomeSetupPanel extends SetupPanel
 						Settings.save();
 					}
 					LaunchUtils.openAdminConsole();
-				} catch (SecurityException | IllegalArgumentException e ) {
-					trace(STDERR, e);
-					BugReportUtils.showBugReportDialog(e);
 				} catch (Exception e) {
 					trace(STDERR, e);
+					BugReportUtils.showBugReportDialog(e);
 				}
 			}
 		});
@@ -930,7 +929,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
-					} catch (IOException | InterruptedException | URISyntaxException ex) {
+					} catch (Exception ex) {
 						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
@@ -982,7 +981,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					try {
 						LaunchUtils.browse(e.getURL().toURI());
-					} catch (IOException | InterruptedException | URISyntaxException ex) {
+					} catch (Exception ex) {
 						trace(STDERR, ex);
 						BugReportUtils.showBugReportDialog(ex);
 					}
@@ -1105,7 +1104,7 @@ public class HomeSetupPanel extends SetupPanel
 		int updateAvailable = UpdateUtils.UPDATE_ERROR;
 		try {
 			updateAvailable = UpdateUtils.checkForWeaveUpdate(!refreshProgramatically);
-		} catch (InterruptedException | IOException e) {
+		} catch (Exception e) {
 			trace(STDERR, e);
 		}
 		weaveStats.refresh(updateAvailable);

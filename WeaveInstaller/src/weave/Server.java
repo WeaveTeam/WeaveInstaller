@@ -37,7 +37,6 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -180,7 +179,7 @@ public class Server extends JFrame
 					Settings.save();
 					try {
 						LaunchUtils.launchWeaveUpdater();
-					} catch (IOException | InterruptedException e) {
+					} catch (Exception e) {
 						trace(STDERR, e);
 					}
 				}
@@ -306,7 +305,7 @@ public class Server extends JFrame
 			@Override public void mouseClicked(MouseEvent e) {
 				try {
 					LaunchUtils.browse(Settings.IWEAVE_URL);
-				} catch (IOException | URISyntaxException | InterruptedException ex) {
+				} catch (Exception ex) {
 					trace(STDERR, ex);
 					BugReportUtils.showBugReportDialog(ex);
 				}
@@ -353,7 +352,7 @@ public class Server extends JFrame
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					LaunchUtils.browse(Settings.WIKI_HELP_PAGE);
-				} catch (IOException | URISyntaxException | InterruptedException e) {
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 				}
@@ -419,7 +418,7 @@ public class Server extends JFrame
 					updateToNewUpdater();
 					Settings.setDirectoryPermissions();
 					put(STDOUT, "DONE");
-				} catch (IOException | InterruptedException e) { 
+				} catch (Exception e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);
 					put(STDOUT, "FAILED (" + getSimpleClassAndMsg(e) + ")");
