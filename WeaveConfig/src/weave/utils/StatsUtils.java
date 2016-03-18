@@ -36,7 +36,6 @@ public class StatsUtils extends Globals
 		logUpdate( false );
 	}
 	
-	@SuppressWarnings("unchecked")
 	public static void logUpdate( boolean forced )
 	{
 		if( Settings.isOfflineMode() )
@@ -62,7 +61,6 @@ public class StatsUtils extends Globals
 		task.call();
 	}
 
-	@SuppressWarnings("unchecked")
 	public static void noop()
 	{
 		if( Settings.isOfflineMode() )

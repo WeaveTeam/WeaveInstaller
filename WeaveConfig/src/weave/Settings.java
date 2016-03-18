@@ -72,28 +72,37 @@ public class Settings extends Globals
 	@Reflectable public static final String PROJECT_PROTOCOL	= "weave://";
 	@Reflectable public static final String PROJECT_EXTENSION	= ".weave";
 	
-	
+
 	/*
 	 * Remote API URLs for POST methods
 	 */
-	@Reflectable public static final String IWEAVE_HOST			= "install.iweave.com";
-	@Reflectable public static final String IWEAVE_URL			= "http://" + IWEAVE_HOST + "/";
-				 public static final String UPDATE_CONFIG		= IWEAVE_URL + ".weave/config.txt";
-				 public static final String UPDATE_FILES		= IWEAVE_URL + ".weave/files.txt";
+	@Reflectable public static final String IWEAVE_HOST			= "iweave.com";
+	@Reflectable public static final String INSTALL_IWEAVE_HOST	= "install." + IWEAVE_HOST;
+	@Reflectable public static final String INFO_IWEAVE_HOST	= "info." + IWEAVE_HOST;
+	@Reflectable public static final String IVPR_IWEAVE_HOST	= "ivpr." + IWEAVE_HOST;
 	
-				 public static final String API_GET_IP			= IWEAVE_URL + "api/ip.php";
-				 public static final String API_SOCKET			= IWEAVE_URL + "api/socket.php";
-				 public static final String API_FAQ				= IWEAVE_URL + "api/faq.php";
-				 public static final String API_STATS_LOG		= IWEAVE_URL + "api/log.php";
-				 public static final String API_STATS_LIVE		= IWEAVE_URL + "api/noop.php";
-				 public static final String API_BUG_REPORT		= IWEAVE_URL + "api/bug_report.php";
+	@Reflectable public static final String IWEAVE_URL			= "http://" + IWEAVE_HOST + "/";
+	@Reflectable public static final String INSTALL_IWEAVE_URL	= "http://" + INSTALL_IWEAVE_HOST + "/";
+	@Reflectable public static final String INFO_IWEAVE_URL		= "http://" + INFO_IWEAVE_HOST + "/";
+	@Reflectable public static final String IVPR_IWEAVE_URL		= "http://" + IVPR_IWEAVE_HOST + "/";
+	
+	
+	 public static final String UPDATE_CONFIG		= INSTALL_IWEAVE_URL + ".weave/config.txt";
+	 public static final String UPDATE_FILES		= INSTALL_IWEAVE_URL + ".weave/files.txt";
+	
+	 public static final String API_GET_IP			= INSTALL_IWEAVE_URL + "api/ip.php";
+	 public static final String API_SOCKET			= INSTALL_IWEAVE_URL + "api/socket.php";
+	 public static final String API_FAQ				= INSTALL_IWEAVE_URL + "api/faq.php";
+	 public static final String API_STATS_LOG		= INSTALL_IWEAVE_URL + "api/log.php";
+	 public static final String API_STATS_LIVE		= INSTALL_IWEAVE_URL + "api/noop.php";
+	 public static final String API_BUG_REPORT		= INSTALL_IWEAVE_URL + "api/bug_report.php";
 
 	
 	/*
 	 * Weave Server
 	 */
 	@Reflectable public static final String SERVER_NAME			= PROJECT_NAME + " Server Assistant";
-	@Reflectable public static final String SERVER_VER			= "2.0.8 Beta";
+	@Reflectable public static final String SERVER_VER			= "2.0.9 Beta";
 	@Reflectable public static final String SERVER_TITLE 		= SERVER_NAME + " v" + SERVER_VER;
 	@Reflectable public static final String SERVER_JAR			= "Server.jar";
 	
@@ -101,7 +110,7 @@ public class Settings extends Globals
 	 * Weave Updater
 	 */
 	@Reflectable public static final String UPDATER_NAME		= PROJECT_NAME + " Updater";
-	@Reflectable public static final String UPDATER_VER			= "1.1.2 Beta";
+	@Reflectable public static final String UPDATER_VER			= "1.1.3 Beta";
 	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
 	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
 	@Reflectable public static final String UPDATER_NEW_JAR		= "Updater_new.jar";
@@ -201,7 +210,7 @@ public class Settings extends Globals
 	/*
 	 * Misc
 	 */
-	public static final String WIKI_HELP_PAGE			= "http://info." + IWEAVE_HOST + "/projects/weave/wiki/Weave_Server_Assistant";
+	public static final String WIKI_HELP_PAGE			= "http://" + INFO_IWEAVE_HOST + "/projects/weave/wiki/Weave_Server_Assistant";
 	public static final String ELEVATE_UTIL				= "elevate.exe";
 	
 	public static boolean canQuit						= true;

@@ -29,14 +29,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-
-import org.apache.commons.io.FileExistsException;
 
 import weave.async.AsyncObserver;
 
@@ -118,7 +117,7 @@ public class ZipUtils extends TransferUtils
 		assert destination != null;
 		
 		if( destination.exists() && (flags & OVERWRITE) == 0 )
-			throw new FileExistsException(destination.getAbsolutePath());
+			throw new FileAlreadyExistsException(destination.getAbsolutePath());
 		
 		int result = COMPLETE;
 		ZipFile zip = new ZipFile(zipFile);

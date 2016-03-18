@@ -45,7 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -139,14 +139,14 @@ public class HomeSetupPanel extends SetupPanel
 	public JScrollPane settingsScrollPane;
 	public TitledBorder settingsServerUpdatesTitle, settingsWeaveUpdatesTitle, settingsMaintenanceTitle, settingsProtoExtTitle;
 	public JCheckBox settingsUpdatesAutoInstallCheckbox, settingsUpdatesCheckNewCheckbox;
-	public JComboBox settingsUpdatesCheckNewCombobox;
+	public JComboBox<String> settingsUpdatesCheckNewCombobox;
 	public JCheckBox settingsMaintenanceDeleteLogsCheckbox, settingsMaintenanceDebugCheckbox;
 	public JTextField settingsMaintenanceDeleteLogsTextfield;
 	public JCheckBox settingsExtCheckbox, settingsProtocolCheckbox;
 	
 	
 	// ============== Troubleshoot Tab ============== //
-	public String faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
+	public String faqURL = "http://" + Settings.IVPR_IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
 	public JEditorPane troubleshootHTML;
 	public JScrollPane troubleshootScrollPane;
 
@@ -246,7 +246,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					if( Settings.isOfflineMode() )
 					{
-						troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
+						troubleshootHTML.setText("<br><center>You are currently in offline mode.</center>");
 					}
 					else
 					{
@@ -307,6 +307,7 @@ public class HomeSetupPanel extends SetupPanel
 	public Boolean switchToTab(Integer index)
 	{
 		try {
+			// this is a little hack to force the change listener to run
 			tabbedPane.setSelectedIndex(index == 0 ? 1 : 0);
 			tabbedPane.setSelectedIndex(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -821,7 +822,7 @@ public class HomeSetupPanel extends SetupPanel
 							Settings.LOCALHOST + ":" + 
 							ConfigManager.getConfigManager().getActiveContainer().getPort() +
 							"/weave.html?file=" + 
-							URLRequestUtils.encode(sessionState.getName(), Charset.forName("UTF-8")));
+							URLRequestUtils.encode(sessionState.getName(), StandardCharsets.UTF_8));
 					
 				} catch (Exception e) {
 					trace(STDERR, e);
@@ -966,7 +967,7 @@ public class HomeSetupPanel extends SetupPanel
 		aboutHTML.setContentType("text/html");
 		aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
 		aboutHTML.setText(	"The Weave Server Assistant is a cross-platform utiliy designed to help " +
-							"users to install Weave and its components to your system with minimal effort. " +
+							"users install Weave and its components to your system with minimal effort. " +
 							"<br><br><br><br><br><br>" +
 							"Copyright &#169; Institute for Visualization and Perception Research<br>" +
 							"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
@@ -997,7 +998,6 @@ public class HomeSetupPanel extends SetupPanel
 	}
 	
 	private Function<Object, Object> onDownloadCompleteCallback = new Function<Object, Object>() {
-		
 		@Override
 		public Object call(Object... args) {
 			System.gc();

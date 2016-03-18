@@ -123,10 +123,23 @@ public class Updater extends JFrame
 			Settings.shutdown(JFrame.ERROR);
 		}
 		
+		/*
+		Class<?> clazz = Updater.class.getClass();
+		URL url = clazz.getResource("/");
+		String path = url.getPath();
+		File f = new File(path);
+		String message = "Launch?\n\n";
+		message += (f.getAbsolutePath() + "\n");
+		message += (Settings.BIN_DIRECTORY.getAbsolutePath() + "\n");
+		message += ("Same directory: " + (FileUtils.isSameDirectory(f, Settings.BIN_DIRECTORY) ? "True" : "False"));
+		
+		if( JOptionPane.showConfirmDialog(null, message, "Pick", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION )
+		 */
+		
 		// If the new launcher jar file exists in the proper directory
 		// just use this as a shortcut and launch that version instead
-		if( !(new File(".").getAbsolutePath().equals(Settings.BIN_DIRECTORY.getAbsolutePath())) &&
-			 (Settings.binFileExists(Settings.UPDATER_JAR) || Settings.binFileExists(Settings.UPDATER_NEW_JAR)) )
+		if( !FileUtils.isSameDirectory(new File(Updater.class.getClass().getResource("/").getPath()), Settings.BIN_DIRECTORY) && 
+			(Settings.binFileExists(Settings.UPDATER_JAR) || Settings.binFileExists(Settings.UPDATER_NEW_JAR)) )
 		{
 			try {
 				LaunchUtils.launchWeaveUpdater();
@@ -291,7 +304,6 @@ public class Updater extends JFrame
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void downloadUpdate() throws IOException
 	{
 		// Get update URL
@@ -412,7 +424,6 @@ public class Updater extends JFrame
 		task.addCallback(callback).call();
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void installUpdate(final File zipFile)
 	{
 		final AsyncObserver observer = new AsyncObserver() {

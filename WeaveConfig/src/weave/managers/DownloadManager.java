@@ -95,7 +95,6 @@ public class DownloadManager
 			throw new InvalidParameterException("Nothing to download nor extract");
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void download() throws MalformedURLException, InterruptedException
 	{
 		final URL url = new URL(dlURLStr);
@@ -238,7 +237,6 @@ public class DownloadManager
 		task.addCallback(callback).call();
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void extract() throws InterruptedException
 	{
 		final File file = new File(dlFileStr);
@@ -342,7 +340,6 @@ public class DownloadManager
 		task.addCallback(callback).call();
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void move()
 	{
 		final File unzip = Settings.UNZIP_DIRECTORY;

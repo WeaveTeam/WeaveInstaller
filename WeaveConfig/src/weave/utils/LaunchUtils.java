@@ -39,6 +39,7 @@ import weave.reflect.Reflectable;
 
 public class LaunchUtils extends Globals
 {
+	
 	@Reflectable
 	public static Boolean browse(String path) throws IOException, URISyntaxException, InterruptedException
 	{
@@ -62,6 +63,8 @@ public class LaunchUtils extends Globals
 		return true;
 	}
 	
+	
+	
 	@Reflectable
 	public static Boolean open(String path) throws IOException, InterruptedException 
 	{
@@ -81,6 +84,8 @@ public class LaunchUtils extends Globals
 		return true;
 	}
 	
+	
+	
 	@Reflectable
 	public static Boolean edit(String path) throws InterruptedException, IOException
 	{
@@ -99,6 +104,9 @@ public class LaunchUtils extends Globals
 		Desktop.getDesktop().edit(file);
 		return true;
 	}
+	
+	
+	
 	public static Boolean launchElevated(String path, int delay) throws InterruptedException, IOException
 	{
 		return launchElevated(new File(path), delay);
@@ -143,6 +151,11 @@ public class LaunchUtils extends Globals
 		return true;
 	}
 	
+	
+	public static Boolean launch(String path, int delay) throws IOException, InterruptedException
+	{
+		return launch(new File(path), delay);
+	}
 	public static Boolean launch(File f, int delay) throws IOException, InterruptedException
 	{
 		String command = "";
@@ -182,6 +195,8 @@ public class LaunchUtils extends Globals
  		return true;
 	}
 	
+	
+	
 	public static Boolean launchWeaveUpdater() throws IOException, InterruptedException
 	{
 		return launchWeaveUpdater(700);
@@ -205,19 +220,23 @@ public class LaunchUtils extends Globals
 		return launch(updater, delay);
 	}
 	
+	
+	
 	public static Boolean launchWeaveServer() throws IOException, InterruptedException
 	{
 		return launchWeaveServer(700);
 	}
 	public static Boolean launchWeaveServer(int delay) throws IOException, InterruptedException
 	{
-		File installer = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
+		File server = new File(Settings.BIN_DIRECTORY, Settings.SERVER_JAR);
 
 		if( Settings.OS == OS_ENUM.WINDOWS )
-			return launchElevated(installer, delay);
+			return launchElevated(server, delay);
 		
-		return launch(installer, delay);
+		return launch(server, delay);
 	}
+	
+	
 	
 	public static Boolean openAdminConsole() throws IOException, URISyntaxException, InterruptedException
 	{

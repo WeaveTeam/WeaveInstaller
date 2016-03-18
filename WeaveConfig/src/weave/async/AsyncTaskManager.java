@@ -52,7 +52,6 @@ public class AsyncTaskManager
 	{
 		_serialize(0, functions);
 	}
-	@SuppressWarnings("unchecked")
 	private static void _serialize(final int i, final AsyncFunction ...functions)
 	{
 		AsyncFunction f = functions[i];

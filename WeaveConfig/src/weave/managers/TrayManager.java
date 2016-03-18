@@ -170,7 +170,6 @@ public class TrayManager extends Globals
 			trayIcon == null ) return;
 		systemTray.remove(trayIcon);
 	}
-	@SuppressWarnings("unchecked")
 	public static void refreshDefaultTrayToolTip()
 	{
 		if( !SystemTray.isSupported() ) return;

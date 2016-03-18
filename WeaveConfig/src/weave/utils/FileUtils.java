@@ -28,14 +28,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.FileExistsException;
-
 import weave.Settings;
-import weave.async.AsyncObserver;
 import weave.async.AsyncFunction;
+import weave.async.AsyncObserver;
 import weave.reflect.Reflectable;
 
 public class FileUtils extends TransferUtils
@@ -215,7 +214,7 @@ public class FileUtils extends TransferUtils
 		// to see if the OVERWRITE flag bit was passed.
 		// If it exists, and OVERWRITE bit wasn't passed we need to throw an exception
 		if( destination.exists() && (flags & OVERWRITE) == 0 )
-			throw new FileExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
+			throw new FileAlreadyExistsException("Overwrite bit not set for: " + destination.getAbsolutePath());
 		
 		int status = COMPLETE;
 		
@@ -478,6 +477,62 @@ public class FileUtils extends TransferUtils
 			recursiveDelete(source);
 		
 		return cp;
+	}
+	
+	
+	/**
+	 * Get the File directory of the specified file.<br>
+	 * If the file argument is a directory, it we be returned.
+	 * 
+	 * @param file The file to get the directory for
+	 * @return The directory of the input file as a File
+	 */
+	public static File getDirectory(File file)
+	{
+		if( !file.exists() )
+			return null;
+		
+		if( file.isDirectory() && !file.getName().equals(".") )
+			return file;
+		
+		return new File(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(Settings.F_S)));
+	}
+	
+	
+	/**
+	 * Check to see if the two files are in the same directory.<br>
+	 * <br>
+	 * Note: The two files must exist 
+	 * 
+	 * @param file1 The first file
+	 * @param file2 The second file
+	 * @return <code>true</code> if the two files are in the same directory, <code>false</code> otherwise
+	 */
+	public static boolean isSameDirectory(File file1, File file2)
+	{
+		File dir1 = getDirectory(file1);
+		File dir2 = getDirectory(file2);
+		
+		return dir1 != null && dir2 != null && dir1.getAbsolutePath().equals(dir2.getAbsolutePath());
+	}
+	
+	
+	/**
+	 * Check to see if the two files are the same file.<br>
+	 * <br>
+	 * Note: This checks to see if the two files are at the same absolute path.
+	 * It does not do a file comparison.
+	 * 
+	 * @param file1 The first file
+	 * @param file2 The second file
+	 * @return <code>true</code> if the two files are at the same location, <code>false</code> otherwise
+	 */
+	public static boolean isSameFile(File file1, File file2)
+	{
+		if( !file1.isFile() || !file2.isFile() )
+			return false;
+		
+		return file1.getAbsolutePath().equals(file2.getAbsolutePath());
 	}
 	
 

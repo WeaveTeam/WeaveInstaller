@@ -19,8 +19,11 @@
 
 package weave;
 
-import static weave.utils.TraceUtils.*;
-import static weave.utils.TraceUtils.LEVEL.*;
+import static weave.utils.TraceUtils.STDERR;
+import static weave.utils.TraceUtils.STDOUT;
+import static weave.utils.TraceUtils.trace;
+import static weave.utils.TraceUtils.traceln;
+import static weave.utils.TraceUtils.LEVEL.DEBUG;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -162,8 +165,16 @@ public class Launcher extends JFrame
 			}
 			else if( StringUtils.endsWith(path, ".jar") && Settings.OS == OS_ENUM.WINDOWS ) 
 			{
-				traceln(STDOUT, DEBUG, StringUtils.rpad("Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
-				LaunchUtils.launchElevated(path, delay);
+				if( Settings.OS == OS_ENUM.WINDOWS )
+				{
+					traceln(STDOUT, DEBUG, StringUtils.rpad("Opening elevated: " + path, ".", Settings.LOG_PADDING_LENGTH));
+					LaunchUtils.launchElevated(path, delay);
+				}
+				else
+				{
+					traceln(STDOUT, DEBUG, StringUtils.rpad("Opening: " + path, ".", Settings.LOG_PADDING_LENGTH));
+					LaunchUtils.launch(path, delay);
+				}
 			}
 			else
 			{

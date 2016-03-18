@@ -59,7 +59,6 @@
 		<javac  srcdir="WeaveConfig/src/"
 				destdir="WeaveConfig/bin/" 
 				includeantruntime="false"
-				source="1.6" target="1.6"
 				debug="true">
 			<classpath refid="WeaveConfigLibs" />
 		</javac>
@@ -85,7 +84,6 @@
 		<javac 	srcdir="WeaveLauncher/src/" 
 				destdir="WeaveLauncher/bin/" 
 				includeantruntime="false"
-				source="1.6" target="1.6"
 				debug="true">
 			<classpath refid="WeaveConfigIncludes" />
 		</javac>
@@ -115,7 +113,6 @@
 				destdir="WeaveUpdater/bin/"
 				includeantruntime="false"
 				failonerror="false"
-				source="1.6" target="1.6"
 				debug="true">
 			<classpath refid="WeaveConfigLibs" />
 			<classpath refid="WeaveConfigIncludes" />
@@ -151,7 +148,6 @@
 				destdir="WeaveInstaller/bin/" 
 				includeantruntime="false"
 				failonerror="false"
-				source="1.6" target="1.6"
 				debug="true">
 			<classpath refid="WeaveConfigLibs" />
 			<classpath refid="WeaveConfigIncludes" />

@@ -32,7 +32,7 @@ public abstract class AsyncObserver extends Globals
 		info.min = 0;
 		info.cur = 0;
 		info.percent = 0;
-		info.max = ((HttpURLConnection)url.openConnection()).getContentLength();
+		info.max = ((HttpURLConnection)url.openConnection()).getContentLengthLong();
 	}
 	
 	public class AsyncObserverObject

@@ -17,10 +17,6 @@ public class FileSize implements Comparable<FileSize>
 	@Override
 	public int compareTo(FileSize o)
 	{
-		long a = getSize();
-		long b = o.getSize();
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0;
+		return Long.compare(getSize(), o.getSize());
 	}
 }

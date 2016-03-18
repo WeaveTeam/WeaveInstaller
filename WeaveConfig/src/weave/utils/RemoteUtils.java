@@ -205,7 +205,6 @@ public class RemoteUtils extends Globals
 	 * @see Function
 	 * @see Settings#IWEAVE_URL
 	 */
-	@SuppressWarnings("unchecked")
 	public static void isConnectedToInternet(final Function<Object, Object> ifTrue, final Function<Object, Object> ifFalse)
 	{
 		AsyncCallback callback = new AsyncCallback() {

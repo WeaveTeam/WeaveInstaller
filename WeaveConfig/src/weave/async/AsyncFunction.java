@@ -49,6 +49,7 @@ public class AsyncFunction extends Function<Object, Function<Object, Object>>
 	}
 	
 	@Override
+	@SafeVarargs
 	public final Object call(Function<Object, Object> ...arguments) 
 	{
 		if( arguments.length > 1 )
