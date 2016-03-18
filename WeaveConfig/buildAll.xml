@@ -127,7 +127,7 @@
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
                 <attribute name="Main-Class" value="weave.Updater"/>
-            	<attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar ../libs/jshortcut-0.4-oberzalek.jar"/>
+            	<attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar"/>
             </manifest>
             <fileset dir="WeaveConfig/bin/" />
         	<fileset dir="WeaveUpdater/bin/" />
@@ -162,7 +162,7 @@
             	<attribute name="Manifest-Version" value="1.0" />
             	<attribute name="Created-By" value="Institute for Visualization and Perception Research (IVPR)" />
                 <attribute name="Main-Class" value="weave.Server" />
-                <attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar ../libs/jshortcut-0.4-oberzalek.jar"/>
+                <attribute name="Class-Path" value=". ../libs/JTattoo-1.6.10.jar ../libs/JSON-java.jar"/>
             </manifest>
             <fileset dir="WeaveConfig/bin/" />
 			<fileset dir="WeaveInstaller/bin/" />
