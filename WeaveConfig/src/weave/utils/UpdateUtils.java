@@ -55,12 +55,10 @@ public class UpdateUtils extends Globals
 	{
 		entriesToCheck = new ArrayList<String>( Arrays.asList( 	RemoteUtils.WEAVE_UPDATER_VERSION,
 																RemoteUtils.WEAVE_SERVER_VERSION,
-																RemoteUtils.WEAVE_LAUNCHER_VERSION,
-																RemoteUtils.SHORTCUT_VER));
+																RemoteUtils.WEAVE_LAUNCHER_VERSION));
 		lookupEntries = new ArrayList<String>( Arrays.asList( 	Settings.UPDATER_VER,
 																Settings.SERVER_VER,
-																Settings.LAUNCHER_VER,
-																Settings.SHORTCUT_VER ));
+																Settings.LAUNCHER_VER));
 	}
 	
 	public static boolean isServerUpdateAvailable() 

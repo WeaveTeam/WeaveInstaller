@@ -53,7 +53,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import weave.core.Function;
-import weave.dll.DLLInterface;
 import weave.managers.ConfigManager;
 import weave.managers.TrayManager;
 import weave.reflect.Reflectable;
@@ -186,7 +185,6 @@ public class Settings extends Globals
 	public static boolean SETUP_COMPLETE				= false;
 	public static String UNIQUE_ID						= "";
 	public static String LAST_UPDATE_CHECK 				= "Never";
-	public static String SHORTCUT_VER					= "0";
 	public static int 	 RPC_PORT						= 3579;
 
 	public static enum INSTALL_ENUM						{ NIGHTLY, MILESTONE };
@@ -348,7 +346,6 @@ public class Settings extends Globals
 			SETTINGS_MAP.put("SETUP_COMPLETE", SETUP_COMPLETE);
 			SETTINGS_MAP.put("UNIQUE_ID", UNIQUE_ID);
 			SETTINGS_MAP.put("LAST_UPDATE_CHECK", LAST_UPDATE_CHECK);
-			SETTINGS_MAP.put("SHORTCUT_VER", SHORTCUT_VER);
 			SETTINGS_MAP.put("UPDATE_OVERRIDE", UPDATE_OVERRIDE);
 			SETTINGS_MAP.put("LAUNCH_MODE", LAUNCH_MODE);
 			SETTINGS_MAP.put("INSTALL_MODE", INSTALL_MODE);
@@ -398,7 +395,6 @@ public class Settings extends Globals
 			SETUP_COMPLETE = 		(Boolean)		ternary(SETTINGS_MAP.get("SETUP_COMPLETE"), 		SETUP_COMPLETE);
 			UNIQUE_ID = 			(String)		ternary(SETTINGS_MAP.get("UNIQUE_ID"), 				UNIQUE_ID);
 			LAST_UPDATE_CHECK = 	(String) 		ternary(SETTINGS_MAP.get("LAST_UPDATE_CHECK"), 		LAST_UPDATE_CHECK);
-			SHORTCUT_VER = 			(String)		ternary(SETTINGS_MAP.get("SHORTCUT_VER"), 			SHORTCUT_VER);
 			UPDATE_OVERRIDE	=		(Boolean)		ternary(SETTINGS_MAP.get("UPDATE_OVERRIDE"), 		UPDATE_OVERRIDE);
 			LAUNCH_MODE = 			(LAUNCH_ENUM)	ternary(SETTINGS_MAP.get("LAUNCH_MODE"), 			LAUNCH_MODE);
 			INSTALL_MODE = 			(INSTALL_ENUM)	ternary(SETTINGS_MAP.get("INSTALL_MODE"), 			INSTALL_MODE);
@@ -784,8 +780,6 @@ public class Settings extends Globals
 		{
 			RegistryUtils.deleteKey(RegistryUtils.HKEY_CURRENT_USER, "Software\\Classes\\weave", null);
 		}
-		
-		DLLInterface.refresh();
 	}
 	
 	@Reflectable 
@@ -824,8 +818,6 @@ public class Settings extends Globals
 					"Software\\Classes\\weavefile",
 					null);
 		}
-		
-		DLLInterface.refresh();
 	}
 
 	

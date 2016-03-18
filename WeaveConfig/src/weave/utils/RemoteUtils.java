@@ -50,8 +50,6 @@ public class RemoteUtils extends Globals
 	public static final String AWS_URL					= "AnalystURL";
 	public static final String AWS_VERSION				= "AnalystVersion";
 	
-	public static final String SHORTCUT_VER				= "WeaveShortcutVersion";
-	
 	private static long 	configTimestamp				= 0;
 	private static String[] configFile					= null;
 	
