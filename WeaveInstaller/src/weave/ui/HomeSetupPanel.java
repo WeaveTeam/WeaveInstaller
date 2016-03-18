@@ -145,7 +145,7 @@ public class HomeSetupPanel extends SetupPanel
 	
 	
 	// ============== Troubleshoot Tab ============== //
-	public String faqURL = "http://ivpr." + Settings.IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
+	public String faqURL = "http://" + Settings.IVPR_IWEAVE_HOST + "/faq.php?" + Calendar.getInstance().getTimeInMillis();
 	public JEditorPane troubleshootHTML;
 	public JScrollPane troubleshootScrollPane;
 
@@ -245,7 +245,7 @@ public class HomeSetupPanel extends SetupPanel
 				{
 					if( Settings.isOfflineMode() )
 					{
-						troubleshootHTML.setText("<br><center>FAQ is currently offline.</center>");
+						troubleshootHTML.setText("<br><center>You are currently in offline mode.</center>");
 					}
 					else
 					{
@@ -306,6 +306,7 @@ public class HomeSetupPanel extends SetupPanel
 	public Boolean switchToTab(Integer index)
 	{
 		try {
+			// this is a little hack to force the change listener to run
 			tabbedPane.setSelectedIndex(index == 0 ? 1 : 0);
 			tabbedPane.setSelectedIndex(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -967,7 +968,7 @@ public class HomeSetupPanel extends SetupPanel
 		aboutHTML.setContentType("text/html");
 		aboutHTML.setFont(new Font(Settings.FONT, Font.PLAIN, 10));
 		aboutHTML.setText(	"The Weave Server Assistant is a cross-platform utiliy designed to help " +
-							"users to install Weave and its components to your system with minimal effort. " +
+							"users install Weave and its components to your system with minimal effort. " +
 							"<br><br><br><br><br><br>" +
 							"Copyright &#169; Institute for Visualization and Perception Research<br>" +
 							"Visit: <a href='" + Settings.IWEAVE_URL + "'>" + Settings.IWEAVE_URL + "</a><br>");
@@ -998,7 +999,6 @@ public class HomeSetupPanel extends SetupPanel
 	}
 	
 	private Function<Object, Object> onDownloadCompleteCallback = new Function<Object, Object>() {
-		
 		@Override
 		public Object call(Object... args) {
 			System.gc();
