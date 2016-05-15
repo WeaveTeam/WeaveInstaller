@@ -109,7 +109,7 @@ public class Settings extends Globals
 	 * Weave Updater
 	 */
 	@Reflectable public static final String UPDATER_NAME		= PROJECT_NAME + " Updater";
-	@Reflectable public static final String UPDATER_VER			= "1.1.3 Beta";
+	@Reflectable public static final String UPDATER_VER			= "1.1.4 Beta";
 	@Reflectable public static final String UPDATER_TITLE		= UPDATER_NAME + " v" + UPDATER_VER;
 	@Reflectable public static final String UPDATER_JAR			= "Updater.jar";
 	@Reflectable public static final String UPDATER_NEW_JAR		= "Updater_new.jar";
