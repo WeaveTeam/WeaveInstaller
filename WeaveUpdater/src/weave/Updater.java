@@ -123,18 +123,6 @@ public class Updater extends JFrame
 			Settings.shutdown(JFrame.ERROR);
 		}
 		
-		/*
-		Class<?> clazz = Updater.class.getClass();
-		URL url = clazz.getResource("/");
-		String path = url.getPath();
-		File f = new File(path);
-		String message = "Launch?\n\n";
-		message += (f.getAbsolutePath() + "\n");
-		message += (Settings.BIN_DIRECTORY.getAbsolutePath() + "\n");
-		message += ("Same directory: " + (FileUtils.isSameDirectory(f, Settings.BIN_DIRECTORY) ? "True" : "False"));
-		
-		if( JOptionPane.showConfirmDialog(null, message, "Pick", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION )
-		 */
 		
 		// If the new launcher jar file exists in the proper directory
 		// just use this as a shortcut and launch that version instead
@@ -155,9 +143,9 @@ public class Updater extends JFrame
 		if( !Settings.isOfflineMode() && !RemoteUtils.isConnectedToInternet() )
 		{
 			if( JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, 
-					"It appears you have no connection to the internet.\n" +
+					"A connection to the Weave update server could not be established.\n\n" +
 					"Would you like to launch in offline mode?", 
-					"No Internet Access", 
+					"No Connection", 
 					JOptionPane.YES_NO_OPTION, 
 					JOptionPane.WARNING_MESSAGE ))
 			{
@@ -311,8 +299,8 @@ public class Updater extends JFrame
 		String urlStr = RemoteUtils.getConfigEntry(RemoteUtils.WEAVE_SERVER_UPDATES_URL);
 		if( urlStr == null ) {
 			JOptionPane.showConfirmDialog(null, 
-				"A connection to the internet could not be established.\n\n" +
-				"Please connect to the internet and try again.", 
+				"A connection to the Weave update server could not be established.\n\n" +
+				"Please wait and try again later.", 
 				"No Connection", 
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
 			Settings.shutdown(JFrame.NORMAL);
@@ -401,7 +389,7 @@ public class Updater extends JFrame
 				Object o = TransferUtils.FAILED;
 				try {
 					observer.init(url);
-					o = DownloadUtils.download(url, destination, observer, 500 * DownloadUtils.KB);
+					o = DownloadUtils.download(url, destination, observer, 2 * DownloadUtils.MB);
 				} catch (IOException e) {
 					trace(STDERR, e);
 					BugReportUtils.showBugReportDialog(e);

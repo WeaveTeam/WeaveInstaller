@@ -89,6 +89,7 @@ public class URLRequestUtils extends Globals
 			conn.setDoOutput(false);
 			conn.setUseCaches(false);
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 			conn.setRequestProperty("charset", "utf-8");
 			conn.setConnectTimeout(TIMEOUT);
 			conn.connect();
@@ -108,6 +109,7 @@ public class URLRequestUtils extends Globals
 			conn.setDoOutput(params != null);
 			conn.setUseCaches(false);
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 			conn.setRequestProperty("charset", "UTF-8");
 			conn.setConnectTimeout(TIMEOUT);
 			conn.connect();
